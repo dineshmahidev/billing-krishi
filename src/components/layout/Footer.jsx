@@ -5,7 +5,7 @@ export const Footer = () => (
   <footer className="bg-white border-t border-[#D1D5DB] mt-auto no-print">
     <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-6">
       <div>
-        <img src="/logo-krishi.png" alt="Krishi Analytical Lab" className="h-9 w-auto" />
+        <img src="/krishi-transparent.png" alt="Krishi Analytical Lab" className="h-10 w-auto" />
         <p className="text-xs text-[#6B7280] mt-2">“Discovering Solutions, One Test at a Time”</p>
         <p className="text-[11px] text-[#6B7280] mt-1">© {new Date().getFullYear()} Krishi Analytical Lab</p>
       </div>

@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api, { openPdf } from '../services/api';
-import { FilePlus, Search, Eye, Pencil, FileText, Printer } from 'lucide-react';
+import { FilePlus, Search, Eye, Pencil, FileText, Printer, CalendarClock, TrendingUp } from 'lucide-react';
 
 export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
   const [metrics, setMetrics] = useState({ total_reports:0, today_reports:0, month_reports:0 });
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetch = async () => {
+  const loadDashboard = async () => {
     setLoading(true);
     try {
       const res = await api.get('/dashboard');
@@ -16,7 +16,7 @@ export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
     } catch {} finally { setLoading(false); }
   };
 
-  useEffect(()=>{ fetch(); }, []);
+  useEffect(()=>{ loadDashboard(); }, []);
 
   return (
     <div className="space-y-6">
@@ -31,17 +31,29 @@ export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 rounded-2xl border border-[#D1D5DB] bg-white">
-          <p className="text-[11px] font-bold uppercase text-[#6B7280]">Total Reports</p>
-          <p className="text-2xl font-black text-[#1F2937] mt-1">{metrics.total_reports}</p>
+        <div className="p-5 rounded-2xl bg-[#168B57] text-white flex items-start justify-between shadow-[0_8px_20px_rgba(22,139,87,0.25)]">
+          <div>
+            <p className="text-[11px] font-bold uppercase text-white/80">Total Reports</p>
+            <p className="text-2xl font-black text-white mt-1">{metrics.total_reports}</p>
+            <p className="text-[11px] text-white/70 mt-0.5">All time</p>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white"><FileText className="w-5 h-5"/></div>
         </div>
-        <div className="p-5 rounded-2xl border border-[#D1D5DB] bg-white">
-          <p className="text-[11px] font-bold uppercase text-[#6B7280]">Today's Reports</p>
-          <p className="text-2xl font-black text-[#168B57] mt-1">{metrics.today_reports}</p>
+        <div className="p-5 rounded-2xl bg-sky-500 text-white flex items-start justify-between shadow-[0_8px_20px_rgba(14,165,233,0.25)]">
+          <div>
+            <p className="text-[11px] font-bold uppercase text-white/80">Today's Reports</p>
+            <p className="text-2xl font-black text-white mt-1">{metrics.today_reports}</p>
+            <p className="text-[11px] text-white/70 mt-0.5">Created now</p>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white"><CalendarClock className="w-5 h-5"/></div>
         </div>
-        <div className="p-5 rounded-2xl border border-[#D1D5DB] bg-white">
-          <p className="text-[11px] font-bold uppercase text-[#6B7280]">This Month</p>
-          <p className="text-2xl font-black text-[#0B6B43] mt-1">{metrics.month_reports}</p>
+        <div className="p-5 rounded-2xl bg-amber-500 text-white flex items-start justify-between shadow-[0_8px_20px_rgba(245,158,11,0.25)]">
+          <div>
+            <p className="text-[11px] font-bold uppercase text-white/80">This Month</p>
+            <p className="text-2xl font-black text-white mt-1">{metrics.month_reports}</p>
+            <p className="text-[11px] text-white/70 mt-0.5">Current billing month</p>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white"><TrendingUp className="w-5 h-5"/></div>
         </div>
       </div>
 

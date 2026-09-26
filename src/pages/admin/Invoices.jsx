@@ -531,7 +531,7 @@ const BulkSettlement = () => {
       ) : (
         <>
           <div className="bg-[#1F2937] border border-[#1F2937] rounded-2xl p-4 text-white flex flex-wrap gap-6 items-center">
-            <div><p className="text-[11px] text-white/70 font-bold">{data.scope==='group' ? 'Group' : 'Party'}</p><p className="text-sm font-bold">{data.group?.name || data.customer?.name}</p></div>
+            <div><p className="text-[11px] text-white/70 font-bold">{data.scope==='group' ? 'Group' : 'Party'}</p><p className="text-sm font-bold">{data.group?.name || data.customer?.company_name || data.customer?.name}</p></div>
             <div><p className="text-[11px] text-white/70 font-bold">Duration</p><p className="text-sm font-bold">{data.range.from} → {data.range.to}</p></div>
             <div><p className="text-[11px] text-white/70 font-bold">Reports</p><p className="text-sm font-bold">{data.report_count}</p></div>
             <div className="ml-auto flex items-center gap-3">

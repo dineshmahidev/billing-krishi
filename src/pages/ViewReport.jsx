@@ -109,9 +109,9 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
               <h3 className="text-sm font-bold text-[#0B6B43] flex items-center gap-2"><FileText className="w-4 h-4" /> Separate Invoice <span className="text-xs font-mono bg-white border border-[#D1D5DB] px-2 py-0.5 rounded">{invoice.invoice_no}</span></h3>
               <label className="flex items-center gap-2 text-xs font-bold"><input type="checkbox" checked={!!invoice.gst_enabled} onChange={toggleGst} /> GST {invoice.gst_enabled ? 'ON' : 'OFF'} ({invoice.gst_percent}%)</label>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-xs">
+            <div className={`grid gap-3 text-xs ${invoice.gst_enabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">Subtotal</p><p className="font-bold text-sm">₹{Number(invoice.subtotal).toFixed(2)}</p></div>
-              <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">GST {invoice.gst_enabled ? `(${invoice.gst_percent}%)` : '(off)'}</p><p className="font-bold text-sm">₹{Number(invoice.gst_amount).toFixed(2)}</p></div>
+              {invoice.gst_enabled && <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">GST ({invoice.gst_percent}%)</p><p className="font-bold text-sm">₹{Number(invoice.gst_amount).toFixed(2)}</p></div>}
               <div className="bg-[#0B6B43] text-white rounded-xl p-3 text-center"><p className="opacity-80 text-xs">Total</p><p className="font-bold text-sm">₹{Number(invoice.total_amount).toFixed(2)}</p></div>
             </div>
             <div className="flex gap-2">

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Droplets, FlaskConical, Beaker, Wheat, Leaf, CheckCircle, Clock, ShieldCheck, FileText, Lock, Printer, Menu, X, Phone, Mail, MapPin, Award, Zap, Settings2, TestTube, Sparkles, User, ClipboardList, FileCheck, FileDown, Download, Search, ArrowRight } from 'lucide-react';
-import api, { openReportByNo, downloadReportByNo } from '../services/api';
+import { Droplets, FlaskConical, Beaker, Wheat, Leaf, CheckCircle, Clock, ShieldCheck, FileText, Lock, Printer, Menu, X, Phone, Mail, MapPin, Award, Zap, Settings2, TestTube, Sparkles, User, ClipboardList, FileCheck, FileDown, ArrowRight } from 'lucide-react';
+import api from '../services/api';
 
 const Reveal = ({ children, delay = 0 }) => {
   const ref = useRef(null);
@@ -16,47 +16,48 @@ const Reveal = ({ children, delay = 0 }) => {
 export const Landing = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cms, setCms] = useState(null);
-  const [reportNo, setReportNo] = useState('');
-  const [reportBusy, setReportBusy] = useState(false);
-  const [reportMsg, setReportMsg] = useState('');
   useEffect(() => {
     api.get('/cms/landing').then(r => setCms(r.data)).catch(()=>{});
   }, []);
 
-  const lookupReport = async () => {
-    const no = reportNo.trim();
-    if (!no) { setReportMsg('Enter report number'); return; }
-    setReportBusy(true);
-    setReportMsg('');
+  const emptySample = { name:'', phone:'', email:'', sample_type:'', message:'' };
+  const emptyContact = { name:'', phone:'', email:'', message:'' };
+  const [sample, setSample] = useState(emptySample);
+  const [contact, setContact] = useState(emptyContact);
+  const [sampleBusy, setSampleBusy] = useState(false);
+  const [contactBusy, setContactBusy] = useState(false);
+  const [sampleMsg, setSampleMsg] = useState({ type:'', text:'' });
+  const [contactMsg, setContactMsg] = useState({ type:'', text:'' });
+
+  const submitSample = async (e) => {
+    e.preventDefault();
+    if (!sample.name.trim() || !sample.phone.trim()) { setSampleMsg({ type:'error', text:'Name and phone are required' }); return; }
+    setSampleBusy(true); setSampleMsg({ type:'', text:'' });
     try {
-      const r = await api.get(`/reports/by-no/${encodeURIComponent(no)}`);
-      setReportMsg(`Found ${r.data.report_no}`);
-      openReportByNo(r.data.report_no);
-    } catch (e) {
-      setReportMsg(e.response?.status === 404 ? 'Report not found' : 'Failed — try again');
-    } finally {
-      setReportBusy(false);
-    }
+      const r = await api.post('/enquiries', { ...sample, type:'sample', sample_type: sample.sample_type || null, email: sample.email || null, message: sample.message || null });
+      setSample(emptySample);
+      setSampleMsg({ type:'ok', text:`Submitted! Reference ${r.data.ref} — we'll call you back shortly.` });
+    } catch (err) {
+      setSampleMsg({ type:'error', text: err.response?.data?.message || 'Failed — please try again' });
+    } finally { setSampleBusy(false); }
   };
 
-  const downloadSoftcopy = async () => {
-    const no = reportNo.trim();
-    if (!no) { setReportMsg('Enter report number'); return; }
-    setReportBusy(true);
-    setReportMsg('');
+  const submitContact = async (e) => {
+    e.preventDefault();
+    if (!contact.name.trim() || !contact.phone.trim()) { setContactMsg({ type:'error', text:'Name and phone are required' }); return; }
+    setContactBusy(true); setContactMsg({ type:'', text:'' });
     try {
-      const r = await api.get(`/reports/by-no/${encodeURIComponent(no)}`);
-      downloadReportByNo(r.data.report_no);
-      setReportMsg(`Downloading ${r.data.report_no}...`);
-    } catch (e) {
-      setReportMsg(e.response?.status === 404 ? 'Report not found' : 'Failed — try again');
-    } finally {
-      setReportBusy(false);
-    }
+      const r = await api.post('/enquiries', { ...contact, type:'enquiry', message: contact.message || null });
+      setContact(emptyContact);
+      setContactMsg({ type:'ok', text:`Sent! Reference ${r.data.ref} — check your inbox for the acknowledgement.` });
+    } catch (err) {
+      setContactMsg({ type:'error', text: err.response?.data?.message || 'Failed — please try again' });
+    } finally { setContactBusy(false); }
   };
+
   const heroTitle = cms?.hero_title || 'Accurate Lab Reports. Delivered Fast.';
   const heroDesc = cms?.hero_desc || 'Professional Certificate of Analysis for Water, Oil, Ghee, Animal Feed & Rice Bran. Trusted by industries across Tamil Nadu for precise, reliable testing.';
-  const heroBadge = cms?.hero_badge || 'NABL-Standard Laboratory • Kangeyam';
+  const heroBadge = cms?.hero_badge || '';
   const aboutTitle = cms?.about_title || 'About Krishi Analytical Lab';
   const aboutDesc = cms?.about_desc || 'We are a dedicated analytical laboratory based in Kangeyam, Tiruppur District. We specialize in Certificate of Analysis (COA) for agro and food products. Our mission is to provide quick, accurate, and affordable testing with a clean, professional report system built for non-technical staff.';
   const contactPhone = cms?.contact_phone || '+91 63793 12357';
@@ -173,9 +174,11 @@ export const Landing = () => {
           <Reveal>
             <div className="max-w-3xl space-y-5">
               {/* Badge */}
-              <div className="inline-flex items-center gap-2 border border-white/40 bg-white/10 backdrop-blur-sm text-white text-[11px] font-bold px-4 py-1.5 rounded-full">
-                <ShieldCheck className="w-3.5 h-3.5" /> {heroBadge}
-              </div>
+              {heroBadge && (
+                <div className="inline-flex items-center gap-2 border border-white/40 bg-white/10 backdrop-blur-sm text-white text-[11px] font-bold px-4 py-1.5 rounded-full">
+                  <ShieldCheck className="w-3.5 h-3.5" /> {heroBadge}
+                </div>
+              )}
               {/* Title */}
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold leading-tight text-white drop-shadow-[0_2px_12px_rgba(0,0,0,0.25)]">{heroTitle}</h1>
               <p className="text-base sm:text-lg font-bold text-white/95">Precise testing. Clear reports. Confident decisions.</p>
@@ -185,29 +188,6 @@ export const Landing = () => {
                 <a href="#services" className="bg-white hover:bg-[#EAF7F0] text-[#0B6B43] px-6 py-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.2)]">Explore Testing <ArrowRight className="w-4 h-4" /></a>
             <a href="/demo" className="border border-white/60 hover:bg-white/10 text-white px-6 py-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.15)]"><FlaskConical className="w-4 h-4" /> Live Demo</a>
                 <a href={`tel:${contactPhone.replace(/[^+\d]/g,'')}`} className="border border-white/60 hover:bg-white/10 text-white px-6 py-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"><Phone className="w-4 h-4" /> Call the Lab</a>
-              </div>
-              {/* Report search - form styled as search */}
-              <div className="pt-2 max-w-xl">
-                <div className="flex items-center gap-2 bg-white rounded-full p-1.5 pl-4 shadow-[0_16px_40px_rgba(0,0,0,0.22)] border border-white/70">
-                  <Search className="w-4 h-4 text-[#168B57] shrink-0" />
-                  <input
-                    value={reportNo}
-                    onChange={e => setReportNo(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') lookupReport(); }}
-                    placeholder="Search report no. e.g. KAL-4421"
-                    className="flex-1 min-w-0 bg-transparent text-xs font-mono font-bold text-[#1F2937] outline-none py-2"
-                  />
-                  <button onClick={lookupReport} disabled={reportBusy} className="bg-[#168B57] hover:bg-[#0B6B43] disabled:opacity-60 text-white text-xs font-bold px-4 py-2.5 rounded-full flex items-center gap-1.5 transition-colors shrink-0">
-                    <FileText className="w-3.5 h-3.5" /> View
-                  </button>
-                  <button onClick={downloadSoftcopy} disabled={reportBusy} className="bg-white border border-[#168B57] text-[#0B6B43] hover:bg-[#EAF7F0] disabled:opacity-60 text-xs font-bold px-4 py-2.5 rounded-full flex items-center gap-1.5 transition-colors shrink-0">
-                    <Download className="w-3.5 h-3.5" /> PDF
-                  </button>
-                </div>
-                {reportMsg && (
-                  <p className={`mt-2 text-[11px] font-semibold ${reportMsg.includes('not found') || reportMsg.includes('Failed') || reportMsg.includes('Enter') ? 'text-red-200' : 'text-white'}`}>{reportMsg}</p>
-                )}
-                <p className="mt-2 text-[11px] text-white/70">Softcopy from lab server • A4 PDF • Verified &amp; sealed</p>
               </div>
               {/* Feature checklist */}
               <div className="flex flex-wrap gap-x-6 gap-y-2 pt-2 text-xs font-semibold text-white/90">
@@ -238,17 +218,20 @@ export const Landing = () => {
                 </div>
                 <span className="hidden sm:flex items-center gap-1.5 text-[11px] font-bold text-[#0B6B43] bg-[#EAF7F0] px-3 py-1 rounded-full"><span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" /> Live Lab Form</span>
               </div>
-              <form className="grid sm:grid-cols-2 lg:grid-cols-5 gap-3" onSubmit={e=>e.preventDefault()}>
+              <form className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3" onSubmit={submitSample}>
                 <div className="relative group">
-                  <input placeholder="Your Name" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57] focus:border-[#168B57] transition-all group-hover:border-[#168B57]/40" />
+                  <input required value={sample.name} onChange={e=>setSample({...sample, name:e.target.value})} placeholder="Your Name" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57] focus:border-[#168B57] transition-all group-hover:border-[#168B57]/40" />
                   <span className="absolute -top-2 left-3 bg-white px-1 text-[10px] font-bold text-[#168B57] opacity-0 group-focus-within:opacity-100 transition-opacity">Name</span>
                 </div>
                 <div className="relative group">
-                  <input placeholder="Phone Number" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57] transition-all" />
+                  <input required value={sample.phone} onChange={e=>setSample({...sample, phone:e.target.value})} placeholder="Phone Number" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57] transition-all" />
                 </div>
                 <div className="relative group">
-                  <select className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#168B57]">
-                    <option>Select Sample Type</option>
+                  <input type="email" value={sample.email} onChange={e=>setSample({...sample, email:e.target.value})} placeholder="Email (optional — for auto reply)" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
+                </div>
+                <div className="relative group">
+                  <select value={sample.sample_type} onChange={e=>setSample({...sample, sample_type:e.target.value})} className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#168B57]">
+                    <option value="">Select Sample Type</option>
                     <option>Water</option>
                     <option>Oil</option>
                     <option>Ghee</option>
@@ -257,11 +240,12 @@ export const Landing = () => {
                   </select>
                 </div>
                 <div className="relative group">
-                  <input placeholder="Message (optional)" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
+                  <input value={sample.message} onChange={e=>setSample({...sample, message:e.target.value})} placeholder="Message (optional)" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
                 </div>
-                <button className="bg-[#168B57] hover:bg-[#0B6B43] text-white rounded-xl px-6 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0">
-                  Submit <Sparkles className="w-4 h-4" />
+                <button disabled={sampleBusy} className="bg-[#168B57] hover:bg-[#0B6B43] text-white rounded-xl px-6 py-2.5 text-xs font-bold flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60">
+                  {sampleBusy ? 'Submitting...' : <>Submit <Sparkles className="w-4 h-4" /></>}
                 </button>
+                {sampleMsg.text && <p className={`sm:col-span-2 lg:col-span-3 text-[11px] font-bold ${sampleMsg.type==='ok' ? 'text-[#0B6B43]' : 'text-red-600'}`}>{sampleMsg.text}</p>}
               </form>
               <div className="flex gap-2 mt-3">
                 <span className="w-6 h-1 bg-[#168B57] rounded-full" />
@@ -411,7 +395,7 @@ export const Landing = () => {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
           {[
             { t: 'Fast Turnaround', d: 'Reports in 24 hours', i: Zap },
-            { t: 'NABL-Style Accuracy', d: 'Calibrated instruments', i: ShieldCheck },
+            { t: 'Precision Accuracy', d: 'Calibrated instruments', i: ShieldCheck },
             { t: 'Professional A4 PDF', d: 'Header/footer repeats, seal & signature', i: FileText },
             { t: 'Secure & Private', d: 'Role-based Admin/Staff', i: Lock },
             { t: 'Configurable', d: 'Admin can edit parameters', i: Settings2 },
@@ -488,12 +472,13 @@ export const Landing = () => {
           </div>
         </Reveal>
         <Reveal delay={120}>
-          <form className="bg-white border border-[#D1D5DB] rounded-2xl p-6 space-y-3 shadow-sm" onSubmit={e=>e.preventDefault()}>
-            <input placeholder="Name" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
-            <input placeholder="Phone" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
-            <input placeholder="Email" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
-            <textarea placeholder="Message" rows={4} className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
-            <button className="w-full bg-[#168B57] hover:bg-[#0B6B43] text-white py-3 rounded-xl font-bold text-xs transition-colors">Send Enquiry</button>
+          <form className="bg-white border border-[#D1D5DB] rounded-2xl p-6 space-y-3 shadow-sm" onSubmit={submitContact}>
+            <input required value={contact.name} onChange={e=>setContact({...contact, name:e.target.value})} placeholder="Name" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
+            <input required value={contact.phone} onChange={e=>setContact({...contact, phone:e.target.value})} placeholder="Phone" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
+            <input type="email" value={contact.email} onChange={e=>setContact({...contact, email:e.target.value})} placeholder="Email (optional — for auto reply)" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
+            <textarea value={contact.message} onChange={e=>setContact({...contact, message:e.target.value})} placeholder="Message" rows={4} className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]" />
+            <button disabled={contactBusy} className="w-full bg-[#168B57] hover:bg-[#0B6B43] text-white py-3 rounded-xl font-bold text-xs transition-colors disabled:opacity-60">{contactBusy ? 'Sending...' : 'Send Enquiry'}</button>
+            {contactMsg.text && <p className={`text-[11px] font-bold text-center ${contactMsg.type==='ok' ? 'text-[#0B6B43]' : 'text-red-600'}`}>{contactMsg.text}</p>}
           </form>
         </Reveal>
       </section>

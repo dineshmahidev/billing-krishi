@@ -32,6 +32,16 @@ export const Parameters = () => {
     try { await api.put(`/parameters/${p.id}`, { active: !p.active }); loadParams(); } catch {}
   };
 
+  const remove = async (p) => {
+    if (!window.confirm(`Remove "${p.name}" from this type?\n\nOld reports keep their row — it just won't appear for new reports.`)) return;
+    try {
+      const r = await api.delete(`/parameters/${p.id}`);
+      addToast(r.data?.message || 'Removed');
+      if (editing === p.id) { setEditing(null); setForm({ name:'', unit:'', specification:'', price:'', hsn_code:'', display_order:'', active:true }); }
+      loadParams();
+    } catch(err){ addToast(err.response?.data?.message || 'Delete failed', 'error'); }
+  };
+
   return (
     <div className="space-y-4 max-w-4xl">
       <h1 className="text-xl font-bold text-[#1F2937]">Parameters</h1>
@@ -76,6 +86,7 @@ export const Parameters = () => {
                     <td className="py-2 px-3 text-right flex items-center justify-end gap-1">
                       <button onClick={()=>{setEditing(p.id); setForm({name:p.name, unit:p.unit||'', specification:p.specification||'', price:p.price||'', hsn_code:p.hsn_code||'', display_order:p.display_order, active:p.active});}} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">Edit</button>
                       <button onClick={()=>toggle(p)} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">{p.active?'Disable':'Enable'}</button>
+                      <button onClick={()=>remove(p)} className="px-2 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">Delete</button>
                     </td>
                   </tr>
                 ))}

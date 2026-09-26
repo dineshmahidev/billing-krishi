@@ -115,9 +115,9 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         {invoice && (
           <div className="border-2 border-[#168B57]/30 rounded-2xl p-4 bg-[#EAF7F0]/30 space-y-3">
             <h3 className="text-xs font-bold text-[#0B6B43]">Invoice — {invoice.invoice_no} (editable, empty selectable)</h3>
-            <div className="grid grid-cols-3 gap-3 text-xs">
+            <div className={`grid gap-3 text-xs ${invoice.gst_enabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">Subtotal</p><p className="font-bold">₹{Number(invoice.subtotal).toFixed(2)}</p></div>
-              <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">GST {invoice.gst_enabled?`(${invoice.gst_percent}%)`:'(off)'}</p><p className="font-bold">₹{Number(invoice.gst_amount).toFixed(2)}</p></div>
+              {invoice.gst_enabled && <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">GST ({invoice.gst_percent}%)</p><p className="font-bold">₹{Number(invoice.gst_amount).toFixed(2)}</p></div>}
               <div className="bg-[#0B6B43] text-white rounded-xl p-3 text-center"><p className="opacity-80">Total</p><p className="font-bold">₹{Number(invoice.total_amount).toFixed(2)}</p></div>
             </div>
             <label className="flex items-center gap-2 text-xs font-bold"><input type="checkbox" checked={!!invoice.gst_enabled} onChange={async e=>{ try{ const r=await api.put(`/reports/${reportId}/invoice/gst`, {gst_enabled:e.target.checked}); setInvoice(r.data); }catch{}}} /> GST Enabled — toggle on/off, empty field again selectable</label>

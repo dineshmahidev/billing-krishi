@@ -23,6 +23,16 @@ export const ReportTypes = () => {
     } catch(err){ addToast(err.response?.data?.message||'Failed','error'); }
   };
 
+  const remove = async (t) => {
+    if (!window.confirm(`Delete report type "${t.name}"?\n\nIts parameters are removed with it. Types with existing reports cannot be deleted.`)) return;
+    try {
+      const r = await api.delete(`/report-types/${t.id}`);
+      addToast(r.data?.message || 'Deleted');
+      if (editing === t.id) { setEditing(null); setForm({ name:'', title:'', active:true, show_specification:true, custom_columns:[] }); }
+      loadTypes();
+    } catch(err){ addToast(err.response?.data?.message || 'Delete failed', 'error'); }
+  };
+
   return (
     <div className="space-y-4 max-w-3xl">
       <h1 className="text-xl font-bold text-[#1F2937]">Report Types</h1>
@@ -63,7 +73,12 @@ export const ReportTypes = () => {
                 <td className="py-2 px-4">{t.show_specification ? 'Shown' : 'Hidden'}</td>
                 <td className="py-2 px-4">{(t.custom_columns||[]).join(', ') || '-'}</td>
                 <td className="py-2 px-4">{t.active ? 'Yes':'No'}</td>
-                <td className="py-2 px-4 text-right"><button onClick={()=>{setEditing(t.id); setForm({name:t.name, title:t.title, active:t.active, show_specification: t.show_specification ?? true, custom_columns: t.custom_columns||[]});}} className="px-3 py-1 rounded-lg border border-[#D1D5DB] text-xs font-bold">Edit</button></td>
+                <td className="py-2 px-4 text-right">
+                  <div className="flex gap-1 justify-end">
+                    <button onClick={()=>{setEditing(t.id); setForm({name:t.name, title:t.title, active:t.active, show_specification: t.show_specification ?? true, custom_columns: t.custom_columns||[]});}} className="px-3 py-1 rounded-lg border border-[#D1D5DB] text-xs font-bold">Edit</button>
+                    <button onClick={()=>remove(t)} className="px-3 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">Delete</button>
+                  </div>
+                </td>
               </tr>
             ))}
           </tbody>

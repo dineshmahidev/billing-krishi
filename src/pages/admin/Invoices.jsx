@@ -171,7 +171,7 @@ export const Invoices = () => {
                   <td className="py-2 px-3">{inv.report?.report_type?.name || '-'}</td>
                   <td className="py-2 px-3">{inv.created_at?.split('T')[0]}</td>
                   <td className="py-2 px-3 text-right">₹{Number(inv.subtotal).toFixed(2)}</td>
-                  <td className="py-2 px-3 text-right">₹{Number(inv.gst_amount).toFixed(2)} {inv.gst_enabled?`(${inv.gst_percent}%)`: '(off)'}</td>
+                  <td className="py-2 px-3 text-right">{inv.gst_enabled ? <>₹{Number(inv.gst_amount).toFixed(2)} ({inv.gst_percent}%)</> : '—'}</td>
                   <td className="py-2 px-3 text-right font-bold">₹{Number(inv.total_amount).toFixed(2)}</td>
                   <td className="py-2 px-3">
                       <button onClick={()=>toggleStatus(inv)} className={`px-2 py-1 rounded-full text-[11px] font-bold text-white ${inv.status==='paid' ? 'bg-emerald-500' : inv.status==='partial' ? 'bg-sky-500' : 'bg-amber-500'}`}>
@@ -227,7 +227,7 @@ export const Invoices = () => {
                       {editItems.map((it, idx)=>(
                         <tr key={it.parameter_id ?? idx} className="hover:bg-[#EAF7F0]/30">
                           <td className="py-2 px-3 text-[#6B7280]">{idx+1}</td>
-                          <td className="py-2 px-3 font-bold">{it.name} {it.unit ? <span className="text-[#6B7280] font-normal">({it.unit})</span> : null}</td>
+                          <td className="py-2 px-3 font-bold">{it.name}</td>
                           <td className="py-2 px-3 text-right">
                             <input type="number" min="0" step="0.01" value={it.rate} onChange={e=>setItem(idx,'rate',e.target.value)} className="w-24 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
                           </td>
@@ -248,7 +248,7 @@ export const Invoices = () => {
                   </div>
                   <div className="w-full sm:w-72 border border-[#D1D5DB] rounded-xl overflow-hidden text-xs">
                     <div className="flex justify-between px-3 py-2 border-b border-[#D1D5DB]"><span className="text-[#6B7280] font-bold">Subtotal</span><span className="font-bold">₹{liveSub.toFixed(2)}</span></div>
-                    <div className="flex justify-between px-3 py-2 border-b border-[#D1D5DB]"><span className="text-[#6B7280] font-bold">GST {editInv.gst_enabled ? `(${editInv.gst_percent}%)` : '(off)'}</span><span className="font-bold">₹{liveGst.toFixed(2)}</span></div>
+                    {editInv.gst_enabled && <div className="flex justify-between px-3 py-2 border-b border-[#D1D5DB]"><span className="text-[#6B7280] font-bold">GST ({editInv.gst_percent}%)</span><span className="font-bold">₹{liveGst.toFixed(2)}</span></div>}
                     <div className="flex justify-between px-3 py-2 bg-[#0B6B43] text-white font-bold"><span>Total</span><span>₹{(liveSub+liveGst).toFixed(2)}</span></div>
                   </div>
                 </div>

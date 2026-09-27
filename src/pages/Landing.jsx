@@ -64,7 +64,20 @@ export const Landing = () => {
   const contactEmail = cms?.contact_email || 'krishianalyticallab@gmail.com';
   const contactAddress = cms?.contact_address || '182-B, Reliance Trends Near, Tiruppur Road, Kangeyam - 638701';
   const contactHours = cms?.contact_hours || 'Mon - Sat: 9am - 6pm';
-  const mapEmbedUrl = cms?.map_embed_url || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3916.3589961733287!2d77.5525126!3d11.0116687!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba9a180a88cb8a7%3A0xba96d3fb508d6259!2sKrishi%20Analytical%20Lab!5e0!3m2!1sen!2sin!4v1790512063225!5m2!1sen!2sin";
+  const defaultEmbed = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3916.3589961733287!2d77.5525126!3d11.0116687!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba9a180a88cb8a7%3A0xba96d3fb508d6259!2sKrishi%20Analytical%20Lab!5e0!3m2!1sen!2sin!4v1790512063225!5m2!1sen!2sin";
+  const rawMap = cms?.map_embed_url;
+  const mapEmbedUrl = (() => {
+    if (!rawMap || typeof rawMap !== 'string' || !rawMap.trim()) return defaultEmbed;
+    const s = rawMap.trim();
+    if (s.includes('<iframe')) {
+      const match = s.match(/src=["']([^"']+)["']/i);
+      if (match && match[1]) return match[1];
+    }
+    if (s.includes('maps.app.goo.gl')) return defaultEmbed;
+    if (s.startsWith('http://') || s.startsWith('https://')) return s;
+    return defaultEmbed;
+  })();
+  const directMapUrl = "https://maps.app.goo.gl/ESrzRfHUkver8HTj7";
   const apiOrigin = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
   const heroImg = cms?.hero_image ? `${apiOrigin}/${cms.hero_image}` : '/hero-lab.jpg';
   const aboutImg = cms?.about_image ? `${apiOrigin}/${cms.about_image}` : '/about-glasswater.jpg';
@@ -465,15 +478,31 @@ export const Landing = () => {
               <p className="flex gap-2"><Mail className="w-4 h-4 text-[#168B57]" />{contactEmail}</p>
               <p className="flex gap-2"><Clock className="w-4 h-4 text-[#168B57]" />{contactHours}</p>
             </div>
-            <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden shadow-sm h-64 sm:h-72 relative">
-              <iframe
-                src={mapEmbedUrl}
-                title="Krishi Analytical Lab Location Map"
-                className="w-full h-full border-0"
-                allowFullScreen=""
-                loading="lazy"
-                referrerPolicy="strict-origin-when-cross-origin"
-              />
+            <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden shadow-sm">
+              <div className="h-60 sm:h-64 w-full relative">
+                <iframe
+                  src={mapEmbedUrl}
+                  title="Krishi Analytical Lab Location Map"
+                  className="w-full h-full border-0"
+                  allowFullScreen=""
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              <div className="p-3 bg-[#F9FAFB] border-t border-[#D1D5DB] flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <MapPin className="w-4 h-4 text-[#168B57] shrink-0" />
+                  <span className="text-xs font-bold truncate text-[#1F2937]">Krishi Analytical Lab • Kangeyam</span>
+                </div>
+                <a
+                  href={directMapUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 bg-[#168B57] hover:bg-[#0B6B43] text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm shrink-0"
+                >
+                  Get Directions <ArrowRight className="w-3.5 h-3.5" />
+                </a>
+              </div>
             </div>
           </div>
         </Reveal>

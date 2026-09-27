@@ -22,7 +22,7 @@ export const Cms = () => {
     setSaving(true);
     try {
       const fd = new FormData();
-      ['hero_badge','hero_title','hero_desc','stat1_value','stat1_label','stat2_value','stat2_label','stat3_value','stat3_label','stat4_value','stat4_label','about_title','about_desc','contact_phone','contact_email','contact_address','contact_hours'].forEach(k => {
+      ['hero_badge','hero_title','hero_desc','stat1_value','stat1_label','stat2_value','stat2_label','stat3_value','stat3_label','stat4_value','stat4_label','about_title','about_desc','contact_phone','contact_email','contact_address','contact_hours','map_embed_url'].forEach(k => {
         if (form[k] != null) fd.append(k, form[k]);
       });
       if (heroFile) fd.append('hero_image', heroFile);
@@ -110,11 +110,15 @@ export const Cms = () => {
 
         {/* Contact */}
         <div className="space-y-3">
-          <p className="text-xs font-bold">Contact Section</p>
+          <p className="text-xs font-bold">Contact Section &amp; Map Location</p>
           <input value={form.contact_phone||''} onChange={e=>update('contact_phone',e.target.value)} placeholder="Phone" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2 text-xs" />
           <input value={form.contact_email||''} onChange={e=>update('contact_email',e.target.value)} placeholder="Email" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2 text-xs" />
           <textarea value={form.contact_address||''} onChange={e=>update('contact_address',e.target.value)} rows={2} placeholder="Address" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2 text-xs" />
           <input value={form.contact_hours||''} onChange={e=>update('contact_hours',e.target.value)} placeholder="Hours e.g. Mon - Sat: 9am - 6pm" className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2 text-xs" />
+          <div>
+            <label className="text-xs font-bold text-[#0B6B43]">Google Maps Embed URL / iFrame src</label>
+            <input value={form.map_embed_url||''} onChange={e=>update('map_embed_url',e.target.value)} placeholder="https://www.google.com/maps/embed?..." className="w-full border border-[#D1D5DB] rounded-xl px-3 py-2 text-xs mt-1 font-mono text-[11px]" />
+          </div>
         </div>
 
         <button disabled={saving} className="w-full bg-[#168B57] hover:bg-[#0B6B43] text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2">

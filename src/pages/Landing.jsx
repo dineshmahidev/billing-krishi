@@ -64,6 +64,7 @@ export const Landing = () => {
   const contactEmail = cms?.contact_email || 'krishianalyticallab@gmail.com';
   const contactAddress = cms?.contact_address || '182-B, Reliance Trends Near, Tiruppur Road, Kangeyam - 638701';
   const contactHours = cms?.contact_hours || 'Mon - Sat: 9am - 6pm';
+  const mapEmbedUrl = cms?.map_embed_url || "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3916.3589961733287!2d77.5525126!3d11.0116687!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba9a180a88cb8a7%3A0xba96d3fb508d6259!2sKrishi%20Analytical%20Lab!5e0!3m2!1sen!2sin!4v1790512063225!5m2!1sen!2sin";
   const apiOrigin = (import.meta.env.VITE_API_URL || 'http://localhost:8000/api').replace(/\/api\/?$/, '');
   const heroImg = cms?.hero_image ? `${apiOrigin}/${cms.hero_image}` : '/hero-lab.jpg';
   const aboutImg = cms?.about_image ? `${apiOrigin}/${cms.about_image}` : '/about-glasswater.jpg';
@@ -464,9 +465,15 @@ export const Landing = () => {
               <p className="flex gap-2"><Mail className="w-4 h-4 text-[#168B57]" />{contactEmail}</p>
               <p className="flex gap-2"><Clock className="w-4 h-4 text-[#168B57]" />{contactHours}</p>
             </div>
-            <div className="bg-[#F9FAFB] border border-[#D1D5DB] rounded-2xl h-32 flex items-center justify-center text-xs text-[#6B7280] relative overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-[#EAF7F0] to-white opacity-50" />
-              <span className="relative">Map — Kangeyam Tiruppur Road</span>
+            <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden shadow-sm h-64 sm:h-72 relative">
+              <iframe
+                src={mapEmbedUrl}
+                title="Krishi Analytical Lab Location Map"
+                className="w-full h-full border-0"
+                allowFullScreen=""
+                loading="lazy"
+                referrerPolicy="strict-origin-when-cross-origin"
+              />
             </div>
           </div>
         </Reveal>

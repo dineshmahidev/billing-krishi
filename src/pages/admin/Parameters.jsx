@@ -7,7 +7,7 @@ export const Parameters = () => {
   const [types, setTypes] = useState([]);
   const [selected, setSelected] = useState('');
   const [list, setList] = useState([]);
-  const [form, setForm] = useState({ name:'', unit:'', specification:'', price:'', hsn_code:'', display_order:'', active:true });
+  const [form, setForm] = useState({ name:'', short_code:'', unit:'', specification:'', price:'', hsn_code:'', display_order:'', active:true });
   const [editing, setEditing] = useState(null);
 
   useEffect(()=>{ api.get('/report-types').then(r=>setTypes(r.data)).catch(()=>{}); }, []);
@@ -24,7 +24,7 @@ export const Parameters = () => {
       if (editing) await api.put(`/parameters/${editing}`, payload);
       else await api.post('/parameters', payload);
       addToast(editing?'Updated':'Created');
-      setForm({ name:'', unit:'', specification:'', price:'', hsn_code:'', display_order:'', active:true }); setEditing(null); loadParams();
+      setForm({ name:'', short_code:'', unit:'', specification:'', price:'', hsn_code:'', display_order:'', active:true }); setEditing(null); loadParams();
     } catch(err){ addToast(err.response?.data?.message||'Failed','error'); }
   };
 
@@ -37,7 +37,7 @@ export const Parameters = () => {
     try {
       const r = await api.delete(`/parameters/${p.id}`);
       addToast(r.data?.message || 'Removed');
-      if (editing === p.id) { setEditing(null); setForm({ name:'', unit:'', specification:'', price:'', hsn_code:'', display_order:'', active:true }); }
+      if (editing === p.id) { setEditing(null); setForm({ name:'', short_code:'', unit:'', specification:'', price:'', hsn_code:'', display_order:'', active:true }); }
       loadParams();
     } catch(err){ addToast(err.response?.data?.message || 'Delete failed', 'error'); }
   };
@@ -56,7 +56,8 @@ export const Parameters = () => {
       {selected && (
         <>
           <form onSubmit={submit} className="bg-white border border-[#D1D5DB] rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input required placeholder="Parameter Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+            <input required placeholder="Parameter Name (e.g. Oil Content)" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+            <input placeholder="Short Code / Initials (e.g. OC, FFA, SS — auto if blank)" value={form.short_code} onChange={e=>setForm({...form, short_code:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
             <input placeholder="Unit (e.g. %, mg/l)" value={form.unit} onChange={e=>setForm({...form, unit:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
             <input placeholder="Specification (e.g. 0.50 % Max)" value={form.specification} onChange={e=>setForm({...form, specification:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
             <input type="number" step="0.01" placeholder="Price ₹ (test cost)" value={form.price} onChange={e=>setForm({...form, price:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
@@ -65,18 +66,19 @@ export const Parameters = () => {
             <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.active} onChange={e=>setForm({...form, active:e.target.checked})} /> Active</label>
             <div className="sm:col-span-2 flex gap-2">
               <button type="submit" className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs">{editing?'Update':'Add Parameter'}</button>
-              {editing && <button type="button" onClick={()=>{setEditing(null); setForm({name:'',unit:'',specification:'',price:'',hsn_code:'',display_order:'',active:true});}} className="px-3 py-2 rounded-xl border border-[#D1D5DB] text-xs">Cancel</button>}
+              {editing && <button type="button" onClick={()=>{setEditing(null); setForm({name:'',short_code:'',unit:'',specification:'',price:'',hsn_code:'',display_order:'',active:true});}} className="px-3 py-2 rounded-xl border border-[#D1D5DB] text-xs">Cancel</button>}
             </div>
           </form>
 
           <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]"><th className="py-2 px-3">#</th><th className="py-2 px-3">Name</th><th className="py-2 px-3">Unit</th><th className="py-2 px-3">Specification</th><th className="py-2 px-3">Price</th><th className="py-2 px-3">HSN</th><th className="py-2 px-3">Order</th><th className="py-2 px-3">Active</th><th className="py-2 px-3 text-right">Actions</th></tr></thead>
+              <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]"><th className="py-2 px-3">#</th><th className="py-2 px-3">Name</th><th className="py-2 px-3">Short Code</th><th className="py-2 px-3">Unit</th><th className="py-2 px-3">Specification</th><th className="py-2 px-3">Price</th><th className="py-2 px-3">HSN</th><th className="py-2 px-3">Order</th><th className="py-2 px-3">Active</th><th className="py-2 px-3 text-right">Actions</th></tr></thead>
               <tbody className="divide-y divide-[#D1D5DB]/60">
                 {list.map(p=>(
                   <tr key={p.id}>
                     <td className="py-2 px-3">{p.display_order}</td>
                     <td className="py-2 px-3 font-bold">{p.name}</td>
+                    <td className="py-2 px-3 font-mono text-[#0B6B43] font-semibold">{p.short_code || <span className="text-gray-400 italic font-normal">Auto</span>}</td>
                     <td className="py-2 px-3">{p.unit || '-'}</td>
                     <td className="py-2 px-3">{p.specification || '-'}</td>
                     <td className="py-2 px-3 font-mono">₹{Number(p.price||0).toFixed(2)}</td>
@@ -84,7 +86,7 @@ export const Parameters = () => {
                     <td className="py-2 px-3">{p.display_order}</td>
                     <td className="py-2 px-3">{p.active?'Yes':'No'}</td>
                     <td className="py-2 px-3 text-right flex items-center justify-end gap-1">
-                      <button onClick={()=>{setEditing(p.id); setForm({name:p.name, unit:p.unit||'', specification:p.specification||'', price:p.price||'', hsn_code:p.hsn_code||'', display_order:p.display_order, active:p.active});}} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">Edit</button>
+                      <button onClick={()=>{setEditing(p.id); setForm({name:p.name, short_code:p.short_code||'', unit:p.unit||'', specification:p.specification||'', price:p.price||'', hsn_code:p.hsn_code||'', display_order:p.display_order, active:p.active});}} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">Edit</button>
                       <button onClick={()=>toggle(p)} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">{p.active?'Disable':'Enable'}</button>
                       <button onClick={()=>remove(p)} className="px-2 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">Delete</button>
                     </td>

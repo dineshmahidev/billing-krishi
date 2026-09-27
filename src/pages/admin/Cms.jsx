@@ -22,7 +22,7 @@ export const Cms = () => {
     setSaving(true);
     try {
       const fd = new FormData();
-      ['hero_badge','hero_title','hero_desc','about_title','about_desc','contact_phone','contact_email','contact_address','contact_hours'].forEach(k => {
+      ['hero_badge','hero_title','hero_desc','stat1_value','stat1_label','stat2_value','stat2_label','stat3_value','stat3_label','stat4_value','stat4_label','about_title','about_desc','contact_phone','contact_email','contact_address','contact_hours'].forEach(k => {
         if (form[k] != null) fd.append(k, form[k]);
       });
       if (heroFile) fd.append('hero_image', heroFile);
@@ -56,6 +56,39 @@ export const Cms = () => {
             <label className="text-xs font-bold">Hero Image (public/hero-lab.jpg)</label>
             <input type="file" accept="image/*" onChange={e=>setHeroFile(e.target.files[0])} className="w-full text-xs mt-1" />
             {form.hero_image && <p className="text-[11px] text-[#6B7280] mt-1">Current: {form.hero_image}</p>}
+          </div>
+        </div>
+
+        <div className="h-px bg-[#D1D5DB]/60" />
+
+        {/* Stats Strip */}
+        <div className="space-y-3">
+          <p className="text-xs font-bold flex items-center gap-2 text-[#0B6B43]">
+            <span className="w-2 h-2 rounded-full bg-[#168B57]"></span>
+            Landing Page Key Statistics (Numbers &amp; Labels)
+          </p>
+          <p className="text-[11px] text-[#6B7280]">Edit the 4 stats displayed horizontally on the website homepage.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="bg-[#F9FAFB] p-3 rounded-xl border border-[#D1D5DB] space-y-1.5">
+              <span className="text-[10px] font-bold text-[#6B7280] uppercase">Stat 1</span>
+              <input value={form.stat1_value||''} onChange={e=>update('stat1_value',e.target.value)} placeholder="Value (e.g. 5)" className="w-full border border-[#D1D5DB] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#0B6B43]" />
+              <input value={form.stat1_label||''} onChange={e=>update('stat1_label',e.target.value)} placeholder="Label (e.g. Report Types)" className="w-full border border-[#D1D5DB] rounded-lg px-2.5 py-1.5 text-xs" />
+            </div>
+            <div className="bg-[#F9FAFB] p-3 rounded-xl border border-[#D1D5DB] space-y-1.5">
+              <span className="text-[10px] font-bold text-[#6B7280] uppercase">Stat 2</span>
+              <input value={form.stat2_value||''} onChange={e=>update('stat2_value',e.target.value)} placeholder="Value (e.g. 38+)" className="w-full border border-[#D1D5DB] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#0B6B43]" />
+              <input value={form.stat2_label||''} onChange={e=>update('stat2_label',e.target.value)} placeholder="Label (e.g. Test Parameters)" className="w-full border border-[#D1D5DB] rounded-lg px-2.5 py-1.5 text-xs" />
+            </div>
+            <div className="bg-[#F9FAFB] p-3 rounded-xl border border-[#D1D5DB] space-y-1.5">
+              <span className="text-[10px] font-bold text-[#6B7280] uppercase">Stat 3</span>
+              <input value={form.stat3_value||''} onChange={e=>update('stat3_value',e.target.value)} placeholder="Value (e.g. 1000+)" className="w-full border border-[#D1D5DB] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#0B6B43]" />
+              <input value={form.stat3_label||''} onChange={e=>update('stat3_label',e.target.value)} placeholder="Label (e.g. Reports Generated)" className="w-full border border-[#D1D5DB] rounded-lg px-2.5 py-1.5 text-xs" />
+            </div>
+            <div className="bg-[#F9FAFB] p-3 rounded-xl border border-[#D1D5DB] space-y-1.5">
+              <span className="text-[10px] font-bold text-[#6B7280] uppercase">Stat 4</span>
+              <input value={form.stat4_value||''} onChange={e=>update('stat4_value',e.target.value)} placeholder="Value (e.g. 24/7)" className="w-full border border-[#D1D5DB] rounded-lg px-2.5 py-1.5 text-xs font-bold text-[#0B6B43]" />
+              <input value={form.stat4_label||''} onChange={e=>update('stat4_label',e.target.value)} placeholder="Label (e.g. Support)" className="w-full border border-[#D1D5DB] rounded-lg px-2.5 py-1.5 text-xs" />
+            </div>
           </div>
         </div>
 

@@ -138,17 +138,17 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         </div>
 
         <div className="grid grid-cols-2 gap-3 text-xs border border-[#111827] rounded-xl p-4 bg-[#F9FAFB]">
-          <div className="space-y-1">
-            <p><span className="font-bold text-[#111827]">Report No:</span> <span className="font-mono font-bold">{report.report_no}</span></p>
-            <p><span className="font-bold text-[#111827]">Type:</span> {report.report_type?.name} {report.report_type?.show_specification===false && <span className="text-gray-700 bg-gray-100 border border-gray-300 px-1 rounded text-[10px]">Spec hidden</span>}</p>
-            <p><span className="font-bold text-[#111827]">Sample Date:</span> {report.sample_date ? report.sample_date.split('T')[0] : '-'}</p>
-            <p><span className="font-bold text-[#111827]">COA Date:</span> {report.coa_date ? report.coa_date.split('T')[0] : '-'}</p>
+          <div className="space-y-1.5">
+            <p><span className="font-bold text-[#111827]">Report No:</span> <span className="font-mono font-bold text-[#0B6B43]">{report.report_no}</span></p>
+            <p><span className="font-bold text-[#111827]">Report Type:</span> {report.report_type?.name}</p>
+            <p><span className="font-bold text-[#111827]">Date:</span> {report.sample_date ? report.sample_date.split('T')[0] : (report.created_at?.split('T')[0] || '-')}</p>
+            <p><span className="font-bold text-[#111827]">{report.report_type?.quantity_label || 'Tons / Bags'}:</span> {report.bags_tons || '-'}</p>
           </div>
-          <div className="space-y-1">
-            <p><span className="font-bold text-[#111827]">Company:</span> {report.party_name || report.customer_name || '-'}</p>
-            <p><span className="font-bold text-[#111827]">Sample:</span> {report.sample_name || '-'}</p>
-            <p><span className="font-bold text-[#111827]">Vehicle / Bill:</span> {report.vehicle_no || '-'} {report.bill_no ? `/ ${report.bill_no}` : ''}</p>
-            <p><span className="font-bold text-[#111827]">Quantity:</span> {report.bags_tons || '-'}</p>
+          <div className="space-y-1.5">
+            <p><span className="font-bold text-[#111827]">Party Name:</span> <strong className="text-[#111827]">{report.party_name || report.customer_name || '-'}</strong></p>
+            <p><span className="font-bold text-[#111827]">Sample Name:</span> {report.sample_name || '-'}</p>
+            <p><span className="font-bold text-[#111827]">Vehicle No:</span> {report.vehicle_no || '-'}</p>
+            <p><span className="font-bold text-[#111827]">Bill No:</span> {report.bill_no || '-'}</p>
           </div>
         </div>
 

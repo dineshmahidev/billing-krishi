@@ -261,10 +261,10 @@ export const Landing = () => {
       <Reveal>
         <section className="bg-[#EAF7F0] border-y border-[#D1EEE0]">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 py-6 grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
-            <div><p className="text-2xl font-bold text-[#0B6B43]">5</p><p className="text-xs text-[#6B7280]">Report Types</p></div>
-            <div><p className="text-2xl font-bold text-[#0B6B43]">38+</p><p className="text-xs text-[#6B7280]">Test Parameters</p></div>
-            <div><p className="text-2xl font-bold text-[#0B6B43]">1000+</p><p className="text-xs text-[#6B7280]">Reports Generated</p></div>
-            <div><p className="text-2xl font-bold text-[#0B6B43]">24/7</p><p className="text-xs text-[#6B7280]">Support</p></div>
+            <div><p className="text-2xl font-bold text-[#0B6B43]">{cms?.stat1_value ?? '5'}</p><p className="text-xs text-[#6B7280]">{cms?.stat1_label ?? 'Report Types'}</p></div>
+            <div><p className="text-2xl font-bold text-[#0B6B43]">{cms?.stat2_value ?? '38+'}</p><p className="text-xs text-[#6B7280]">{cms?.stat2_label ?? 'Test Parameters'}</p></div>
+            <div><p className="text-2xl font-bold text-[#0B6B43]">{cms?.stat3_value ?? '1000+'}</p><p className="text-xs text-[#6B7280]">{cms?.stat3_label ?? 'Reports Generated'}</p></div>
+            <div><p className="text-2xl font-bold text-[#0B6B43]">{cms?.stat4_value ?? '24/7'}</p><p className="text-xs text-[#6B7280]">{cms?.stat4_label ?? 'Support'}</p></div>
           </div>
         </section>
       </Reveal>

@@ -28,7 +28,7 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
   });
   const [results, setResults] = useState([]);
 
-  useEffect(()=>{ api.get('/report-types').then(r=>setTypes(r.data)).catch(()=>{}); }, []);
+  useEffect(()=>{ api.get('/report-types?active=1').then(r=>setTypes((r.data||[]).filter(t=>t.active!==false))).catch(()=>{}); }, []);
 
   const loadParams = async (typeId) => {
     if (!typeId) { setParams([]); setResults([]); return; }
@@ -170,10 +170,10 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                   <input value={form.bill_no} onChange={e=>setForm({...form, bill_no:e.target.value})} placeholder="Auto — leave blank" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1"><Package className="w-3 h-3 text-[#168B57]" /> Bags / Tons</label>
+                  <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1"><Package className="w-3 h-3 text-[#168B57]" /> Quantity</label>
                   <div className="relative mt-1">
                     <Package className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-                    <input value={form.bags_tons} onChange={e=>setForm({...form, bags_tons:e.target.value})} placeholder="e.g. 40 Bags" className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+                    <input value={form.bags_tons} onChange={e=>setForm({...form, bags_tons:e.target.value})} placeholder="e.g. 40 Bags / 20 Tons" className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
                   </div>
                 </div>
                 <div>

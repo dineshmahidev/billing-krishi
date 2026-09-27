@@ -48,12 +48,26 @@ export const Settings = () => {
     setSaving(true);
     try {
       const fd = new FormData();
-      Object.entries(form).forEach(([k,v])=>fd.append(k, v));
+      Object.entries(form).forEach(([k,v])=>{
+        if (k === 'gst_enabled') {
+          fd.append('gst_enabled', v ? '1' : '0');
+        } else {
+          fd.append(k, v ?? '');
+        }
+      });
       if (files.logo) fd.append('logo', files.logo);
       if (files.seal) fd.append('seal', files.seal);
       if (files.signature) fd.append('signature', files.signature);
-      await api.post('/settings', fd, { headers:{ 'Content-Type':'multipart/form-data' }});
-      addToast('Settings saved');
+      const res = await api.post('/settings', fd, { headers:{ 'Content-Type':'multipart/form-data' }});
+      if (res.data) {
+        setForm(prev => ({
+          ...prev,
+          ...res.data,
+          gst_enabled: Boolean(res.data.gst_enabled),
+          smtp_password: ''
+        }));
+      }
+      addToast('Settings saved successfully');
     } catch(err){ addToast(err.response?.data?.message||'Save failed','error'); } finally { setSaving(false); }
   };
 

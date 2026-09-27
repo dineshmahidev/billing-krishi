@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import api, { openPdf, downloadPdf, openWord, downloadWord, openInvoiceWord, downloadInvoiceWord, printReport } from '../services/api';
-import { Printer, FileText, Pencil, ArrowLeft, FileDown, FileType } from 'lucide-react';
+import { Printer, FileText, Pencil, ArrowLeft, FileDown, FileType, MessageCircle } from 'lucide-react';
 import { useToast } from '../components/common/Toast';
+import { WhatsAppModal } from '../components/common/WhatsAppModal';
 
 export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [invoice, setInvoice] = useState(null);
+  const [waModal, setWaModal] = useState({ isOpen: false, phone: '', recipientName: '', docTitle: '', summaryLines: [], pdfUrl: '' });
   const { addToast } = useToast();
 
   useEffect(()=>{
@@ -15,6 +17,69 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
     api.get(`/reports/${reportId}`).then(r=>setReport(r.data)).catch(()=> addToast('Failed to load report','error')).finally(()=>setLoading(false));
     api.get(`/reports/${reportId}/invoice`).then(r=>setInvoice(r.data)).catch(()=> setInvoice(null));
   }, [reportId]);
+
+  const handleReportWhatsapp = () => {
+    if (!report) return;
+    const partyName = report.party_name || report.customer_name || 'Customer';
+    const phone = report.customer?.phone || '';
+    const repNo = report.report_no || '-';
+    const repType = report.report_type?.name || 'Report';
+    const sample = report.sample_name || '-';
+    const date = report.sample_date ? report.sample_date.split('T')[0] : (report.created_at?.split('T')[0] || '-');
+    const veh = report.vehicle_no || '-';
+    const token = localStorage.getItem('auth_token');
+    const base = window.location.origin + '/api';
+    const pdfUrl = `${base}/reports/${report.id}/pdf${token ? `?token=${token}` : ''}`;
+
+    setWaModal({
+      isOpen: true,
+      phone,
+      recipientName: partyName,
+      docTitle: `TEST REPORT: ${repNo}`,
+      summaryLines: [
+        `*Report No:* ${repNo}`,
+        `*Party:* ${partyName}`,
+        `*Type:* ${repType}`,
+        `*Sample:* ${sample}`,
+        `*Vehicle:* ${veh}`,
+        `*Sample Date:* ${date}`,
+      ],
+      pdfUrl,
+    });
+  };
+
+  const handleInvoiceWhatsapp = () => {
+    if (!invoice || !report) return;
+    const partyName = invoice.party_name || invoice.customer_name || report.party_name || 'Customer';
+    const phone = invoice.customer_phone || report.customer?.phone || '';
+    const invNo = invoice.invoice_no;
+    const repNo = report.report_no || '-';
+    const invDate = invoice.created_at?.split('T')[0] || new Date().toISOString().split('T')[0];
+    const subtotal = Number(invoice.subtotal || 0).toFixed(2);
+    const total = Number(invoice.total_amount || 0).toFixed(2);
+    const gst = invoice.gst_enabled ? `₹${Number(invoice.gst_amount||0).toFixed(2)} (${invoice.gst_percent}%)` : '—';
+    const status = (invoice.status || 'unpaid').toUpperCase();
+    const token = localStorage.getItem('auth_token');
+    const base = window.location.origin + '/api';
+    const pdfUrl = `${base}/reports/${report.id}/invoice/pdf${token ? `?token=${token}` : ''}`;
+
+    setWaModal({
+      isOpen: true,
+      phone,
+      recipientName: partyName,
+      docTitle: `INVOICE: ${invNo}`,
+      summaryLines: [
+        `*Party:* ${partyName}`,
+        `*Report No:* ${repNo}`,
+        `*Invoice Date:* ${invDate}`,
+        `*Subtotal:* ₹${subtotal}`,
+        `*GST:* ${gst}`,
+        `*Total Amount:* ₹${total}`,
+        `*Status:* ${status}`,
+      ],
+      pdfUrl,
+    });
+  };
 
   const handlePdf = () => { try { openPdf(report.id); } catch { addToast('PDF opening failed','error'); } };
   const handlePrint = () => { try { printReport(report.id); } catch { addToast('Print failed','error'); } };
@@ -53,6 +118,7 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         <button onClick={()=>setActiveTab('reports')} className="px-3 py-2 rounded-xl bg-white border border-[#D1D5DB] text-xs font-bold flex items-center gap-1"><ArrowLeft className="w-4 h-4"/> Back to Reports</button>
         <div className="flex flex-wrap gap-1 ml-auto">
           <button onClick={()=>{setSelectedReportId(report.id); setActiveTab('edit-report');}} className="px-3 py-2 rounded-xl bg-white border border-[#D1D5DB] text-xs font-bold flex items-center gap-1 hover:bg-[#F9FAFB]"><Pencil className="w-4 h-4"/> Edit</button>
+          <button onClick={handleReportWhatsapp} className="px-3 py-2 rounded-xl bg-[#25D366] text-white font-bold text-xs flex items-center gap-1 hover:bg-[#1EBE5D] shadow-sm"><MessageCircle className="w-4 h-4"/> WhatsApp</button>
           <button onClick={handlePdf} className="px-3 py-2 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center gap-1 hover:bg-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.3)]"><FileText className="w-4 h-4"/> Report PDF</button>
           <button onClick={handleWord} className="px-3 py-2 rounded-xl bg-sky-600 text-white font-bold text-xs flex items-center gap-1 hover:bg-sky-700"><FileType className="w-4 h-4"/> Report Word</button>
           <button onClick={handleWordDownload} className="px-3 py-2 rounded-xl bg-white border border-sky-300 text-sky-700 font-bold text-xs flex items-center gap-1 hover:bg-sky-50"><FileDown className="w-4 h-4"/> Word ↓</button>
@@ -62,45 +128,65 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
 
       <div className="bg-white border border-[#D1D5DB] rounded-2xl p-6 sm:p-8 space-y-4">
         <div className="text-center border-b-2 border-[#0B6B43] pb-4">
-          <img src="/krishi-transparent.png" alt="logo" className="h-12 mx-auto" />
+          <div className="flex flex-col items-center justify-center">
+            <img src="/krishi-transparent.png" alt="logo" className="h-12 mx-auto" />
+            <span className="text-[11px] font-black text-[#0B6B43] tracking-[2.5px] mt-0.5">KLA</span>
+          </div>
           <p className="text-[11px] text-[#6B7280] mt-2">182-B, Reliance Trends Near, Tiruppur Road, Kangeyam - 638701 &bull; Ph: +91 63793 12357 &bull; info@krishianalyticallab.com</p>
           <div className="mt-2 inline-block px-4 py-1 bg-[#0B6B43] text-white text-xs font-bold tracking-widest uppercase">{report.report_type?.title || 'REPORT'}</div>
           <p className="text-xs font-mono font-bold mt-1">{report.report_no}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-xs border border-[#D1D5DB] rounded-xl p-4 bg-[#EAF7F0]/30">
+        <div className="grid grid-cols-2 gap-3 text-xs border border-[#111827] rounded-xl p-4 bg-[#F9FAFB]">
           <div className="space-y-1">
-            <p><span className="font-bold text-[#6B7280]">Report No:</span> <span className="font-mono font-bold">{report.report_no}</span></p>
-            <p><span className="font-bold text-[#6B7280]">Type:</span> {report.report_type?.name} {report.report_type?.show_specification===false && <span className="text-amber-700 bg-amber-50 border border-amber-200 px-1 rounded text-[10px]">Spec hidden</span>}</p>
-            <p><span className="font-bold text-[#6B7280]">Sample Date:</span> {report.sample_date ? report.sample_date.split('T')[0] : '-'}</p>
-            <p><span className="font-bold text-[#6B7280]">COA Date:</span> {report.coa_date ? report.coa_date.split('T')[0] : '-'}</p>
+            <p><span className="font-bold text-[#111827]">Report No:</span> <span className="font-mono font-bold">{report.report_no}</span></p>
+            <p><span className="font-bold text-[#111827]">Type:</span> {report.report_type?.name} {report.report_type?.show_specification===false && <span className="text-gray-700 bg-gray-100 border border-gray-300 px-1 rounded text-[10px]">Spec hidden</span>}</p>
+            <p><span className="font-bold text-[#111827]">Sample Date:</span> {report.sample_date ? report.sample_date.split('T')[0] : '-'}</p>
+            <p><span className="font-bold text-[#111827]">COA Date:</span> {report.coa_date ? report.coa_date.split('T')[0] : '-'}</p>
           </div>
           <div className="space-y-1">
-            <p><span className="font-bold text-[#6B7280]">Company:</span> {report.party_name || report.customer_name || '-'}</p>
-            <p><span className="font-bold text-[#6B7280]">Sample:</span> {report.sample_name || '-'}</p>
-            <p><span className="font-bold text-[#6B7280]">Vehicle/Bill:</span> {report.vehicle_no || '-'} / {report.bill_no || '-'}</p>
-            <p><span className="font-bold text-[#6B7280]">Bags/Buyer/Seller:</span> {report.bags_tons || '-'} / {report.buyer || '-'} / {report.seller || '-'}</p>
+            <p><span className="font-bold text-[#111827]">Company:</span> {report.party_name || report.customer_name || '-'}</p>
+            <p><span className="font-bold text-[#111827]">Sample:</span> {report.sample_name || '-'}</p>
+            <p><span className="font-bold text-[#111827]">Vehicle / Bill:</span> {report.vehicle_no || '-'} {report.bill_no ? `/ ${report.bill_no}` : ''}</p>
+            <p><span className="font-bold text-[#111827]">Quantity:</span> {report.bags_tons || '-'}</p>
           </div>
         </div>
 
+        <div className="border border-[#000000] py-1 text-center font-black text-xs tracking-widest text-[#000000] uppercase bg-white">
+          TEST RESULTS
+        </div>
+
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border border-[#D1D5DB]">
-            <thead><tr className="bg-[#168B57] text-white text-[11px] uppercase font-bold"><th className="py-2 px-3 w-10 text-center">S.No</th><th className="py-2 px-3">Parameter</th><th className="py-2 px-3 w-28 text-center">Result</th>{(report.report_type?.show_specification??true) && <th className="py-2 px-3">Specification</th>}{(report.report_type?.custom_columns||[]).map(c=> <th key={c} className="py-2 px-3 bg-[#0B6B43]">{c}</th>)}</tr></thead>
-            <tbody className="divide-y divide-[#D1D5DB]/60">
+          <table className="w-full text-left text-xs border border-[#000000]">
+            <thead><tr className="bg-white text-[#000000] text-[11px] uppercase font-black border-b border-[#000000]"><th className="py-2 px-3 w-10 text-center">S.No</th><th className="py-2 px-3">Parameter</th><th className="py-2 px-3 w-28 text-center">Result</th>{(report.report_type?.show_specification??true) && <th className="py-2 px-3">Specification</th>}{(report.report_type?.custom_columns||[]).map(c=> <th key={c} className="py-2 px-3">{c}</th>)}</tr></thead>
+            <tbody className="divide-y divide-[#000000]/20">
               {(report.results||[]).filter(r=>r.enabled !== false).map((r,i)=>(
-                <tr key={r.id} className="even:bg-[#F9FAFB]">
-                  <td className="py-2 px-3 text-center">{i+1}</td>
-                  <td className="py-2 px-3 font-bold">{r.parameter?.name}</td>
-                  <td className="py-2 px-3 text-center font-bold">{r.result}{r.parameter?.unit === '%' && !String(r.result).includes('%') ? ' %' : ''}</td>
-                  {(report.report_type?.show_specification??true) && <td className="py-2 px-3">{r.specification}</td>}
-                  {(report.report_type?.custom_columns||[]).map(c=> <td key={c} className="py-2 px-3">-</td>)}
+                <tr key={r.id} className="bg-white">
+                  <td className="py-2 px-3 text-center font-bold">{i+1}</td>
+                  <td className="py-2 px-3 font-bold text-[#000000]">{r.parameter?.name}</td>
+                  <td className="py-2 px-3 text-center font-bold text-[#000000]">{r.result}{r.parameter?.unit === '%' && !String(r.result).includes('%') ? ' %' : ''}</td>
+                  {(report.report_type?.show_specification??true) && <td className="py-2 px-3 text-[#000000]">{r.specification}</td>}
+                  {(report.report_type?.custom_columns||[]).map(c=> <td key={c} className="py-2 px-3 text-[#000000]">-</td>)}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
 
-        {report.remarks && <div className="p-3 bg-[#EAF7F0] border border-[#D1D5DB] rounded-xl text-xs"><strong>Remarks:</strong> {report.remarks}</div>}
+        <div className="text-center font-extrabold text-[11px] tracking-widest text-[#000000] py-1">*** END OF REPORT ***</div>
+
+        <div className="flex justify-end pt-2 pb-2">
+          <div className="text-center w-48 space-y-1">
+            <p className="text-xs font-bold text-[#000000]">For KRISHI ANALYTICAL LAB</p>
+            <div className="h-10 flex items-center justify-center text-xs text-[#6B7280] italic">Authorized Signatory</div>
+            <p className="text-[11px] font-bold text-[#000000] border-t border-[#000000] pt-1">Authorized Signatory</p>
+          </div>
+        </div>
+
+        <div className="border-t border-[#D1D5DB] pt-3 text-center space-y-1 text-[#6B7280] text-[10px]">
+          <p className="font-semibold text-[#111827]">182-B, Reliance Trends Near, Tiruppur Road, Kangeyam - 638701 &bull; Ph: +91 63793 12357, +91 88838 64756 &bull; krishianalyticallab@gmail.com &bull; krishilab25.in</p>
+          <p className="text-[9.5px]"><strong>Note:</strong> 1. The results relate only to the sample tested. &bull; 2. This report shall not be reproduced, except in full, without written approval of the laboratory. &bull; 3. Tested samples retained for 15 days from report date.</p>
+        </div>
 
         {/* Separate Invoice - not in analysis report */}
         {invoice && (
@@ -122,7 +208,8 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
               <button onClick={handleInvoiceWord} className="flex-1 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-xs flex items-center justify-center gap-1 hover:bg-sky-700"><FileType className="w-4 h-4"/> Invoice Word</button>
               <button onClick={handleInvoiceWordDownload} className="flex-1 py-2.5 rounded-xl bg-white border-2 border-sky-400 text-sky-700 font-bold text-xs flex items-center justify-center gap-1 hover:bg-sky-50"><FileDown className="w-4 h-4"/> Word ↓</button>
             </div>
-            <p className="text-[11px] text-[#6B7280] text-center">Invoice is separate from Analysis Report — PDF & Word export with different buttons. Toggle GST on/off here.</p>
+            <button onClick={handleInvoiceWhatsapp} className="w-full py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"><MessageCircle className="w-4 h-4"/> Share Invoice on WhatsApp</button>
+            <p className="text-[11px] text-[#6B7280] text-center">Invoice is separate from Analysis Report — PDF, Word &amp; WhatsApp sharing. Toggle GST on/off here.</p>
           </div>
         )}
 
@@ -131,6 +218,17 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
           <span>Status: {report.status}</span>
         </div>
       </div>
+
+      {/* WhatsApp Share Modal */}
+      <WhatsAppModal
+        isOpen={waModal.isOpen}
+        onClose={() => setWaModal(m => ({ ...m, isOpen: false }))}
+        phone={waModal.phone}
+        recipientName={waModal.recipientName}
+        docTitle={waModal.docTitle}
+        summaryLines={waModal.summaryLines}
+        pdfUrl={waModal.pdfUrl}
+      />
     </div>
   );
 };

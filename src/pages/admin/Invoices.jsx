@@ -1,7 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import api, { openInvoiceWord, downloadInvoiceWord } from '../../services/api';
 import { useToast } from '../../components/common/Toast';
-import { Receipt, Search, Filter, DollarSign, TrendingUp, Clock, FileType, FileDown, Pencil, X, Layers, Calculator } from 'lucide-react';
+import { WhatsAppModal } from '../../components/common/WhatsAppModal';
+import { Receipt, Search, Filter, DollarSign, TrendingUp, Clock, FileType, FileDown, Pencil, X, Layers, Calculator, MessageCircle } from 'lucide-react';
+
+export const openWhatsappMessage = (phone, text) => {
+  let cleanPhone = (phone || '').toString().replace(/[^0-9]/g, '');
+  if (!cleanPhone) {
+    const input = window.prompt('Enter client WhatsApp number (10 digits):');
+    if (!input) return;
+    cleanPhone = input.replace(/[^0-9]/g, '');
+  }
+  if (cleanPhone.length === 10) {
+    cleanPhone = '91' + cleanPhone;
+  }
+  const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`;
+  window.open(url, '_blank');
+};
 
 export const Invoices = () => {
   const { addToast } = useToast();
@@ -20,6 +35,7 @@ export const Invoices = () => {
   const [saving, setSaving] = useState(false);
   const [loadingInv, setLoadingInv] = useState(false);
   const [tab, setTab] = useState('invoices');
+  const [waModal, setWaModal] = useState({ isOpen: false, phone: '', recipientName: '', docTitle: '', summaryLines: [], pdfUrl: '' });
 
   const loadInvoices = async (p=1) => {
     setLoading(true);
@@ -58,6 +74,38 @@ export const Invoices = () => {
 
   const downloadInvoiceDoc = (inv) => {
     try { downloadInvoiceWord(inv.report_id, `${inv.invoice_no}.doc`); addToast('Invoice Word downloading'); } catch { addToast('Invoice Word download failed','error'); }
+  };
+
+  const shareInvoiceWhatsapp = (inv) => {
+    const partyName = inv.party_name || inv.customer_name || 'Customer';
+    const phone = inv.customer_phone || inv.report?.customer?.phone || '';
+    const invNo = inv.invoice_no;
+    const repNo = inv.report?.report_no || '-';
+    const invDate = inv.created_at?.split('T')[0] || new Date().toISOString().split('T')[0];
+    const subtotal = Number(inv.subtotal || 0).toFixed(2);
+    const total = Number(inv.total_amount || 0).toFixed(2);
+    const gst = inv.gst_enabled ? `₹${Number(inv.gst_amount||0).toFixed(2)} (${inv.gst_percent}%)` : '—';
+    const status = (inv.status || 'unpaid').toUpperCase();
+    const token = localStorage.getItem('auth_token');
+    const base = window.location.origin + '/api';
+    const pdfUrl = `${base}/reports/${inv.report_id}/invoice/pdf${token ? `?token=${token}` : ''}`;
+
+    setWaModal({
+      isOpen: true,
+      phone,
+      recipientName: partyName,
+      docTitle: `INVOICE: ${invNo}`,
+      summaryLines: [
+        `*Party:* ${partyName}`,
+        `*Report No:* ${repNo}`,
+        `*Date:* ${invDate}`,
+        `*Subtotal:* ₹${subtotal}`,
+        `*GST:* ${gst}`,
+        `*Total Amount:* ₹${total}`,
+        `*Status:* ${status}`,
+      ],
+      pdfUrl,
+    });
   };
 
   const stats = data.stats || {};
@@ -181,7 +229,8 @@ export const Invoices = () => {
                   <td className="py-2 px-3 text-right">
                     <div className="flex gap-1 justify-end">
                       <button onClick={()=>openEdit(inv)} title="Edit rates & quantity" className="px-2 py-1 rounded-lg bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white text-[11px] font-bold flex items-center gap-1"><Pencil className="w-3 h-3"/></button>
-                      <button onClick={()=>openInvoice(inv.report_id)} className="px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold flex items-center gap-1">PDF</button>
+                      <button onClick={()=>openInvoice(inv.report_id)} title="View Invoice PDF" className="px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold flex items-center gap-1">PDF</button>
+                      <button onClick={()=>shareInvoiceWhatsapp(inv)} title="Share via WhatsApp" className="px-2 py-1 rounded-lg bg-[#25D366] hover:bg-[#1EBE5D] text-white text-[11px] font-bold flex items-center gap-1 shadow-sm"><MessageCircle className="w-3 h-3"/></button>
                       <button onClick={()=>openInvoiceDoc(inv.report_id)} title="Open invoice Word" className="px-2 py-1 rounded-lg bg-sky-600 text-white text-[11px] font-bold flex items-center gap-1"><FileType className="w-3 h-3"/></button>
                       <button onClick={()=>downloadInvoiceDoc(inv)} title="Download invoice Word" className="px-2 py-1 rounded-lg bg-white border border-sky-300 text-sky-700 text-[11px] font-bold flex items-center gap-1"><FileDown className="w-3 h-3"/></button>
                     </div>
@@ -262,6 +311,17 @@ export const Invoices = () => {
           </div>
         </div>
       )}
+
+      {/* WhatsApp Share Modal for Invoices */}
+      <WhatsAppModal
+        isOpen={waModal.isOpen}
+        onClose={() => setWaModal(m => ({ ...m, isOpen: false }))}
+        phone={waModal.phone}
+        recipientName={waModal.recipientName}
+        docTitle={waModal.docTitle}
+        summaryLines={waModal.summaryLines}
+        pdfUrl={waModal.pdfUrl}
+      />
     </div>
   );
 };
@@ -406,6 +466,7 @@ const GroupSummary = () => {
 const BulkSettlement = () => {
   const { addToast } = useToast();
   const [mode, setMode] = useState('group');
+  const [subView, setSubView] = useState('statement'); // 'statement' | 'parameters'
   const [groups, setGroups] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [groupId, setGroupId] = useState('');
@@ -417,16 +478,21 @@ const BulkSettlement = () => {
   const [loading, setLoading] = useState(false);
   const [edits, setEdits] = useState({});
   const [exporting, setExporting] = useState(false);
+  const [selectedTypeIds, setSelectedTypeIds] = useState(null);
+  const [waModal, setWaModal] = useState({ isOpen: false, phone: '', recipientName: '', docTitle: '', summaryLines: [], pdfUrl: '' });
 
   useEffect(()=>{
     api.get('/customer-groups').then(r=>setGroups(r.data||[])).catch(()=>{});
     api.get('/customers', { params:{ per_page:200 } }).then(r=>setCustomers(r.data.data || r.data || [])).catch(()=>{});
   },[]);
 
-  const load = async (m=mode, f=from, t=to) => {
+  const load = async (m=mode, f=from, t=to, fTypes=selectedTypeIds) => {
     const params = { from:f, to:t };
     if (m==='group') { if (!groupId) { setData(null); return; } params.group_id = groupId; }
     else { if (!customerId) { setData(null); return; } params.customer_id = customerId; }
+    if (fTypes !== null && Array.isArray(fTypes)) {
+      params.type_ids = fTypes.join(',');
+    }
     setLoading(true);
     try {
       const r = await api.get('/bulk-settlement', { params });
@@ -434,6 +500,27 @@ const BulkSettlement = () => {
       setEdits({});
     } catch(err){ addToast(err.response?.data?.message||'Failed to load settlement','error'); }
     finally { setLoading(false); }
+  };
+
+  const toggleType = (typeId) => {
+    if (!data?.available_types) return;
+    const allIds = data.available_types.map(t => t.id);
+    const current = selectedTypeIds === null ? [...allIds] : [...selectedTypeIds];
+    const next = current.includes(typeId)
+      ? current.filter(id => id !== typeId)
+      : [...current, typeId];
+
+    if (next.length === 0) {
+      addToast('At least one report type must be selected', 'warning');
+      return;
+    }
+    setSelectedTypeIds(next);
+    load(mode, from, to, next);
+  };
+
+  const selectAllTypes = () => {
+    setSelectedTypeIds(null);
+    load(mode, from, to, null);
   };
 
   const ekey = (ti, ri) => `${ti}:${ri}`;
@@ -466,16 +553,65 @@ const BulkSettlement = () => {
         }
       }));
       const params = mode==='group' ? { group_id:groupId } : { customer_id:customerId };
-      const res = await api.post('/bulk-settlement/pdf', { ...params, from, to, overrides }, { responseType:'blob' });
+      const payload = {
+        ...params,
+        from,
+        to,
+        overrides,
+        type_ids: selectedTypeIds && selectedTypeIds.length > 0 ? selectedTypeIds : undefined,
+      };
+      const res = await api.post('/bulk-settlement/pdf', payload, { responseType:'blob' });
       const url = URL.createObjectURL(new Blob([res.data], { type:'application/pdf' }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = `settlement-${(data.group?.name || data.customer?.name || 'bill').replace(/[^A-Za-z0-9]+/g,'-')}-${from}-to-${to}.pdf`;
+      a.download = `statement-${(data.customer_name || data.group?.name || 'statement').replace(/[^A-Za-z0-9]+/g,'-')}-${from}-to-${to}.pdf`;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(()=>URL.revokeObjectURL(url), 5000);
-      addToast('Settlement PDF downloaded');
+      addToast('Customer Statement PDF downloaded');
     } catch(err){ addToast('PDF export failed','error'); }
     finally { setExporting(false); }
+  };
+
+  const shareWhatsapp = () => {
+    if (!ready || !data) return;
+    const partyName = data.customer_name || data.group?.name || data.customer?.name || 'Customer';
+    const phone = data.customer_phone || data.customer?.phone || '';
+    const fromDate = data.range?.from || from;
+    const toDate = data.range?.to || to;
+    const repCount = data.report_count || 0;
+    const debit = Number(data.totals?.total_debit || data.grand_total || 0).toFixed(2);
+    const credit = Number(data.totals?.total_credit || 0).toFixed(2);
+    const balance = Number(data.totals?.balance ?? data.balance ?? grand).toFixed(2);
+
+    const base = window.location.origin + '/api';
+    const queryParams = new URLSearchParams();
+    if (mode === 'group') queryParams.set('group_id', groupId);
+    else queryParams.set('customer_id', customerId);
+    queryParams.set('from', fromDate);
+    queryParams.set('to', toDate);
+    if (selectedTypeIds && selectedTypeIds.length > 0) {
+      queryParams.set('type_ids', selectedTypeIds.join(','));
+    }
+    const token = localStorage.getItem('auth_token');
+    if (token) queryParams.set('token', token);
+
+    const pdfUrl = `${base}/bulk-settlement/pdf?${queryParams.toString()}`;
+
+    setWaModal({
+      isOpen: true,
+      phone,
+      recipientName: partyName,
+      docTitle: 'CUSTOMER ACCOUNT STATEMENT',
+      summaryLines: [
+        `*Party / Group:* ${partyName}`,
+        `*Period:* ${fromDate} to ${toDate}`,
+        `*Total Reports:* ${repCount}`,
+        `*Total Charges (Debit):* ₹${debit}`,
+        `*Total Paid (Credit):* ₹${credit}`,
+        `*Outstanding Balance:* ₹${balance}`,
+      ],
+      pdfUrl,
+    });
   };
 
   const quick = (kind) => {
@@ -483,7 +619,7 @@ const BulkSettlement = () => {
     if (kind==='this'){ const s=weekStart(now); f=isoDate(s); t=isoDate(plusDays(s,6)); }
     else if (kind==='last'){ const s=plusDays(weekStart(now),-7); f=isoDate(s); t=isoDate(plusDays(s,6)); }
     else { f=isoDate(new Date(now.getFullYear(),now.getMonth(),1)); t=isoDate(now); }
-    setFrom(f); setTo(t); load(mode, f, t);
+    setFrom(f); setTo(t); load(mode, f, t, selectedTypeIds);
   };
 
   const ready = mode==='group' ? groupId : customerId;
@@ -494,16 +630,16 @@ const BulkSettlement = () => {
         <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center">
           <div className="flex gap-1 bg-[#F3F4F6] p-1 rounded-xl">
             {[{v:'group',l:'By Group'},{v:'party',l:'By Party'}].map(o=>(
-              <button key={o.v} onClick={()=>{ setMode(o.v); setData(null); }} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${mode===o.v?'bg-[#168B57] text-white':'text-[#6B7280]'}`}>{o.l}</button>
+              <button key={o.v} onClick={()=>{ setMode(o.v); setData(null); setSelectedTypeIds(null); }} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${mode===o.v?'bg-[#168B57] text-white':'text-[#6B7280]'}`}>{o.l}</button>
             ))}
           </div>
           {mode==='group' ? (
-            <select value={groupId} onChange={e=>setGroupId(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white min-w-[200px]">
+            <select value={groupId} onChange={e=>{ setGroupId(e.target.value); setSelectedTypeIds(null); }} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white min-w-[200px]">
               <option value="">Select group...</option>
               {groups.map(g=> <option key={g.id} value={g.id}>{g.name} ({g.customers_count})</option>)}
             </select>
           ) : (
-            <select value={customerId} onChange={e=>setCustomerId(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white min-w-[200px]">
+            <select value={customerId} onChange={e=>{ setCustomerId(e.target.value); setSelectedTypeIds(null); }} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white min-w-[200px]">
               <option value="">Select party...</option>
               {customers.map(c=> <option key={c.id} value={c.id}>{c.company_name || c.name}</option>)}
             </select>
@@ -515,10 +651,66 @@ const BulkSettlement = () => {
             <button onClick={()=>quick('last')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">Last Week</button>
             <button onClick={()=>quick('month')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">This Month</button>
           </div>
-          <button onClick={()=>load()} disabled={!ready || loading} className="ml-auto px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs disabled:opacity-50">{loading?'Loading...':'Calculate'}</button>
+          <button onClick={()=>load(mode, from, to, selectedTypeIds)} disabled={!ready || loading} className="ml-auto px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs disabled:opacity-50">{loading?'Loading...':'Calculate'}</button>
         </div>
-        <p className="text-[11px] text-[#6B7280]">Type-wise bill for the duration — <b>Rate</b> &amp; <b>Qty</b> editable (defaults: rate = parameter price, qty = times tested), Amount = Rate × Qty</p>
+        <p className="text-[11px] text-[#6B7280]">Customer Account Statement &amp; Type-wise bill for the duration with chronological test parameters, debits, credits, and balance.</p>
       </div>
+
+      {data && (data.available_types || []).length > 0 && (
+        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-3.5 shadow-sm space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="p-1 rounded-lg bg-[#EAF7F0] text-[#0B6B43]"><Filter className="w-3.5 h-3.5" /></span>
+              <span className="text-xs font-bold text-[#1F2937]">Filter Report Types:</span>
+              <span className="text-[11px] text-[#6B7280]">Click to toggle specific report types ON or OFF</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={selectAllTypes}
+                className="px-2.5 py-1 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 text-[#374151] font-bold text-[11px] transition-colors"
+              >
+                All Types
+              </button>
+              {selectedTypeIds !== null && (
+                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">
+                  {selectedTypeIds.length} of {data.available_types.length} selected
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            {data.available_types.map(t => {
+              const isSelected = selectedTypeIds === null || selectedTypeIds.includes(t.id);
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => toggleType(t.id)}
+                  title={isSelected ? 'Click to exclude this type' : 'Click to include this type'}
+                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                    isSelected
+                      ? 'bg-[#EAF7F0] border-[#168B57] text-[#0B6B43] shadow-sm'
+                      : 'bg-[#F9FAFB] border-[#E5E7EB] text-[#9CA3AF] line-through opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black ${
+                    isSelected ? 'bg-[#168B57] text-white' : 'bg-gray-300 text-white'
+                  }`}>
+                    {isSelected ? '✓' : '×'}
+                  </span>
+                  <span>{t.name}</span>
+                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-normal ${
+                    isSelected ? 'bg-[#168B57]/15 text-[#0B6B43]' : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {t.report_count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {!ready ? (
         <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Select {mode==='group'?'a group':'a party'} above</div>
@@ -526,54 +718,146 @@ const BulkSettlement = () => {
         <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Calculating...</div>
       ) : !data ? (
         <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Press Calculate</div>
-      ) : data.types.length===0 ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">No reports in {data.range.from} → {data.range.to}</div>
+      ) : (data.statement_rows||[]).length===0 && (data.types||[]).length===0 ? (
+        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">No reports in {data.range?.from} → {data.range?.to}</div>
       ) : (
         <>
           <div className="bg-[#1F2937] border border-[#1F2937] rounded-2xl p-4 text-white flex flex-wrap gap-6 items-center">
-            <div><p className="text-[11px] text-white/70 font-bold">{data.scope==='group' ? 'Group' : 'Party'}</p><p className="text-sm font-bold">{data.group?.name || data.customer?.company_name || data.customer?.name}</p></div>
-            <div><p className="text-[11px] text-white/70 font-bold">Duration</p><p className="text-sm font-bold">{data.range.from} → {data.range.to}</p></div>
+            <div><p className="text-[11px] text-white/70 font-bold">{data.scope==='group' ? 'Group' : 'Party'}</p><p className="text-sm font-bold">{data.customer_name || data.group?.name || data.customer?.name}</p></div>
+            <div><p className="text-[11px] text-white/70 font-bold">Duration</p><p className="text-sm font-bold">{data.range?.from} → {data.range?.to}</p></div>
             <div><p className="text-[11px] text-white/70 font-bold">Reports</p><p className="text-sm font-bold">{data.report_count}</p></div>
             <div className="ml-auto flex items-center gap-3">
+              <div className="flex gap-1 bg-white/10 p-1 rounded-xl">
+                <button onClick={()=>setSubView('statement')} className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${subView==='statement'?'bg-[#168B57] text-white':'text-white/70 hover:text-white'}`}>Statement List</button>
+                <button onClick={()=>setSubView('parameters')} className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${subView==='parameters'?'bg-[#168B57] text-white':'text-white/70 hover:text-white'}`}>Parameter Edit</button>
+              </div>
               {dirtyCount>0 && <button onClick={()=>setEdits({})} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white text-[11px] font-bold border border-white/30">Reset {dirtyCount}</button>}
-              <button onClick={exportPdf} disabled={exporting} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 transition-colors text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-60"><FileType className="w-3.5 h-3.5"/>{exporting?'Exporting...':'Export PDF'}</button>
-              <div className="text-right"><p className="text-[11px] text-white/70 font-bold">Grand Total</p><p className="text-xl font-black">₹{grand.toFixed(2)}</p></div>
+              <button onClick={exportPdf} disabled={exporting} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 transition-colors text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-60"><FileType className="w-3.5 h-3.5"/>{exporting?'Exporting...':'Export Statement PDF'}</button>
+              <button onClick={shareWhatsapp} title="Share statement via WhatsApp" className="px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] transition-colors text-white font-bold text-xs flex items-center gap-1.5 shadow-sm"><MessageCircle className="w-3.5 h-3.5"/> WhatsApp</button>
+              <div className="text-right"><p className="text-[11px] text-white/70 font-bold">Balance</p><p className="text-xl font-black text-emerald-400">₹{(data.totals?.balance ?? data.balance ?? grand).toFixed(2)}</p></div>
             </div>
           </div>
 
-          {data.types.map((ty,ti)=>(
-            <div key={ty.report_type_id} className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
-              <div className="px-4 py-3 border-b border-[#D1D5DB] flex items-center justify-between">
-                <p className="text-xs font-bold text-[#0B6B43]">{ty.name} <span className="text-[#6B7280] font-normal">({ty.reports} report{ty.reports===1?'':'s'})</span></p>
-                <p className="text-xs font-bold">Subtotal ₹{typeTotal(ty, ti).toFixed(2)}</p>
+          {subView === 'statement' ? (
+            <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
+              <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#D1D5DB] flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-xs font-bold text-[#1E40AF] uppercase tracking-wider">Customer - Account Statement</h3>
+                  <p className="text-[11px] text-[#6B7280]">{data.customer_name} {data.customer_address ? `• ${data.customer_address}` : ''}</p>
+                </div>
+                <div className="flex items-center gap-4 text-xs font-bold">
+                  <span className="text-[#6B7280]">Total Debit: <b className="text-[#1F2937]">₹{(data.totals?.total_debit || 0).toFixed(2)}</b></span>
+                  <span className="text-[#6B7280]">Total Credit: <b className="text-[#168B57]">₹{(data.totals?.total_credit || 0).toFixed(2)}</b></span>
+                  <span className="px-3 py-1 bg-fuchsia-50 border border-fuchsia-300 text-fuchsia-700 rounded-lg font-black text-xs">
+                    Balance Rs: ₹{(data.totals?.balance || 0).toFixed(2)}/-
+                  </span>
+                </div>
               </div>
-              <table className="w-full text-left text-xs">
-                <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                  <th className="py-2 px-3">Parameter</th><th className="py-2 px-3">Unit</th>
-                  <th className="py-2 px-3 text-right">Times</th><th className="py-2 px-3 text-right">Rate ₹</th>
-                  <th className="py-2 px-3 text-right">Qty</th><th className="py-2 px-3 text-right">Amount ₹</th>
-                </tr></thead>
-                <tbody className="divide-y divide-[#D1D5DB]/60">
-                  {ty.rows.map((row,ri)=>(
-                    <tr key={row.parameter_id} className="hover:bg-[#EAF7F0]/30">
-                      <td className="py-2 px-3 font-bold">{row.name}</td>
-                      <td className="py-2 px-3 text-[#6B7280]">{row.unit||'-'}</td>
-                      <td className="py-2 px-3 text-right"><span className="px-2 py-0.5 rounded-full bg-sky-500 text-white text-[11px] font-bold">×{row.times}</span></td>
-                      <td className="py-2 px-3 text-right">
-                        <input type="number" min="0" step="0.01" value={val(ti,ri,row,'rate')} onChange={e=>setVal(ti, ri, row, 'rate', e.target.value)} className="w-24 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
-                      </td>
-                      <td className="py-2 px-3 text-right">
-                        <input type="number" min="0" step="1" value={val(ti,ri,row,'qty')} onChange={e=>setVal(ti, ri, row, 'qty', e.target.value)} className="w-20 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
-                      </td>
-                      <td className="py-2 px-3 text-right font-bold">₹{rowAmount(ti, ri, row).toFixed(2)}</td>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
+                      <th className="py-2.5 px-3 w-12">S.No</th>
+                      <th className="py-2.5 px-3">Date &amp; Test Parameters / Description</th>
+                      <th className="py-2.5 px-3">Report / Vehicle</th>
+                      <th className="py-2.5 px-3 text-right">Debit (Charges ₹)</th>
+                      <th className="py-2.5 px-3 text-right">Credit (Paid ₹)</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[#D1D5DB]/60">
+                    {(data.statement_rows || []).map((row, idx) => (
+                      <tr key={idx} className={`hover:bg-[#EAF7F0]/30 ${row.type === 'ob' ? 'bg-[#F9FAFB] font-bold text-[#4B5563]' : ''}`}>
+                        <td className="py-2 px-3 text-[#6B7280]">{row.sno}.</td>
+                        <td className="py-2 px-3">
+                          {row.type === 'ob' ? (
+                            <span className="font-bold text-[#1F2937]">Opening Balance (O/B)</span>
+                          ) : (
+                            <div className="font-mono text-[11.5px] text-[#1F2937]">
+                              <span className="font-bold text-[#0B6B43] mr-2">{row.date}</span>
+                              <span>{row.params_text || '—'}</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-2 px-3 text-[#6B7280]">
+                          {row.report_no ? (
+                            <div>
+                              <span className="font-bold text-[#1F2937]">{row.report_no}</span>
+                              {row.vehicle_no && <span className="ml-1.5 text-[11px]">({row.vehicle_no})</span>}
+                            </div>
+                          ) : '—'}
+                        </td>
+                        <td className="py-2 px-3 text-right font-bold text-[#1F2937]">
+                          ₹{Number(row.debit || 0).toFixed(2)}
+                        </td>
+                        <td className="py-2 px-3 text-right font-bold text-[#168B57]">
+                          ₹{Number(row.credit || 0).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-[#F3F4F6] font-bold border-t-2 border-[#1F2937] text-xs">
+                      <td colSpan={3} className="py-3 px-3 text-right text-[#1F2937]">Net Total</td>
+                      <td className="py-3 px-3 text-right font-black text-[#1F2937]">₹{(data.totals?.total_debit || 0).toFixed(2)}</td>
+                      <td className="py-3 px-3 text-right font-black text-[#168B57]">₹{(data.totals?.total_credit || 0).toFixed(2)}</td>
+                    </tr>
+                    <tr className="bg-[#EAF7F0] font-bold text-xs text-[#0B6B43]">
+                      <td colSpan={3} className="py-2.5 px-3 text-right">Balance Outstanding</td>
+                      <td className="py-2.5 px-3 text-right font-black text-sm text-[#0B6B43]" colSpan={2}>
+                        ₹{(data.totals?.balance || 0).toFixed(2)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
             </div>
-          ))}
+          ) : (
+            data.types.map((ty,ti)=>(
+              <div key={ty.report_type_id} className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
+                <div className="px-4 py-3 border-b border-[#D1D5DB] flex items-center justify-between">
+                  <p className="text-xs font-bold text-[#0B6B43]">{ty.name} <span className="text-[#6B7280] font-normal">({ty.reports} report{ty.reports===1?'':'s'})</span></p>
+                  <p className="text-xs font-bold">Subtotal ₹{typeTotal(ty, ti).toFixed(2)}</p>
+                </div>
+                <table className="w-full text-left text-xs">
+                  <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
+                    <th className="py-2 px-3">Parameter</th><th className="py-2 px-3">Unit</th>
+                    <th className="py-2 px-3 text-right">Times</th><th className="py-2 px-3 text-right">Rate ₹</th>
+                    <th className="py-2 px-3 text-right">Qty</th><th className="py-2 px-3 text-right">Amount ₹</th>
+                  </tr></thead>
+                  <tbody className="divide-y divide-[#D1D5DB]/60">
+                    {ty.rows.map((row,ri)=>(
+                      <tr key={row.parameter_id} className="hover:bg-[#EAF7F0]/30">
+                        <td className="py-2 px-3 font-bold">{row.name}</td>
+                        <td className="py-2 px-3 text-[#6B7280]">{row.unit||'-'}</td>
+                        <td className="py-2 px-3 text-right"><span className="px-2 py-0.5 rounded-full bg-sky-500 text-white text-[11px] font-bold">×{row.times}</span></td>
+                        <td className="py-2 px-3 text-right">
+                          <input type="number" min="0" step="0.01" value={val(ti,ri,row,'rate')} onChange={e=>setVal(ti, ri, row, 'rate', e.target.value)} className="w-24 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
+                        </td>
+                        <td className="py-2 px-3 text-right">
+                          <input type="number" min="0" step="1" value={val(ti,ri,row,'qty')} onChange={e=>setVal(ti, ri, row, 'qty', e.target.value)} className="w-20 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
+                        </td>
+                        <td className="py-2 px-3 text-right font-bold">₹{rowAmount(ti, ri, row).toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))
+          )}
         </>
       )}
+
+      {/* WhatsApp Share Modal for Bulk Settlement */}
+      <WhatsAppModal
+        isOpen={waModal.isOpen}
+        onClose={() => setWaModal(m => ({ ...m, isOpen: false }))}
+        phone={waModal.phone}
+        recipientName={waModal.recipientName}
+        docTitle={waModal.docTitle}
+        summaryLines={waModal.summaryLines}
+        pdfUrl={waModal.pdfUrl}
+      />
     </div>
   );
 };

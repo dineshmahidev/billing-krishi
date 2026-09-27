@@ -45,13 +45,13 @@ export const ControlPanel = () => {
           {activeTab==='reports' && <Reports setActiveTab={setActiveTab} setSelectedReportId={setSelectedReportId} />}
           {activeTab==='view-report' && <ViewReport reportId={selectedReportId} setActiveTab={setActiveTab} setSelectedReportId={setSelectedReportId} />}
           {activeTab==='edit-report' && <EditReport reportId={selectedReportId} setActiveTab={setActiveTab} setSelectedReportId={setSelectedReportId} />}
-          {activeTab==='staff' && <Staff />}
+          {activeTab==='staff' && !user?.is_demo && <Staff />}
           {activeTab==='customers' && <Customers />}
           {activeTab==='invoices' && <Invoices />}
           {activeTab==='report-types' && <ReportTypes />}
           {activeTab==='parameters' && <Parameters />}
-          {activeTab==='cms' && <Cms />}
-          {activeTab==='settings' && <Settings />}
+          {activeTab==='cms' && !user?.is_demo && <Cms />}
+          {activeTab==='settings' && !user?.is_demo && <Settings />}
         </main>
       </div>
     </div>

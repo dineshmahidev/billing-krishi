@@ -390,7 +390,9 @@ export const Customers = () => {
                       </div>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-bold text-[#1F2937] truncate">{c.company_name || c.name}</p>
-                        <p className="text-[11px] text-[#6B7280] truncate">{c.contact_person || c.name}</p>
+                        {c.contact_person && c.contact_person !== (c.company_name || c.name) && (
+                          <p className="text-[11px] text-[#6B7280] truncate">Contact: {c.contact_person}</p>
+                        )}
                       </div>
                       {c.gstin && <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide bg-[#1F2937] text-white shrink-0">GST</span>}
                     </div>

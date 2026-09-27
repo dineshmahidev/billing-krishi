@@ -33,6 +33,14 @@ export const ReportTypes = () => {
     } catch(err){ addToast(err.response?.data?.message || 'Delete failed', 'error'); }
   };
 
+  const toggleActive = async (t) => {
+    try {
+      await api.put(`/report-types/${t.id}`, { active: !t.active });
+      addToast(`"${t.name}" is now ${!t.active ? 'Active' : 'Disabled'}`);
+      loadTypes();
+    } catch { addToast('Failed to update status', 'error'); }
+  };
+
   return (
     <div className="space-y-4 max-w-3xl">
       <h1 className="text-xl font-bold text-[#1F2937]">Report Types</h1>
@@ -64,15 +72,26 @@ export const ReportTypes = () => {
 
       <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]"><th className="py-2 px-4">Name</th><th className="py-2 px-4">Title</th><th className="py-2 px-4">Spec</th><th className="py-2 px-4">Custom Cols</th><th className="py-2 px-4">Active</th><th className="py-2 px-4 text-right">Actions</th></tr></thead>
+          <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]"><th className="py-2 px-4">Name</th><th className="py-2 px-4">Title</th><th className="py-2 px-4">Spec</th><th className="py-2 px-4">Custom Cols</th><th className="py-2 px-4">Active / Status</th><th className="py-2 px-4 text-right">Actions</th></tr></thead>
           <tbody className="divide-y divide-[#D1D5DB]/60">
             {list.map(t=>(
-              <tr key={t.id}>
+              <tr key={t.id} className={t.active ? '' : 'opacity-60 bg-gray-50'}>
                 <td className="py-2 px-4 font-bold">{t.name}</td>
                 <td className="py-2 px-4">{t.title}</td>
                 <td className="py-2 px-4">{t.show_specification ? 'Shown' : 'Hidden'}</td>
                 <td className="py-2 px-4">{(t.custom_columns||[]).join(', ') || '-'}</td>
-                <td className="py-2 px-4">{t.active ? 'Yes':'No'}</td>
+                <td className="py-2 px-4">
+                  <button
+                    type="button"
+                    onClick={()=>toggleActive(t)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
+                      t.active ? 'bg-[#EAF7F0] text-[#0B6B43] hover:bg-emerald-100' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                    title="Click to toggle active/inactive"
+                  >
+                    {t.active ? '✓ Active (ON)' : '✗ Disabled (OFF)'}
+                  </button>
+                </td>
                 <td className="py-2 px-4 text-right">
                   <div className="flex gap-1 justify-end">
                     <button onClick={()=>{setEditing(t.id); setForm({name:t.name, title:t.title, active:t.active, show_specification: t.show_specification ?? true, custom_columns: t.custom_columns||[]});}} className="px-3 py-1 rounded-lg border border-[#D1D5DB] text-xs font-bold">Edit</button>

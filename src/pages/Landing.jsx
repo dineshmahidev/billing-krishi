@@ -186,7 +186,6 @@ export const Landing = () => {
               {/* CTA buttons */}
               <div className="flex flex-wrap gap-3 pt-1">
                 <a href="#services" className="bg-white hover:bg-[#EAF7F0] text-[#0B6B43] px-6 py-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.2)]">Explore Testing <ArrowRight className="w-4 h-4" /></a>
-            <a href="/demo" className="border border-white/60 hover:bg-white/10 text-white px-6 py-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.15)]"><FlaskConical className="w-4 h-4" /> Live Demo</a>
                 <a href={`tel:${contactPhone.replace(/[^+\d]/g,'')}`} className="border border-white/60 hover:bg-white/10 text-white px-6 py-3.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors"><Phone className="w-4 h-4" /> Call the Lab</a>
               </div>
               {/* Feature checklist */}

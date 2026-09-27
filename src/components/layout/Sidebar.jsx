@@ -3,20 +3,20 @@ import { useAuth } from '../../context/AuthContext';
 import { LayoutDashboard, FilePlus, Files, Users, Layers, FlaskConical, Settings, Globe, LogOut, Building2, Receipt } from 'lucide-react';
 
 export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
-  const { isAdmin, logout } = useAuth();
+  const { isAdmin, user, logout } = useAuth();
   const items = [
     { id:'dashboard', label:'Dashboard', icon: LayoutDashboard },
     { id:'new-report', label:'New Report', icon: FilePlus },
     { id:'reports', label:'Reports', icon: Files },
   ];
   const adminItems = [
-    { id:'staff', label:'Staff', icon: Users, admin:true },
+    ...(!user?.is_demo ? [{ id:'staff', label:'Staff', icon: Users, admin:true }] : []),
     { id:'customers', label:'Customers', icon: Building2, admin:true },
     { id:'invoices', label:'Invoices', icon: Receipt, admin:true },
     { id:'report-types', label:'Report Types', icon: Layers, admin:true },
     { id:'parameters', label:'Parameters', icon: FlaskConical, admin:true },
-    { id:'cms', label:'Website CMS', icon: Globe, admin:true },
-    { id:'settings', label:'Settings', icon: Settings, admin:true },
+    ...(!user?.is_demo ? [{ id:'cms', label:'Website CMS', icon: Globe, admin:true }] : []),
+    ...(!user?.is_demo ? [{ id:'settings', label:'Settings', icon: Settings, admin:true }] : []),
   ];
   return (
     <>

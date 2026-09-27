@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api, { openPdf, openWord, printReport } from '../services/api';
-import { Search, Eye, Pencil, Trash2, FileText, Printer, FileType, Users, FlaskConical, FileClock, ChevronDown, MoreVertical, Receipt } from 'lucide-react';
+import { Search, Eye, Pencil, Trash2, FileText, Printer, FileType, Users, FlaskConical, FileClock, ChevronDown, MoreVertical, Receipt, MessageCircle } from 'lucide-react';
 import { useToast } from '../components/common/Toast';
 import { useAuth } from '../context/AuthContext';
+import { WhatsAppModal } from '../components/common/WhatsAppModal';
 
 export const Reports = ({ setActiveTab, setSelectedReportId }) => {
   const { addToast } = useToast();
@@ -21,6 +22,7 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
   const [lastPage, setLastPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [menu, setMenu] = useState(null);
+  const [waModal, setWaModal] = useState({ isOpen: false, phone: '', recipientName: '', docTitle: '', summaryLines: [], pdfUrl: '' });
 
   const loadReports = async (p=1, overrides={}) => {
     setLoading(true);
@@ -114,7 +116,7 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                <th className="py-2.5 px-4">Report No</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4">Company</th><th className="py-2.5 px-4">Type</th><th className="py-2.5 px-4">Sample</th><th className="py-2.5 px-4">By</th><th className="py-2.5 px-4 text-right">Actions</th>
+                <th className="py-2.5 px-4">Report No</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4">Party Name</th><th className="py-2.5 px-4">Type</th><th className="py-2.5 px-4">Sample</th><th className="py-2.5 px-4">By</th><th className="py-2.5 px-4 text-right">Actions</th>
               </tr></thead>
               <tbody className="divide-y divide-[#D1D5DB]/60">
                 {reports.map(r=>(
@@ -159,10 +161,40 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
           const base=import.meta.env.VITE_API_URL||'http://localhost:8000/api';
           window.open(`${base}/reports/${id}/invoice/pdf${t?`?token=${t}`:''}`,'_blank');
         };
+        const shareReportWhatsapp = (r) => {
+          if (!r) return;
+          const partyName = r.party_name || r.customer_name || 'Customer';
+          const phone = r.customer?.phone || '';
+          const repNo = r.report_no || '-';
+          const repType = r.report_type?.name || 'Report';
+          const sample = r.sample_name || '-';
+          const date = r.sample_date ? r.sample_date.split('T')[0] : (r.created_at?.split('T')[0] || '-');
+          const veh = r.vehicle_no || '-';
+          const token = localStorage.getItem('auth_token');
+          const base = window.location.origin + '/api';
+          const pdfUrl = `${base}/reports/${r.id}/pdf${token ? `?token=${token}` : ''}`;
+
+          setWaModal({
+            isOpen: true,
+            phone,
+            recipientName: partyName,
+            docTitle: `TEST REPORT: ${repNo}`,
+            summaryLines: [
+              `*Report No:* ${repNo}`,
+              `*Party:* ${partyName}`,
+              `*Type:* ${repType}`,
+              `*Sample:* ${sample}`,
+              `*Vehicle:* ${veh}`,
+              `*Sample Date:* ${date}`,
+            ],
+            pdfUrl,
+          });
+        };
         return (
           <>
             <div className="fixed inset-0 z-40" onClick={()=>setMenu(null)} />
             <div className="fixed z-50 w-48 bg-white border border-[#D1D5DB] rounded-xl shadow-[0_12px_36px_rgba(0,0,0,0.18)] py-1 text-xs" style={{ top: menu.top, right: menu.right }}>
+              <button onClick={()=>{ const r=mr; setMenu(null); shareReportWhatsapp(r); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><MessageCircle className="w-3.5 h-3.5 text-[#25D366]"/> WhatsApp Share</button>
               <button onClick={()=>{ const id=menu.id; setMenu(null); openInvoicePdf(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><Receipt className="w-3.5 h-3.5 text-[#168B57]"/> Invoice PDF (₹)</button>
               <button onClick={()=>{ const id=menu.id; setMenu(null); openWord(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><FileType className="w-3.5 h-3.5 text-sky-600"/> Word</button>
               <button onClick={()=>{ const id=menu.id; setMenu(null); printReport(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><Printer className="w-3.5 h-3.5 text-[#6B7280]"/> Print</button>
@@ -171,6 +203,17 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
           </>
         );
       })()}
+
+      {/* WhatsApp Share Modal */}
+      <WhatsAppModal
+        isOpen={waModal.isOpen}
+        onClose={() => setWaModal(m => ({ ...m, isOpen: false }))}
+        phone={waModal.phone}
+        recipientName={waModal.recipientName}
+        docTitle={waModal.docTitle}
+        summaryLines={waModal.summaryLines}
+        pdfUrl={waModal.pdfUrl}
+      />
     </div>
   );
 };

@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, X, Send, Bookmark, Check, Smartphone, FileText } from 'lucide-react';
-
-const PRESET_GREETINGS = [
-  { id: 'formal', label: 'Formal (English)', get: (name) => `Dear ${name || 'Sir/Madam'}, Greetings from Krishi Analytical Laboratory!` },
-  { id: 'friendly', label: 'Brief & Crisp', get: (name) => `Hello ${name || 'Sir/Madam'}, here is your document from Krishi Analytical Laboratory.` },
-  { id: 'tamil', label: 'Tamil / தமிழ்', get: (name) => `வணக்கம் ${name || ''}! Krishi Analytical Lab-ல் இருந்து உங்கள் அறிக்கை / பில் விவரங்கள் கீழே தரப்பட்டுள்ளது.` },
-  { id: 'custom', label: 'Custom...', get: () => '' }
-];
+import { MessageCircle, X, Send, Check, Smartphone, FileText, Copy, Globe, Sparkles } from 'lucide-react';
 
 export const WhatsAppModal = ({
   isOpen,
@@ -18,76 +11,138 @@ export const WhatsAppModal = ({
   pdfUrl = '',
 }) => {
   const [targetPhone, setTargetPhone] = useState('');
-  const [greetingPreset, setGreetingPreset] = useState('formal');
-  const [greetingText, setGreetingText] = useState('');
-  const [customSaved, setCustomSaved] = useState(false);
+  const [mode, setMode] = useState('pdf_only'); // 'pdf_only' | 'detailed'
+  const [customText, setCustomText] = useState('');
+  const [copiedText, setCopiedText] = useState(false);
+  const [copiedPdf, setCopiedPdf] = useState(false);
+  const [isSharingFile, setIsSharingFile] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setTargetPhone(phone && phone.trim() ? phone.trim() : '9361229641');
-      const savedCustom = localStorage.getItem('krishi_wa_custom_greeting');
-      if (savedCustom) {
-        setGreetingPreset('custom');
-        setGreetingText(savedCustom.replace('{name}', recipientName || 'Sir/Madam'));
-      } else {
-        setGreetingPreset('formal');
-        setGreetingText(PRESET_GREETINGS[0].get(recipientName));
-      }
-      setCustomSaved(false);
+      const cleanPhone = String(phone || '').replace(/[^0-9]/g, '');
+      setTargetPhone(cleanPhone.length >= 10 ? cleanPhone.slice(-10) : '9361229641');
+      setMode('pdf_only');
+      setCustomText('');
+      setCopiedText(false);
+      setCopiedPdf(false);
     }
-  }, [isOpen, phone, recipientName]);
+  }, [isOpen, phone, recipientName, docTitle, pdfUrl]);
 
   if (!isOpen) return null;
 
-  const handlePresetChange = (presetId) => {
-    setGreetingPreset(presetId);
-    if (presetId === 'custom') {
-      const saved = localStorage.getItem('krishi_wa_custom_greeting');
-      setGreetingText(saved ? saved.replace('{name}', recipientName || 'Sir/Madam') : `Dear ${recipientName || 'Sir/Madam'}, `);
-    } else {
-      const found = PRESET_GREETINGS.find(p => p.id === presetId);
-      if (found) setGreetingText(found.get(recipientName));
-    }
-  };
-
-  const saveAsDefault = () => {
-    localStorage.setItem('krishi_wa_custom_greeting', greetingText);
-    setCustomSaved(true);
-    setTimeout(() => setCustomSaved(false), 3000);
-  };
-
   // Build the complete WhatsApp message text
   const buildFullMessage = () => {
-    const lines = [];
-    if (greetingText.trim()) {
-      lines.push(greetingText.trim());
+    try {
+      if (customText.trim()) {
+        return customText.trim();
+      }
+
+      const titleStr = String(docTitle || 'TEST REPORT').toUpperCase();
+      const partyStr = recipientName ? ` - ${recipientName}` : '';
+
+      if (mode === 'pdf_only') {
+        // Direct PDF Only - clean and fast
+        return `📄 *${titleStr}*${partyStr}\n🔗 *Direct PDF Link:*\n${pdfUrl || ''}`;
+      }
+
+      // Detailed mode
+      const lines = [];
+      lines.push(`Dear ${recipientName || 'Sir/Madam'}, Greetings from Krishi Analytical Laboratory!`);
       lines.push('');
-    }
-
-    lines.push(`📄 *${docTitle.toUpperCase()}*`);
-    lines.push('----------------------------------------');
-
-    if (summaryLines && summaryLines.length > 0) {
-      summaryLines.forEach(l => {
-        if (l) lines.push(l);
-      });
+      lines.push(`📄 *${titleStr}*`);
       lines.push('----------------------------------------');
+
+      if (Array.isArray(summaryLines) && summaryLines.length > 0) {
+        summaryLines.forEach(l => {
+          if (l && typeof l === 'string') lines.push(l);
+        });
+        lines.push('----------------------------------------');
+      }
+
+      if (pdfUrl && typeof pdfUrl === 'string') {
+        lines.push('🔗 *Direct PDF Link:*');
+        lines.push(pdfUrl);
+        lines.push('----------------------------------------');
+      }
+
+      lines.push('*Krishi Analytical Laboratory*');
+      lines.push('Kangeyam - 638701 | Ph: +91 63793 12357');
+
+      return lines.join('\n');
+    } catch (e) {
+      return `${docTitle}\n${pdfUrl || ''}`;
     }
-
-    if (pdfUrl) {
-      lines.push('🔗 *Direct PDF Download / View Link:*');
-      lines.push(pdfUrl);
-      lines.push('----------------------------------------');
-    }
-
-    lines.push('*Krishi Analytical Laboratory*');
-    lines.push('182-B, Tiruppur Road, Kangeyam - 638701');
-    lines.push('Ph: +91 63793 12357, +91 88838 64756');
-
-    return lines.join('\n');
   };
 
-  const [isSharingFile, setIsSharingFile] = useState(false);
+  const getCleanPhone = () => {
+    let clean = String(targetPhone || '').replace(/[^0-9]/g, '');
+    if (!clean) {
+      const promptPhone = window.prompt('Please enter the 10-digit WhatsApp number:', '9361229641');
+      if (!promptPhone) return null;
+      clean = promptPhone.replace(/[^0-9]/g, '');
+    }
+    if (clean.length === 10) clean = '91' + clean;
+    return clean;
+  };
+
+  const sendWhatsAppApi = () => {
+    const clean = getCleanPhone();
+    if (!clean) return;
+    const message = buildFullMessage();
+    const url = `https://api.whatsapp.com/send?phone=${clean}&text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    onClose();
+  };
+
+  const sendWhatsAppWeb = () => {
+    const clean = getCleanPhone();
+    if (!clean) return;
+    const message = buildFullMessage();
+    const url = `https://web.whatsapp.com/send?phone=${clean}&text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    onClose();
+  };
+
+  const copyMessageToClipboard = async () => {
+    try {
+      const text = buildFullMessage();
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopiedText(true);
+      setTimeout(() => setCopiedText(false), 2500);
+    } catch (e) {
+      console.warn('Copy failed:', e);
+    }
+  };
+
+  const copyPdfLinkToClipboard = async () => {
+    if (!pdfUrl) return;
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(pdfUrl);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = pdfUrl;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      setCopiedPdf(true);
+      setTimeout(() => setCopiedPdf(false), 2500);
+    } catch (e) {
+      console.warn('Copy failed:', e);
+    }
+  };
+
   const canShareFiles = typeof navigator !== 'undefined' && !!navigator.canShare;
 
   const handleNativeShare = async () => {
@@ -96,7 +151,7 @@ export const WhatsAppModal = ({
       setIsSharingFile(true);
       const res = await fetch(pdfUrl);
       const blob = await res.blob();
-      const filename = `${docTitle.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+      const filename = `${String(docTitle || 'document').replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
       const file = new File([blob], filename, { type: 'application/pdf' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -107,31 +162,14 @@ export const WhatsAppModal = ({
         });
         onClose();
       } else {
-        // Fallback to wa.me URL
-        handleSend();
+        sendWhatsAppApi();
       }
     } catch (err) {
       console.warn('Native share error or cancelled:', err);
-      // If user cancelled or not supported, fallback to WhatsApp web link
-      handleSend();
+      sendWhatsAppApi();
     } finally {
       setIsSharingFile(false);
     }
-  };
-
-  const handleSend = () => {
-    let clean = (targetPhone || '').replace(/[^0-9]/g, '');
-    if (!clean) {
-      const promptPhone = window.prompt('Please enter the 10-digit WhatsApp number:', '9361229641');
-      if (!promptPhone) return;
-      clean = promptPhone.replace(/[^0-9]/g, '');
-    }
-    if (clean.length === 10) clean = '91' + clean;
-
-    const message = buildFullMessage();
-    const waUrl = `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
-    window.open(waUrl, '_blank');
-    onClose();
   };
 
   return (
@@ -146,7 +184,7 @@ export const WhatsAppModal = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">Share via WhatsApp</h3>
-              <p className="text-[11px] text-white/70">Send to client or test directly on your mobile</p>
+              <p className="text-[11px] text-white/70">Send direct PDF link to client or test mobile</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors">
@@ -170,10 +208,10 @@ export const WhatsAppModal = ({
                 >
                   Test: 9361229641
                 </button>
-                {phone && phone !== '9361229641' && (
+                {phone && String(phone).trim() !== '9361229641' && (
                   <button
                     type="button"
-                    onClick={() => setTargetPhone(phone)}
+                    onClick={() => setTargetPhone(String(phone).replace(/[^0-9]/g, ''))}
                     className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 text-[10px] font-bold"
                   >
                     Party: {phone}
@@ -193,52 +231,62 @@ export const WhatsAppModal = ({
             </div>
           </div>
 
-          {/* Greeting Customization */}
-          <div className="space-y-1.5 bg-[#F9FAFB] p-3 rounded-xl border border-[#E5E7EB]">
-            <div className="flex items-center justify-between">
-              <label className="text-[11px] font-bold text-[#374151]">Customize Greeting Line:</label>
+          {/* Mode Selector */}
+          <div className="flex items-center justify-between bg-[#F9FAFB] p-2.5 rounded-xl border border-[#E5E7EB]">
+            <span className="text-[11px] font-bold text-[#374151]">Message Type:</span>
+            <div className="flex gap-1.5">
               <button
                 type="button"
-                onClick={saveAsDefault}
-                className="text-[10.5px] font-bold text-[#168B57] hover:text-[#0B6B43] flex items-center gap-1"
-                title="Save this text as default for future messages"
+                onClick={() => { setMode('pdf_only'); setCustomText(''); }}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1 ${
+                  mode === 'pdf_only'
+                    ? 'bg-[#168B57] text-white shadow-sm'
+                    : 'bg-white border border-[#D1D5DB] text-[#4B5563] hover:bg-gray-100'
+                }`}
               >
-                {customSaved ? <><Check className="w-3 h-3 text-emerald-600"/> Saved!</> : <><Bookmark className="w-3 h-3"/> Save as Default</>}
+                <FileText className="w-3 h-3"/> Direct PDF Only
+              </button>
+              <button
+                type="button"
+                onClick={() => { setMode('detailed'); setCustomText(''); }}
+                className={`px-3 py-1 rounded-lg text-[11px] font-bold transition-colors flex items-center gap-1 ${
+                  mode === 'detailed'
+                    ? 'bg-[#168B57] text-white shadow-sm'
+                    : 'bg-white border border-[#D1D5DB] text-[#4B5563] hover:bg-gray-100'
+                }`}
+              >
+                <Sparkles className="w-3 h-3"/> Full Summary
               </button>
             </div>
-
-            {/* Greeting Presets */}
-            <div className="flex flex-wrap gap-1.5 pt-0.5">
-              {PRESET_GREETINGS.map(p => (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => handlePresetChange(p.id)}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors ${
-                    greetingPreset === p.id
-                      ? 'bg-[#168B57] text-white'
-                      : 'bg-white border border-[#D1D5DB] text-[#4B5563] hover:bg-gray-100'
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Editable Greeting text */}
-            <textarea
-              rows={2}
-              value={greetingText}
-              onChange={e => setGreetingText(e.target.value)}
-              placeholder="Type your greeting message here..."
-              className="w-full p-2.5 bg-white border border-[#D1D5DB] rounded-lg text-xs text-[#1F2937] focus:border-[#25D366] outline-none resize-none mt-1"
-            />
           </div>
 
           {/* Live Message Preview */}
-          <div className="space-y-1">
-            <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wide">WhatsApp Message Preview:</span>
-            <div className="bg-[#ECE5DD]/40 border border-[#D1D5DB] rounded-xl p-3 font-sans text-xs text-[#1F2937] whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto shadow-inner">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-[#6B7280] uppercase tracking-wide">WhatsApp Message Preview:</span>
+              <div className="flex items-center gap-2">
+                {pdfUrl && (
+                  <button
+                    type="button"
+                    onClick={copyPdfLinkToClipboard}
+                    className="text-[10.5px] text-[#0B6B43] font-bold hover:underline flex items-center gap-1"
+                  >
+                    {copiedPdf ? <Check className="w-3 h-3 text-emerald-600"/> : <Copy className="w-3 h-3"/>}
+                    {copiedPdf ? 'PDF Link Copied' : 'Copy PDF Link'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={copyMessageToClipboard}
+                  className="text-[10.5px] text-[#168B57] font-bold hover:underline flex items-center gap-1"
+                >
+                  {copiedText ? <Check className="w-3 h-3 text-emerald-600"/> : <Copy className="w-3 h-3"/>}
+                  {copiedText ? 'Message Copied!' : 'Copy Text'}
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-[#ECE5DD]/40 border border-[#D1D5DB] rounded-xl p-3.5 font-sans text-xs text-[#1F2937] whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto shadow-inner">
               {buildFullMessage()}
             </div>
           </div>
@@ -253,25 +301,36 @@ export const WhatsAppModal = ({
           >
             Cancel
           </button>
-          <div className="flex items-center gap-2">
+          
+          <div className="flex flex-wrap items-center gap-2">
             {canShareFiles && pdfUrl && (
               <button
                 type="button"
                 onClick={handleNativeShare}
                 disabled={isSharingFile}
-                className="px-3.5 py-2.5 rounded-xl bg-[#0B6B43] hover:bg-[#084D30] text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+                className="px-3 py-2 rounded-xl bg-[#0B6B43] hover:bg-[#084D30] text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
                 title="Directly attach and share PDF file via native device share"
               >
                 <FileText className="w-3.5 h-3.5" />
-                {isSharingFile ? 'Preparing...' : 'Direct PDF Share'}
+                {isSharingFile ? 'Preparing...' : 'Direct PDF File'}
               </button>
             )}
+
             <button
               type="button"
-              onClick={handleSend}
-              className="px-5 py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs flex items-center gap-2 shadow-[0_4px_14px_rgba(37,211,102,0.35)] transition-all hover:scale-[1.02]"
+              onClick={sendWhatsAppWeb}
+              className="px-3.5 py-2 rounded-xl bg-[#1F2937] hover:bg-[#111827] text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm"
+              title="Open directly in WhatsApp Web browser tab"
             >
-              <Send className="w-3.5 h-3.5" /> Send on WhatsApp
+              <Globe className="w-3.5 h-3.5 text-[#25D366]" /> WhatsApp Web
+            </button>
+
+            <button
+              type="button"
+              onClick={sendWhatsAppApi}
+              className="px-4 py-2 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_4px_14px_rgba(37,211,102,0.35)] transition-all hover:scale-[1.02]"
+            >
+              <Send className="w-3.5 h-3.5" /> Send WhatsApp
             </button>
           </div>
         </div>
@@ -282,3 +341,4 @@ export const WhatsAppModal = ({
 };
 
 export default WhatsAppModal;
+

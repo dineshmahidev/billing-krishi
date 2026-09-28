@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useToast } from '../components/common/Toast';
 import { CustomerAutocomplete } from '../components/common/CustomerAutocomplete';
+import { getDefaultTableColumns } from './admin/ReportTypes';
 import {
   Calendar, Building2, FlaskConical, Truck, Package, Hash,
   FileText, UserCheck, Store, ClipboardList, MessageSquare
@@ -243,7 +244,7 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
             {isFieldVisible('buyer') && (
               <div>
                 <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                  <UserCheck className="w-3.5 h-3.5 text-[#168B57]" /> Buyer (வாங்குபவர்)
+                  <UserCheck className="w-3.5 h-3.5 text-[#168B57]" /> Buyer
                 </label>
                 <div className="relative mt-1">
                   <UserCheck className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -261,7 +262,7 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
             {isFieldVisible('seller') && (
               <div>
                 <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                  <Store className="w-3.5 h-3.5 text-[#168B57]" /> Seller (விற்பனையாளர்)
+                  <Store className="w-3.5 h-3.5 text-[#168B57]" /> Seller
                 </label>
                 <div className="relative mt-1">
                   <Store className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -279,7 +280,7 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
             {isFieldVisible('nature_of_sample') && (
               <div>
                 <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                  <ClipboardList className="w-3.5 h-3.5 text-[#168B57]" /> Nature of Sample (மாதிரியின் தன்மை)
+                  <ClipboardList className="w-3.5 h-3.5 text-[#168B57]" /> Nature of Sample
                 </label>
                 <div className="relative mt-1">
                   <ClipboardList className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
@@ -300,99 +301,127 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
           <h3 className="text-xs font-bold text-[#0B6B43] uppercase tracking-wider">
             Test Results {showSpecEdit ? '' : '(Specification hidden)'}
           </h3>
-          <div className="mt-3 overflow-x-auto border border-[#D1D5DB] rounded-xl shadow-sm">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                  <th className="py-2.5 px-3 w-10 text-center">S.No</th>
-                  <th className="py-2.5 px-3">Parameter</th>
-                  <th className="py-2.5 px-3 w-32">Result</th>
-                  {showSpecEdit && <th className="py-2.5 px-3">Specification</th>}
-                  {(form.report_type?.custom_columns || []).map(col => (
-                    <th key={col} className="py-2.5 px-3">{col}</th>
-                  ))}
-                  <th className="py-2.5 px-3 w-16 text-center">Include</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#D1D5DB]/60 bg-white">
-                {results.map((r, i) => {
-                  const on = r.enabled !== false;
-                  const sno = results.slice(0, i).filter(x => x.enabled !== false).length + (on ? 1 : 0);
-                  return (
-                    <tr key={r.parameter_id} className={on ? 'hover:bg-[#EAF7F0]/30' : 'bg-[#F3F4F6] opacity-60'}>
-                      <td className="py-2 px-3 text-center font-bold text-[#6B7280]">{on ? `${sno}.` : '—'}</td>
-                      <td className="py-2 px-3 font-bold text-[#1F2937]">{r.name}</td>
-                      <td className="py-2 px-3">
-                        <div className="relative">
-                          <input
-                            value={r.result}
-                            disabled={!on}
-                            onChange={e => {
-                              const c = [...results];
-                              c[i].result = e.target.value.replace('%', '');
-                              setResults(c);
-                            }}
-                            className={`w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs font-medium disabled:bg-[#F3F4F6] ${r.unit === '%' ? 'pr-7' : ''}`}
-                          />
-                          {r.unit === '%' && (
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-[#168B57]">%</span>
-                          )}
-                          {r.unit && r.unit !== '%' && (
-                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#6B7280]">{r.unit}</span>
-                          )}
-                        </div>
-                      </td>
-                      {showSpecEdit && (
-                        <td className="py-2 px-3">
-                          <input
-                            value={r.specification}
-                            disabled={!on}
-                            onChange={e => {
-                              const c = [...results];
-                              c[i].specification = e.target.value;
-                              setResults(c);
-                            }}
-                            className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
-                          />
-                        </td>
-                      )}
-                      {(form.report_type?.custom_columns || []).map((col) => (
-                        <td key={col} className="py-2 px-3">
-                          <input
-                            value={r.custom_values?.[col] ?? ''}
-                            disabled={!on}
-                            onChange={e => updateCustomValue(i, col, e.target.value)}
-                            placeholder="-"
-                            className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
-                          />
-                        </td>
+          {(() => {
+            const activeTableCols = getDefaultTableColumns(form.report_type || {}).filter(c => c.visible !== false);
+            return (
+              <div className="mt-3 overflow-x-auto border border-[#D1D5DB] rounded-xl shadow-sm">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
+                      {activeTableCols.map(col => (
+                        <th
+                          key={col.key}
+                          className={`py-2.5 px-3 ${col.key === 's_no' ? 'w-10 text-center' : (col.key === 'result' ? 'w-32' : '')}`}
+                        >
+                          {col.label}
+                        </th>
                       ))}
-                      <td className="py-2 px-3 text-center">
-                        <input
-                          type="checkbox"
-                          checked={on}
-                          onChange={() => {
-                            const c = [...results];
-                            c[i] = { ...c[i], enabled: !on };
-                            setResults(c);
-                          }}
-                          title={on ? 'Included in report & PDF' : 'Excluded from report & PDF'}
-                          className="w-4 h-4 accent-[#168B57] cursor-pointer"
-                        />
-                      </td>
+                      <th className="py-2.5 px-3 w-16 text-center">Include</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                  </thead>
+                  <tbody className="divide-y divide-[#D1D5DB]/60 bg-white">
+                    {results.map((r, i) => {
+                      const on = r.enabled !== false;
+                      const sno = results.slice(0, i).filter(x => x.enabled !== false).length + (on ? 1 : 0);
+                      return (
+                        <tr key={r.parameter_id} className={on ? 'hover:bg-[#EAF7F0]/30' : 'bg-[#F3F4F6] opacity-60'}>
+                          {activeTableCols.map(col => {
+                            if (col.key === 's_no') {
+                              return (
+                                <td key={col.key} className="py-2 px-3 text-center font-bold text-[#6B7280]">
+                                  {on ? `${sno}.` : '—'}
+                                </td>
+                              );
+                            }
+                            if (col.key === 'parameter') {
+                              return (
+                                <td key={col.key} className="py-2 px-3 font-bold text-[#1F2937]">
+                                  {r.name}
+                                </td>
+                              );
+                            }
+                            if (col.key === 'specification') {
+                              return (
+                                <td key={col.key} className="py-2 px-3">
+                                  <input
+                                    value={r.specification}
+                                    disabled={!on}
+                                    onChange={e => {
+                                      const c = [...results];
+                                      c[i].specification = e.target.value;
+                                      setResults(c);
+                                    }}
+                                    className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
+                                  />
+                                </td>
+                              );
+                            }
+                            if (col.key === 'result') {
+                              return (
+                                <td key={col.key} className="py-2 px-3">
+                                  <div className="relative">
+                                    <input
+                                      value={r.result}
+                                      disabled={!on}
+                                      onChange={e => {
+                                        const c = [...results];
+                                        c[i].result = e.target.value.replace('%', '');
+                                        setResults(c);
+                                      }}
+                                      className={`w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs font-medium disabled:bg-[#F3F4F6] ${r.unit === '%' ? 'pr-7' : ''}`}
+                                    />
+                                    {r.unit === '%' && (
+                                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-[#168B57]">%</span>
+                                    )}
+                                    {r.unit && r.unit !== '%' && (
+                                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#6B7280]">{r.unit}</span>
+                                    )}
+                                  </div>
+                                </td>
+                              );
+                            }
+                            // Custom column
+                            const customVal = r.custom_values?.[col.label] ?? (r.custom_values?.[col.key] ?? '');
+                            return (
+                              <td key={col.key} className="py-2 px-3">
+                                <input
+                                  value={customVal}
+                                  disabled={!on}
+                                  onChange={e => updateCustomValue(i, col.label, e.target.value)}
+                                  placeholder="-"
+                                  className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
+                                />
+                              </td>
+                            );
+                          })}
+                          <td className="py-2 px-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={on}
+                              onChange={() => {
+                                const c = [...results];
+                                c[i] = { ...c[i], enabled: !on };
+                                setResults(c);
+                              }}
+                              title={on ? 'Included in report & PDF' : 'Excluded from report & PDF'}
+                              className="w-4 h-4 accent-[#168B57] cursor-pointer"
+                            />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Remarks (Separately at the bottom) */}
         {isFieldVisible('remarks') && (
           <div className="pt-3 border-t border-[#D1D5DB]/60">
             <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-              <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Remarks / Notes (குறிப்புகள்)
+              <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Remarks / Notes
             </label>
             <div className="relative mt-1">
               <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />

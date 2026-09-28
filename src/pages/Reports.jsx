@@ -155,11 +155,11 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
       </div>
 
       {menu && (() => {
-        const mr = reports.find(x=>x.id===menu.id);
+        const mr = reports.find(x => x.id === menu.id);
         const openInvoicePdf = (id) => {
-          const t=localStorage.getItem('auth_token');
-          const base=import.meta.env.VITE_API_URL||'http://localhost:8000/api';
-          window.open(`${base}/reports/${id}/invoice/pdf${t?`?token=${t}`:''}`,'_blank');
+          const t = localStorage.getItem('auth_token');
+          const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+          window.open(`${base}/reports/${id}/invoice/pdf${t ? `?token=${t}` : ''}`, '_blank');
         };
         const shareReportWhatsapp = (r) => {
           if (!r) return;
@@ -171,7 +171,7 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
           const date = r.sample_date ? r.sample_date.split('T')[0] : (r.created_at?.split('T')[0] || '-');
           const veh = r.vehicle_no || '-';
           const token = localStorage.getItem('auth_token');
-          const base = window.location.origin + '/api';
+          const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
           const pdfUrl = `${base}/reports/${r.id}/pdf${token ? `?token=${token}` : ''}`;
 
           setWaModal({
@@ -192,13 +192,13 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
         };
         return (
           <>
-            <div className="fixed inset-0 z-40" onClick={()=>setMenu(null)} />
+            <div className="fixed inset-0 z-40" onClick={() => setMenu(null)} />
             <div className="fixed z-50 w-48 bg-white border border-[#D1D5DB] rounded-xl shadow-[0_12px_36px_rgba(0,0,0,0.18)] py-1 text-xs" style={{ top: menu.top, right: menu.right }}>
-              <button onClick={()=>{ const r=mr; setMenu(null); shareReportWhatsapp(r); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><MessageCircle className="w-3.5 h-3.5 text-[#25D366]"/> WhatsApp Share</button>
-              <button onClick={()=>{ const id=menu.id; setMenu(null); openInvoicePdf(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><Receipt className="w-3.5 h-3.5 text-[#168B57]"/> Invoice PDF (₹)</button>
-              <button onClick={()=>{ const id=menu.id; setMenu(null); openWord(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><FileType className="w-3.5 h-3.5 text-sky-600"/> Word</button>
-              <button onClick={()=>{ const id=menu.id; setMenu(null); printReport(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><Printer className="w-3.5 h-3.5 text-[#6B7280]"/> Print</button>
-              {isAdmin && mr && <button onClick={()=>{ const id=mr.id, no=mr.report_no; setMenu(null); del(id, no); }} className="w-full text-left px-3 py-2 hover:bg-red-50 flex items-center gap-2 font-bold text-red-600 border-t border-[#D1D5DB]"><Trash2 className="w-3.5 h-3.5"/> Delete</button>}
+              <button onClick={() => { const r = mr; setMenu(null); shareReportWhatsapp(r); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><MessageCircle className="w-3.5 h-3.5 text-[#25D366]"/> WhatsApp Share</button>
+              <button onClick={() => { const id = menu.id; setMenu(null); openInvoicePdf(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><Receipt className="w-3.5 h-3.5 text-[#168B57]"/> Invoice PDF (₹)</button>
+              <button onClick={() => { const id = menu.id; setMenu(null); openWord(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><FileType className="w-3.5 h-3.5 text-sky-600"/> Word</button>
+              <button onClick={() => { const id = menu.id; setMenu(null); printReport(id); }} className="w-full text-left px-3 py-2 hover:bg-[#EAF7F0] flex items-center gap-2 font-bold text-[#1F2937]"><Printer className="w-3.5 h-3.5 text-[#6B7280]"/> Print</button>
+              {isAdmin && mr && <button onClick={() => { const id = mr.id, no = mr.report_no; setMenu(null); del(id, no); }} className="w-full text-left px-3 py-2 hover:bg-red-50 flex items-center gap-2 font-bold text-red-600 border-t border-[#D1D5DB]"><Trash2 className="w-3.5 h-3.5"/> Delete</button>}
             </div>
           </>
         );

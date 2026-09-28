@@ -87,7 +87,7 @@ export const Invoices = () => {
     const gst = inv.gst_enabled ? `₹${Number(inv.gst_amount||0).toFixed(2)} (${inv.gst_percent}%)` : '—';
     const status = (inv.status || 'unpaid').toUpperCase();
     const token = localStorage.getItem('auth_token');
-    const base = window.location.origin + '/api';
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const pdfUrl = `${base}/reports/${inv.report_id}/invoice/pdf?_t=${Date.now()}${token ? `&token=${token}` : ''}`;
 
     setWaModal({

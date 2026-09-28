@@ -3,6 +3,7 @@ import api, { openPdf, downloadPdf, openWord, downloadWord, openInvoiceWord, dow
 import { Printer, FileText, Pencil, ArrowLeft, FileDown, FileType, MessageCircle } from 'lucide-react';
 import { useToast } from '../components/common/Toast';
 import { WhatsAppModal } from '../components/common/WhatsAppModal';
+import { getDefaultTableColumns } from './admin/ReportTypes';
 
 export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
   const [report, setReport] = useState(null);
@@ -18,6 +19,11 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
     api.get(`/reports/${reportId}/invoice`).then(r=>setInvoice(r.data)).catch(()=> setInvoice(null));
   }, [reportId]);
 
+  if (loading) return <div className="text-xs text-[#6B7280] py-6">Loading report details...</div>;
+  if (!report) return <div className="text-xs text-red-500 py-6">Report not found</div>;
+
+  const activeTableCols = getDefaultTableColumns(report.report_type || report.reportType || {}).filter(c => c.visible !== false);
+
   const handleReportWhatsapp = () => {
     if (!report) return;
     const partyName = report.party_name || report.customer_name || 'Customer';
@@ -28,7 +34,7 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
     const date = report.sample_date ? report.sample_date.split('T')[0] : (report.created_at?.split('T')[0] || '-');
     const veh = report.vehicle_no || '-';
     const token = localStorage.getItem('auth_token');
-    const base = window.location.origin + '/api';
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const pdfUrl = `${base}/reports/${report.id}/pdf${token ? `?token=${token}` : ''}`;
 
     setWaModal({
@@ -60,7 +66,7 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
     const gst = invoice.gst_enabled ? `₹${Number(invoice.gst_amount||0).toFixed(2)} (${invoice.gst_percent}%)` : '—';
     const status = (invoice.status || 'unpaid').toUpperCase();
     const token = localStorage.getItem('auth_token');
-    const base = window.location.origin + '/api';
+    const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
     const pdfUrl = `${base}/reports/${report.id}/invoice/pdf${token ? `?token=${token}` : ''}`;
 
     setWaModal({
@@ -161,15 +167,41 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border border-[#000000]">
-            <thead><tr className="bg-white text-[#000000] text-[11px] uppercase font-black border-b border-[#000000]"><th className="py-2 px-3 w-10 text-center">S.No</th><th className="py-2 px-3">Parameter</th><th className="py-2 px-3 w-28 text-center">Result</th>{(report.report_type?.show_specification??true) && <th className="py-2 px-3">Specification</th>}{(report.report_type?.custom_columns||[]).map(c=> <th key={c} className="py-2 px-3">{c}</th>)}</tr></thead>
+            <thead>
+              <tr className="bg-white text-[#000000] text-[11px] uppercase font-black border-b border-[#000000]">
+                {activeTableCols.map(col => (
+                  <th
+                    key={col.key}
+                    className={`py-2 px-3 ${col.key === 's_no' ? 'w-10 text-center' : (col.key === 'result' ? 'w-28 text-center' : '')}`}
+                  >
+                    {col.label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
             <tbody className="divide-y divide-[#000000]/20">
               {(report.results||[]).filter(r=>r.enabled !== false).map((r,i)=>(
                 <tr key={r.id} className="bg-white">
-                  <td className="py-2 px-3 text-center font-bold">{i+1}</td>
-                  <td className="py-2 px-3 font-bold text-[#000000]">{r.parameter?.name}</td>
-                  <td className="py-2 px-3 text-center font-bold text-[#000000]">{r.result}{r.parameter?.unit === '%' && !String(r.result).includes('%') ? ' %' : ''}</td>
-                  {(report.report_type?.show_specification??true) && <td className="py-2 px-3 text-[#000000]">{r.specification}</td>}
-                  {(report.report_type?.custom_columns||[]).map(c=> <td key={c} className="py-2 px-3 text-[#000000]">{r.custom_values?.[c] || '—'}</td>)}
+                  {activeTableCols.map(col => {
+                    if (col.key === 's_no') {
+                      return <td key={col.key} className="py-2 px-3 text-center font-bold">{i+1}</td>;
+                    }
+                    if (col.key === 'parameter') {
+                      return <td key={col.key} className="py-2 px-3 font-bold text-[#000000]">{r.parameter?.name}</td>;
+                    }
+                    if (col.key === 'specification') {
+                      return <td key={col.key} className="py-2 px-3 text-[#000000]">{r.specification || r.parameter?.specification || '—'}</td>;
+                    }
+                    if (col.key === 'result') {
+                      return (
+                        <td key={col.key} className="py-2 px-3 text-center font-bold text-[#000000]">
+                          {r.result}{r.parameter?.unit === '%' && !String(r.result).includes('%') ? ' %' : ''}
+                        </td>
+                      );
+                    }
+                    const customVal = r.custom_values?.[col.label] ?? (r.custom_values?.[col.key] ?? '—');
+                    return <td key={col.key} className="py-2 px-3 text-[#000000]">{customVal || '—'}</td>;
+                  })}
                 </tr>
               ))}
             </tbody>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useToast } from '../../components/common/Toast';
-import { CheckSquare, Square, Sliders, Layers } from 'lucide-react';
+import { CheckSquare, Square, Sliders, Layers, ArrowUp, ArrowDown, Trash2, Plus, MoveVertical } from 'lucide-react';
 
 export const REPORT_FIELD_DEFINITIONS = [
   { key: 'sample_date', label: 'Sample Date', desc: 'Sample collection / testing date', isCore: true },
@@ -10,8 +10,8 @@ export const REPORT_FIELD_DEFINITIONS = [
   { key: 'vehicle_no', label: 'Vehicle No', desc: 'Vehicle registration / transport no' },
   { key: 'bill_no', label: 'Bill No / Ref No', desc: 'Invoice / DC / Delivery Challan number' },
   { key: 'bags_tons', label: 'Quantity (Bags / Tons / Unit)', desc: 'Batch / load quantity' },
-  { key: 'buyer', label: 'Buyer (வாங்குபவர்)', desc: 'Buyer / Consignee name' },
-  { key: 'seller', label: 'Seller (விற்பனையாளர்)', desc: 'Seller / Supplier name' },
+  { key: 'buyer', label: 'Buyer', desc: 'Buyer / Consignee name' },
+  { key: 'seller', label: 'Seller', desc: 'Seller / Supplier name' },
   { key: 'nature_of_sample', label: 'Nature of Sample', desc: 'Condition / appearance / packaging' },
   { key: 'remarks', label: 'Remarks / Notes', desc: 'Special remarks or notes' },
 ];
@@ -25,20 +25,52 @@ export const DEFAULT_VISIBLE_FIELDS = [
   'bags_tons',
 ];
 
+export const getDefaultTableColumns = (reportType = {}) => {
+  if (Array.isArray(reportType.table_columns) && reportType.table_columns.length > 0) {
+    return reportType.table_columns.map((c, i) => ({
+      key: c.key || `col_${i}`,
+      label: c.label || c.name || `Column ${i + 1}`,
+      visible: c.visible !== false,
+      type: c.type || (['s_no', 'parameter', 'specification', 'result'].includes(c.key) ? 'system' : 'custom')
+    }));
+  }
+
+  const cols = [
+    { key: 's_no', label: 'S.No', visible: true, type: 'system' },
+    { key: 'parameter', label: 'Parameter', visible: true, type: 'system' },
+  ];
+
+  if (reportType.show_specification !== false) {
+    cols.push({ key: 'specification', label: 'Specification', visible: true, type: 'system' });
+  } else {
+    cols.push({ key: 'specification', label: 'Specification', visible: false, type: 'system' });
+  }
+
+  const customs = Array.isArray(reportType.custom_columns) ? reportType.custom_columns : [];
+  customs.forEach((cName, idx) => {
+    cols.push({ key: `custom_${idx + 1}`, label: cName, visible: true, type: 'custom' });
+  });
+
+  cols.push({ key: 'result', label: 'Result', visible: true, type: 'system' });
+  return cols;
+};
+
 export const ReportTypes = () => {
   const { addToast } = useToast();
   const [list, setList] = useState([]);
   const [form, setForm] = useState({
     name: '',
-    title: '',
+    title: 'TEST REPORT',
     quantity_label: 'Quantity',
     active: true,
     show_specification: true,
     visible_fields: [...DEFAULT_VISIBLE_FIELDS],
-    custom_columns: []
+    custom_columns: [],
+    table_columns: getDefaultTableColumns()
   });
   const [editing, setEditing] = useState(null);
-  const [newCol, setNewCol] = useState('');
+  const [newColName, setNewColName] = useState('');
+  const [newColPosition, setNewColPosition] = useState('end');
   const [isCustomQty, setIsCustomQty] = useState(false);
 
   const loadTypes = async () => {
@@ -91,17 +123,110 @@ export const ReportTypes = () => {
     }));
   };
 
+  // Table Columns Management Handlers
+  const handleMoveColumn = (index, direction) => {
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= form.table_columns.length) return;
+    const updated = [...form.table_columns];
+    const temp = updated[index];
+    updated[index] = updated[targetIndex];
+    updated[targetIndex] = temp;
+    setForm({ ...form, table_columns: updated });
+  };
+
+  const handleSetColumnPosition = (index, targetIndex) => {
+    if (targetIndex < 0 || targetIndex >= form.table_columns.length || targetIndex === index) return;
+    const updated = [...form.table_columns];
+    const [moved] = updated.splice(index, 1);
+    updated.splice(targetIndex, 0, moved);
+    setForm({ ...form, table_columns: updated });
+  };
+
+  const handleColumnLabelChange = (index, newLabel) => {
+    const updated = [...form.table_columns];
+    updated[index] = { ...updated[index], label: newLabel };
+    setForm({ ...form, table_columns: updated });
+  };
+
+  const handleColumnVisibilityToggle = (index) => {
+    const updated = [...form.table_columns];
+    const isNowVisible = !updated[index].visible;
+    updated[index] = { ...updated[index], visible: isNowVisible };
+    
+    // If toggling specification column, also keep show_specification in sync
+    const isSpec = updated[index].key === 'specification';
+    setForm({
+      ...form,
+      table_columns: updated,
+      ...(isSpec ? { show_specification: isNowVisible } : {})
+    });
+  };
+
+  const handleDeleteColumn = (index) => {
+    const col = form.table_columns[index];
+    if (col.type === 'system') {
+      // System columns can be toggled hidden rather than fully deleted
+      handleColumnVisibilityToggle(index);
+      return;
+    }
+    const updated = form.table_columns.filter((_, i) => i !== index);
+    setForm({ ...form, table_columns: updated });
+  };
+
+  const handleAddColumn = () => {
+    const name = newColName.trim();
+    if (!name) return;
+    
+    const existing = form.table_columns.find(c => c.label.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      addToast('A column with this name already exists', 'error');
+      return;
+    }
+
+    const newColObj = {
+      key: `custom_${Date.now()}`,
+      label: name,
+      visible: true,
+      type: 'custom'
+    };
+
+    const current = [...form.table_columns];
+    if (newColPosition === 'start' || newColPosition === '0') {
+      current.unshift(newColObj);
+    } else if (newColPosition === 'end' || isNaN(parseInt(newColPosition))) {
+      current.push(newColObj);
+    } else {
+      const idx = Math.max(0, Math.min(parseInt(newColPosition), current.length));
+      current.splice(idx, 0, newColObj);
+    }
+
+    setForm({ ...form, table_columns: current });
+    setNewColName('');
+    setNewColPosition('end');
+    addToast(`Added column "${name}"`);
+  };
+
+  const resetTableColumnsToDefault = () => {
+    setForm(f => ({
+      ...f,
+      table_columns: getDefaultTableColumns({ show_specification: f.show_specification })
+    }));
+    addToast('Table columns reset to default order');
+  };
+
   const startEdit = (t) => {
     setEditing(t.id);
     const qLabel = t.quantity_label || 'Tons / Bags';
+    const initialTableCols = getDefaultTableColumns(t);
     setForm({
       name: t.name,
-      title: t.title,
+      title: t.title || 'TEST REPORT',
       quantity_label: qLabel,
       active: t.active,
       show_specification: t.show_specification ?? true,
       visible_fields: t.visible_fields && t.visible_fields.length > 0 ? t.visible_fields : [...DEFAULT_VISIBLE_FIELDS],
-      custom_columns: t.custom_columns || []
+      custom_columns: t.custom_columns || [],
+      table_columns: initialTableCols
     });
     setIsCustomQty(!standardQtyOptions.includes(qLabel));
   };
@@ -110,14 +235,16 @@ export const ReportTypes = () => {
     setEditing(null);
     setForm({
       name: '',
-      title: '',
+      title: 'TEST REPORT',
       quantity_label: 'Tons / Bags',
       active: true,
       show_specification: true,
       visible_fields: [...DEFAULT_VISIBLE_FIELDS],
-      custom_columns: []
+      custom_columns: [],
+      table_columns: getDefaultTableColumns()
     });
-    setNewCol('');
+    setNewColName('');
+    setNewColPosition('end');
     setIsCustomQty(false);
   };
 
@@ -125,19 +252,34 @@ export const ReportTypes = () => {
     e.preventDefault();
     try {
       const qLabel = form.quantity_label?.trim() || 'Tons / Bags';
+      
+      // Extract custom column labels from table_columns
+      const customCols = form.table_columns
+        .filter(c => c.type === 'custom' || (!['s_no', 'parameter', 'specification', 'result'].includes(c.key)))
+        .map(c => c.label);
+
+      // Extract spec visibility
+      const specCol = form.table_columns.find(c => c.key === 'specification');
+      const showSpec = specCol ? specCol.visible !== false : form.show_specification;
+
       const payload = {
-        ...form,
+        name: form.name,
+        title: form.title || 'TEST REPORT',
         quantity_label: qLabel,
+        active: form.active,
+        show_specification: showSpec,
         visible_fields: form.visible_fields || [...DEFAULT_VISIBLE_FIELDS],
-        custom_columns: form.custom_columns || []
+        custom_columns: customCols,
+        table_columns: form.table_columns
       };
+
       if (editing) await api.put(`/report-types/${editing}`, payload);
       else await api.post('/report-types', payload);
-      addToast(editing ? 'Updated successfully' : 'Created successfully');
+      addToast(editing ? 'Report type updated successfully' : 'Report type created successfully');
       resetForm();
       loadTypes();
     } catch (err) {
-      addToast(err.response?.data?.message || 'Failed', 'error');
+      addToast(err.response?.data?.message || 'Failed to save report type', 'error');
     }
   };
 
@@ -166,9 +308,9 @@ export const ReportTypes = () => {
   return (
     <div className="space-y-5 max-w-4xl">
       <div>
-        <h1 className="text-xl font-bold text-[#1F2937]">Report Types & Field Customization</h1>
+        <h1 className="text-xl font-bold text-[#1F2937]">Report Types & Table Column Management</h1>
         <p className="text-xs text-[#6B7280]">
-          Configure report formats, active parameters, and choose which fields (Buyer, Seller, Vehicle No, etc.) appear during report creation.
+          Configure report formats, active parameters, report fields, and arrange/customize ALL table columns (S.No, Parameter, Specification, Custom Columns, Result) with positions and custom labels.
         </p>
       </div>
 
@@ -185,13 +327,13 @@ export const ReportTypes = () => {
             />
           </div>
           <div className="flex-1 min-w-[220px]">
-            <label className="text-xs font-bold text-[#1F2937]">PDF Title / Header *</label>
+            <label className="text-xs font-bold text-[#1F2937]">Report Title / Header *</label>
             <input
               required
               value={form.title}
               onChange={e => setForm({ ...form, title: e.target.value })}
-              placeholder="CERTIFICATE OF ANALYSIS"
-              className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+              placeholder="TEST REPORT"
+              className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white font-bold text-[#0B6B43]"
             />
           </div>
           <label className="flex items-center gap-1.5 text-xs font-semibold text-[#1F2937] pb-2 cursor-pointer">
@@ -201,14 +343,6 @@ export const ReportTypes = () => {
               onChange={e => setForm({ ...form, active: e.target.checked })}
               className="rounded text-[#168B57]"
             /> Active
-          </label>
-          <label className="flex items-center gap-1.5 text-xs font-semibold text-[#0B6B43] border border-[#D1EEE0] bg-[#EAF7F0] px-3 py-2 rounded-xl pb-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.show_specification}
-              onChange={e => setForm({ ...form, show_specification: e.target.checked })}
-              className="rounded text-[#168B57]"
-            /> Show Specification
           </label>
         </div>
 
@@ -348,45 +482,236 @@ export const ReportTypes = () => {
           </p>
         </div>
 
-        {/* Custom Columns */}
-        <div className="border border-[#D1EEE0] bg-[#F9FAFB] rounded-xl p-3 space-y-2">
-          <p className="text-xs font-bold text-[#0B6B43]">Custom Columns (report-wise show/hide)</p>
-          <div className="flex gap-2">
-            <input
-              value={newCol}
-              onChange={e => setNewCol(e.target.value)}
-              placeholder="e.g. Colour, Texture"
-              className="flex-1 px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
-            />
+        {/* ALL Table Columns & Positions Manager */}
+        <div className="border-2 border-[#168B57]/30 bg-[#F9FAFB] rounded-xl p-4 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-xs font-bold text-[#0B6B43] flex items-center gap-1.5">
+                <MoveVertical className="w-4 h-4 text-[#168B57]" /> All Table Columns &amp; Position Manager (Stored in DB):
+              </p>
+              <p className="text-[11px] text-[#6B7280] mt-0.5">
+                Manage and position <strong>EVERY</strong> column (S.No, Parameter, Specification, Custom Columns like METHODE, Result). Edit labels, adjust positions (1, 2, 3...), and toggle visibility.
+              </p>
+            </div>
             <button
               type="button"
-              onClick={() => {
-                if (newCol.trim()) {
-                  setForm({ ...form, custom_columns: [...(form.custom_columns || []), newCol.trim()] });
-                  setNewCol('');
-                }
-              }}
-              className="px-3 py-2 rounded-xl bg-white border border-[#168B57] text-[#168B57] font-bold text-xs hover:bg-[#EAF7F0]"
+              onClick={resetTableColumnsToDefault}
+              className="text-[11px] font-semibold text-[#6B7280] bg-white hover:bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-lg transition-colors"
             >
-              Add Column
+              Reset Columns Default
             </button>
           </div>
-          <div className="flex flex-wrap gap-1">
-            {(form.custom_columns || []).map((c, i) => (
-              <span key={i} className="inline-flex items-center gap-1 bg-white border border-[#D1D5DB] px-2 py-1 rounded-full text-xs">
-                {c}{' '}
-                <button
-                  type="button"
-                  onClick={() => setForm({ ...form, custom_columns: form.custom_columns.filter((_, idx) => idx !== i) })}
-                  className="text-red-500 font-bold"
-                >
-                  ×
-                </button>
+
+          {/* Add New Column Box */}
+          <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center bg-white p-3 rounded-xl border border-emerald-300 shadow-xs">
+            <div className="flex-1 min-w-[160px]">
+              <label className="text-[10px] font-bold text-[#0B6B43] uppercase block mb-1">New Column Name / Label</label>
+              <input
+                value={newColName}
+                onChange={e => setNewColName(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddColumn();
+                  }
+                }}
+                placeholder="e.g. METHODE, Unit, Grade, Protocol"
+                className="w-full px-3 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-white focus:ring-1 focus:ring-[#168B57]"
+              />
+            </div>
+
+            <div className="w-44">
+              <label className="text-[10px] font-bold text-[#0B6B43] uppercase block mb-1">Insert Position</label>
+              <select
+                value={newColPosition}
+                onChange={e => setNewColPosition(e.target.value)}
+                className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-white font-medium"
+              >
+                <option value="end">At End (Position {form.table_columns.length + 1})</option>
+                <option value="0">Position 1 (At Start)</option>
+                {form.table_columns.map((c, idx) => (
+                  <option key={idx} value={idx + 1}>
+                    Position {idx + 2} (After {c.label})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="self-end">
+              <button
+                type="button"
+                onClick={handleAddColumn}
+                className="px-4 py-2 rounded-lg bg-[#168B57] text-white font-bold text-xs hover:bg-[#0B6B43] shadow-xs transition-colors flex items-center gap-1"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Column
+              </button>
+            </div>
+          </div>
+
+          {/* List of All Columns with Full Position & Label Controls */}
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-[#1F2937] block">
+              Configured Table Columns ({form.table_columns.length} columns) — Set Position &amp; Name:
+            </label>
+            
+            <div className="space-y-1.5">
+              {form.table_columns.map((col, idx) => {
+                const isSystem = col.type === 'system';
+                const isVisible = col.visible !== false;
+                return (
+                  <div
+                    key={col.key || idx}
+                    className={`flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-2.5 rounded-xl border transition-all ${
+                      isVisible
+                        ? 'border-emerald-300 bg-white shadow-xs'
+                        : 'border-gray-200 bg-gray-50 opacity-60'
+                    }`}
+                  >
+                    {/* Position Badge & Move Buttons */}
+                    <div className="flex items-center gap-1.5">
+                      <span className={`flex items-center justify-center w-6 h-6 rounded-full font-black text-[11px] border ${
+                        isVisible ? 'bg-[#EAF7F0] text-[#0B6B43] border-emerald-300' : 'bg-gray-200 text-gray-500 border-gray-300'
+                      }`}>
+                        {idx + 1}
+                      </span>
+
+                      {/* Position Quick Jump Selector */}
+                      <select
+                        value={idx}
+                        onChange={e => handleSetColumnPosition(idx, parseInt(e.target.value))}
+                        className="text-[10px] font-semibold border border-gray-300 rounded px-1.5 py-1 bg-gray-50 text-gray-700"
+                        title="Change column position"
+                      >
+                        {form.table_columns.map((_, pIdx) => (
+                          <option key={pIdx} value={pIdx}>
+                            Pos {pIdx + 1}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* Move Up Button */}
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => handleMoveColumn(idx, -1)}
+                        className={`p-1 rounded text-xs border transition-colors ${
+                          idx === 0
+                            ? 'opacity-30 border-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'border-gray-300 text-[#1F2937] hover:bg-gray-100'
+                        }`}
+                        title="Move column up (left in table)"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </button>
+
+                      {/* Move Down Button */}
+                      <button
+                        type="button"
+                        disabled={idx === form.table_columns.length - 1}
+                        onClick={() => handleMoveColumn(idx, 1)}
+                        className={`p-1 rounded text-xs border transition-colors ${
+                          idx === form.table_columns.length - 1
+                            ? 'opacity-30 border-gray-200 text-gray-400 cursor-not-allowed'
+                            : 'border-gray-300 text-[#1F2937] hover:bg-gray-100'
+                        }`}
+                        title="Move column down (right in table)"
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Column Label Input */}
+                    <div className="flex-1 min-w-[180px] flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={col.label}
+                        onChange={e => handleColumnLabelChange(idx, e.target.value)}
+                        placeholder="Column Label"
+                        className="w-full px-3 py-1 border border-gray-300 rounded-lg text-xs font-bold text-[#1F2937] focus:ring-1 focus:ring-[#168B57] bg-white"
+                      />
+                      <span className={`text-[9px] font-semibold px-2 py-0.5 rounded uppercase shrink-0 ${
+                        isSystem ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
+                      }`}>
+                        {isSystem ? 'System' : 'Custom'}
+                      </span>
+                    </div>
+
+                    {/* Visibility & Action Controls */}
+                    <div className="flex items-center gap-2 shrink-0">
+                      <label className="flex items-center gap-1 text-xs font-semibold text-[#1F2937] cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isVisible}
+                          onChange={() => handleColumnVisibilityToggle(idx)}
+                          className="rounded text-[#168B57] focus:ring-[#168B57]"
+                        />
+                        <span className="text-[11px]">{isVisible ? 'Visible' : 'Hidden'}</span>
+                      </label>
+
+                      {!isSystem ? (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteColumn(idx)}
+                          className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg text-xs font-bold transition-colors"
+                          title="Delete custom column"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      ) : (
+                        <span className="w-6"></span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Live Table Header Preview */}
+            <div className="mt-3 pt-3 border-t border-emerald-200">
+              <span className="text-[10px] uppercase tracking-wider font-bold text-[#0B6B43] block mb-2">
+                Live Table Header Order Preview (As Rendered in PDF &amp; Report Screen):
               </span>
-            ))}
-            {(!form.custom_columns || form.custom_columns.length === 0) && (
-              <span className="text-[11px] text-[#6B7280]">No custom columns — enable Specification toggle above</span>
-            )}
+              
+              <div className="overflow-x-auto border border-black rounded-lg bg-white shadow-xs">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-[#EAF7F0] border-b border-black">
+                      {form.table_columns
+                        .filter(c => c.visible !== false)
+                        .map((c, i) => (
+                          <th
+                            key={c.key || i}
+                            className={`py-2 px-3 text-[11px] font-black uppercase text-black border-r border-black last:border-r-0 ${
+                              c.key === 's_no' ? 'text-center w-12' : (c.key === 'result' ? 'text-center w-28' : '')
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-1">
+                              <span>{c.label}</span>
+                              <span className="text-[9px] font-mono text-emerald-700 bg-emerald-100 px-1 rounded">#{i + 1}</span>
+                            </div>
+                          </th>
+                        ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr className="bg-white text-[10px] text-gray-500 italic">
+                      {form.table_columns
+                        .filter(c => c.visible !== false)
+                        .map((c, i) => (
+                          <td
+                            key={c.key || i}
+                            className={`py-2 px-3 border-r border-gray-300 last:border-r-0 ${
+                              c.key === 's_no' ? 'text-center' : (c.key === 'result' ? 'text-center font-bold text-black' : '')
+                            }`}
+                          >
+                            {c.key === 's_no' ? '1' : (c.key === 'parameter' ? 'Free Fatty Acids' : (c.key === 'result' ? '1.25 %' : (c.key === 'specification' ? 'Max 2.0 %' : `Sample ${c.label}`)))}
+                          </td>
+                        ))}
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -409,6 +734,7 @@ export const ReportTypes = () => {
         </div>
       </form>
 
+      {/* List of all Report Types */}
       <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden overflow-x-auto shadow-sm">
         <table className="w-full text-left text-xs">
           <thead>
@@ -417,7 +743,7 @@ export const ReportTypes = () => {
               <th className="py-2.5 px-4">Title</th>
               <th className="py-2.5 px-4">Qty / Unit Label</th>
               <th className="py-2.5 px-4">Mapped Fields</th>
-              <th className="py-2.5 px-4">Spec</th>
+              <th className="py-2.5 px-4">Table Columns Order</th>
               <th className="py-2.5 px-4">Active / Status</th>
               <th className="py-2.5 px-4 text-right">Actions</th>
             </tr>
@@ -425,10 +751,11 @@ export const ReportTypes = () => {
           <tbody className="divide-y divide-[#D1D5DB]/60">
             {list.map(t => {
               const activeFields = t.visible_fields && t.visible_fields.length > 0 ? t.visible_fields : DEFAULT_VISIBLE_FIELDS;
+              const configuredCols = getDefaultTableColumns(t).filter(c => c.visible !== false);
               return (
                 <tr key={t.id} className={t.active ? '' : 'opacity-60 bg-gray-50'}>
                   <td className="py-2.5 px-4 font-bold text-[#111827]">{t.name}</td>
-                  <td className="py-2.5 px-4 text-[#4B5563]">{t.title}</td>
+                  <td className="py-2.5 px-4 text-[#4B5563] font-semibold">{t.title}</td>
                   <td className="py-2.5 px-4">
                     <span className="inline-block px-2 py-0.5 rounded bg-emerald-50 border border-emerald-200 text-[#0B6B43] font-semibold text-[11px]">
                       {t.quantity_label || 'Quantity'}
@@ -446,7 +773,21 @@ export const ReportTypes = () => {
                       })}
                     </div>
                   </td>
-                  <td className="py-2.5 px-4">{t.show_specification ? 'Shown' : 'Hidden'}</td>
+                  <td className="py-2.5 px-4">
+                    <div className="flex flex-wrap items-center gap-1 max-w-xs">
+                      {configuredCols.map((col, cIdx) => (
+                        <span
+                          key={cIdx}
+                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 border border-emerald-300 text-emerald-800 text-[10px] font-bold"
+                        >
+                          <span className="w-3.5 h-3.5 rounded-full bg-[#168B57] text-white text-[9px] flex items-center justify-center font-bold">
+                            {cIdx + 1}
+                          </span>
+                          {col.label}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
                   <td className="py-2.5 px-4">
                     <button
                       type="button"
@@ -474,4 +815,3 @@ export const ReportTypes = () => {
     </div>
   );
 };
-

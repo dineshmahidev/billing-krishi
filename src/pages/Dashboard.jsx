@@ -66,7 +66,7 @@ export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead><tr className="bg-[#EAF7F0] text-[11px] font-bold uppercase text-[#6B7280] border-b border-[#D1D5DB]">
-                <th className="py-2.5 px-4">Report No</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4">Party / Customer</th><th className="py-2.5 px-4">Type</th><th className="py-2.5 px-4">Sample</th><th className="py-2.5 px-4">By</th><th className="py-2.5 px-4 text-right">Actions</th>
+                <th className="py-2.5 px-4">Report No</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4">Customer</th><th className="py-2.5 px-4">Type</th><th className="py-2.5 px-4">Sample</th><th className="py-2.5 px-4">By</th><th className="py-2.5 px-4 text-right">Actions</th>
               </tr></thead>
               <tbody className="divide-y divide-[#D1D5DB]/60">
                 {recent.map(r=>(

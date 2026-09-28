@@ -80,15 +80,15 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
       <div className="bg-white border border-[#D1D5DB] rounded-2xl p-4 flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search Report No, Party, Sample..." className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search Report No, Customer, Sample..." className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
         </div>
         <div className="relative md:w-56">
           <Users className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input value={party} onChange={e=>{setParty(e.target.value); setOpenSug(true);}} onFocus={()=>setOpenSug(true)} onBlur={()=>setTimeout(()=>setOpenSug(false), 150)} placeholder="Party — pick dropdown or type" className="w-full pl-9 pr-8 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+          <input value={party} onChange={e=>{setParty(e.target.value); setOpenSug(true);}} onFocus={()=>setOpenSug(true)} onBlur={()=>setTimeout(()=>setOpenSug(false), 150)} placeholder="Customer — pick dropdown or type" className="w-full pl-9 pr-8 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
           <ChevronDown className="w-3.5 h-3.5 text-[#6B7280] absolute right-3 top-1/2 -translate-y-1/2" />
           {openSug && (
             <div className="absolute z-30 mt-1 w-full bg-white border border-[#D1D5DB] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] max-h-56 overflow-y-auto">
-              <button type="button" onMouseDown={()=>{setParty(''); setOpenSug(false);}} className="w-full text-left px-3 py-2 text-xs font-bold text-[#0B6B43] hover:bg-[#EAF7F0]">All Parties</button>
+              <button type="button" onMouseDown={()=>{setParty(''); setOpenSug(false);}} className="w-full text-left px-3 py-2 text-xs font-bold text-[#0B6B43] hover:bg-[#EAF7F0]">All Customers</button>
               {suggestions.length===0 ? (
                 <div className="px-3 py-2 text-xs text-[#6B7280]">No match — will search as typed: <b>{party}</b></div>
               ) : suggestions.map(c=>(
@@ -116,7 +116,7 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
               <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                <th className="py-2.5 px-4">Report No</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4">Party Name</th><th className="py-2.5 px-4">Type</th><th className="py-2.5 px-4">Sample</th><th className="py-2.5 px-4">By</th><th className="py-2.5 px-4 text-right">Actions</th>
+                <th className="py-2.5 px-4">Report No</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4">Customer</th><th className="py-2.5 px-4">Type</th><th className="py-2.5 px-4">Sample</th><th className="py-2.5 px-4">By</th><th className="py-2.5 px-4 text-right">Actions</th>
               </tr></thead>
               <tbody className="divide-y divide-[#D1D5DB]/60">
                 {reports.map(r=>(
@@ -181,7 +181,7 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
             docTitle: `TEST REPORT: ${repNo}`,
             summaryLines: [
               `*Report No:* ${repNo}`,
-              `*Party:* ${partyName}`,
+              `*Customer:* ${partyName}`,
               `*Type:* ${repType}`,
               `*Sample:* ${sample}`,
               `*Vehicle:* ${veh}`,

@@ -65,7 +65,7 @@ export const Invoices = () => {
   const openInvoice = (reportId) => {
     const token = localStorage.getItem('auth_token');
     const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-    window.open(`${base}/reports/${reportId}/invoice/pdf${token?`?token=${token}`:''}`, '_blank');
+    window.open(`${base}/reports/${reportId}/invoice/pdf?_t=${Date.now()}${token?`&token=${token}`:''}`, '_blank');
   };
 
   const openInvoiceDoc = (reportId) => {
@@ -88,7 +88,7 @@ export const Invoices = () => {
     const status = (inv.status || 'unpaid').toUpperCase();
     const token = localStorage.getItem('auth_token');
     const base = window.location.origin + '/api';
-    const pdfUrl = `${base}/reports/${inv.report_id}/invoice/pdf${token ? `?token=${token}` : ''}`;
+    const pdfUrl = `${base}/reports/${inv.report_id}/invoice/pdf?_t=${Date.now()}${token ? `&token=${token}` : ''}`;
 
     setWaModal({
       isOpen: true,
@@ -96,7 +96,7 @@ export const Invoices = () => {
       recipientName: partyName,
       docTitle: `INVOICE: ${invNo}`,
       summaryLines: [
-        `*Party:* ${partyName}`,
+        `*Customer:* ${partyName}`,
         `*Report No:* ${repNo}`,
         `*Date:* ${invDate}`,
         `*Subtotal:* ₹${subtotal}`,
@@ -114,7 +114,7 @@ export const Invoices = () => {
     setEditInv(inv); setLoadingInv(true);
     try {
       const r = await api.get(`/reports/${inv.report_id}/invoice`);
-      const items = (r.data.items||[]).map(i=>({ ...i, rate:Number(i.rate), qty:Number(i.qty)||1 }));
+      const items = (r.data.items||[]).map(i=>({ ...i, rate:Number(i.rate), qty: (i.qty !== undefined && i.qty !== null && i.qty !== '') ? Number(i.qty) : 1 }));
       setEditItems(items);
     } catch(err){ addToast(err.response?.data?.message||'Failed to load invoice','error'); setEditInv(null); }
     finally { setLoadingInv(false); }
@@ -127,11 +127,22 @@ export const Invoices = () => {
     if (!editInv) return;
     setSaving(true);
     try {
-      const payload = { items: editItems.map(it=>({ parameter_id: it.parameter_id, rate: Number(it.rate)||0, qty: Math.max(1, parseInt(it.qty)||1) })) };
-      const r = await api.put(`/reports/${editInv.report_id}/invoice/items`, payload);
-      addToast('Invoice updated');
-      closeEdit(); loadInvoices(page);
-    } catch(err){ addToast(err.response?.data?.message||'Update failed','error'); }
+      const payload = { 
+        items: editItems.map(it=>({ 
+          id: it.id,
+          parameter_id: it.parameter_id, 
+          name: it.name,
+          rate: Number(it.rate)||0, 
+          qty: Math.max(0, parseInt(it.qty) || 0) 
+        })) 
+      };
+      await api.put(`/reports/${editInv.report_id}/invoice/items`, payload);
+      addToast('Invoice updated successfully');
+      closeEdit(); 
+      loadInvoices(page);
+    } catch(err){ 
+      addToast(err.response?.data?.message||'Update failed','error'); 
+    }
     finally { setSaving(false); }
   };
 
@@ -281,7 +292,7 @@ export const Invoices = () => {
                             <input type="number" min="0" step="0.01" value={it.rate} onChange={e=>setItem(idx,'rate',e.target.value)} className="w-24 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
                           </td>
                           <td className="py-2 px-3 text-right">
-                            <input type="number" min="1" step="1" value={it.qty} onChange={e=>setItem(idx,'qty',e.target.value)} className="w-16 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
+                            <input type="number" min="0" step="1" value={it.qty} onChange={e=>setItem(idx,'qty',e.target.value)} className="w-16 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
                           </td>
                           <td className="py-2 px-3 text-right font-bold">₹{((Number(it.rate)||0)*(Number(it.qty)||0)).toFixed(2)}</td>
                         </tr>
@@ -293,7 +304,7 @@ export const Invoices = () => {
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-end">
                   <div className="text-[11px] text-[#6B7280]">
                     <p>Report No: <span className="font-mono font-bold text-[#1F2937]">{editInv.report?.report_no || '-'}</span></p>
-                    <p>Party: <span className="font-bold text-[#1F2937]">{editInv.party_name || editInv.customer_name || '-'}</span></p>
+                    <p>Customer: <span className="font-bold text-[#1F2937]">{editInv.party_name || editInv.customer_name || '-'}</span></p>
                   </div>
                   <div className="w-full sm:w-72 border border-[#D1D5DB] rounded-xl overflow-hidden text-xs">
                     <div className="flex justify-between px-3 py-2 border-b border-[#D1D5DB]"><span className="text-[#6B7280] font-bold">Subtotal</span><span className="font-bold">₹{liveSub.toFixed(2)}</span></div>
@@ -342,6 +353,17 @@ const GroupSummary = () => {
   const [exporting, setExporting] = useState(false);
 
   useEffect(()=>{ api.get('/customer-groups').then(r=>setGroups(r.data||[])).catch(()=>{}); },[]);
+
+  const viewPdf = async () => {
+    if (!groupId || exporting) return;
+    setExporting(true);
+    try {
+      const res = await api.post('/group-summary/pdf', { group_id:groupId, from, to }, { responseType:'blob' });
+      const url = URL.createObjectURL(new Blob([res.data], { type:'application/pdf' }));
+      window.open(url, '_blank');
+    } catch { addToast('PDF preview failed','error'); }
+    finally { setExporting(false); }
+  };
 
   const exportPdf = async () => {
     if (!groupId || exporting) return;
@@ -395,11 +417,12 @@ const GroupSummary = () => {
           <button onClick={()=>setRange('month')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">This Month</button>
         </div>
         <button onClick={()=>load()} disabled={!groupId || loading} className="ml-auto px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs disabled:opacity-50">Load</button>
-        <button onClick={exportPdf} disabled={!groupId || exporting || loading} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 transition-colors text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-50"><FileType className="w-3.5 h-3.5"/>{exporting?'Exporting...':'PDF'}</button>
+        <button onClick={viewPdf} disabled={!groupId || exporting || loading} className="px-3.5 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-50"><FileType className="w-3.5 h-3.5"/>View PDF</button>
+        <button onClick={exportPdf} disabled={!groupId || exporting || loading} className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 transition-colors text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-50"><FileDown className="w-3.5 h-3.5"/>Download</button>
       </div>
 
       {!groupId ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Select a group to see party-wise totals for the duration</div>
+        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Select a group to see customer-wise totals for the duration</div>
       ) : loading ? (
         <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Loading...</div>
       ) : !data ? (
@@ -409,11 +432,11 @@ const GroupSummary = () => {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="bg-[#168B57] border border-[#168B57] rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(22,139,87,0.25)]">
               <p className="text-[11px] font-bold text-white/80">Group</p>
-              <p className="text-lg font-bold text-white">{data.group?.name || 'Party'}</p>
+              <p className="text-lg font-bold text-white">{data.group?.name || 'Customer'}</p>
               <p className="text-[11px] text-white/70">{data.range.from} → {data.range.to}</p>
             </div>
             <div className="bg-sky-500 border border-sky-600 rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(14,165,233,0.25)]">
-              <p className="text-[11px] font-bold text-white/80">Parties billed</p>
+              <p className="text-[11px] font-bold text-white/80">Customers billed</p>
               <p className="text-lg font-bold text-white">{billed.length} / {rows.length}</p>
               <p className="text-[11px] text-white/70">members with invoices</p>
             </div>
@@ -430,10 +453,10 @@ const GroupSummary = () => {
           </div>
 
           <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#D1D5DB] text-xs font-bold text-[#0B6B43]">Party-wise amount (duration: {data.range.from} → {data.range.to})</div>
+            <div className="px-4 py-3 border-b border-[#D1D5DB] text-xs font-bold text-[#0B6B43]">Customer-wise amount (duration: {data.range.from} → {data.range.to})</div>
             <table className="w-full text-left text-xs">
               <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                <th className="py-2 px-3">Party</th><th className="py-2 px-3 text-right">Invoices</th>
+                <th className="py-2 px-3">Customer</th><th className="py-2 px-3 text-right">Invoices</th>
                 <th className="py-2 px-3 text-right">Paid</th><th className="py-2 px-3 text-right">Unpaid</th>
                 <th className="py-2 px-3 text-right">Partial</th><th className="py-2 px-3 text-right">Amount (₹)</th>
               </tr></thead>
@@ -450,7 +473,7 @@ const GroupSummary = () => {
                 ))}
               </tbody>
               <tfoot><tr className="bg-[#0B6B43] text-white text-xs font-bold">
-                <td className="py-2.5 px-3">Total ({billed.length} parties)</td>
+                <td className="py-2.5 px-3">Total ({billed.length} customers)</td>
                 <td className="py-2.5 px-3 text-right">{totals.invoices||0}</td>
                 <td className="py-2.5 px-3" colSpan={3}></td>
                 <td className="py-2.5 px-3 text-right">₹{Number(totals.amount||0).toFixed(2)}</td>
@@ -541,6 +564,32 @@ const BulkSettlement = () => {
     return e && (Number(e.rate)!==Number(row.rate) || Number(e.qty)!==Number(row.qty));
   }).length, 0) : 0;
 
+  const viewPdf = async () => {
+    if (!ready || !data || exporting) return;
+    setExporting(true);
+    try {
+      const overrides = [];
+      data.types.forEach((ty,ti)=> ty.rows.forEach((row,ri)=>{
+        const e = edits[ekey(ti,ri)];
+        if (e && (Number(e.rate)!==Number(row.rate) || Number(e.qty)!==Number(row.qty))) {
+          overrides.push({ type_id: ty.report_type_id, parameter_id: row.parameter_id, rate: Number(e.rate), qty: Number(e.qty) });
+        }
+      }));
+      const params = mode==='group' ? { group_id:groupId } : { customer_id:customerId };
+      const payload = {
+        ...params,
+        from,
+        to,
+        overrides,
+        type_ids: selectedTypeIds && selectedTypeIds.length > 0 ? selectedTypeIds : undefined,
+      };
+      const res = await api.post('/bulk-settlement/pdf', payload, { responseType:'blob' });
+      const url = URL.createObjectURL(new Blob([res.data], { type:'application/pdf' }));
+      window.open(url, '_blank');
+    } catch(err){ addToast('PDF preview failed','error'); }
+    finally { setExporting(false); }
+  };
+
   const exportPdf = async () => {
     if (!ready || !data || exporting) return;
     setExporting(true);
@@ -603,7 +652,7 @@ const BulkSettlement = () => {
       recipientName: partyName,
       docTitle: 'CUSTOMER ACCOUNT STATEMENT',
       summaryLines: [
-        `*Party / Group:* ${partyName}`,
+        `*Customer / Group:* ${partyName}`,
         `*Period:* ${fromDate} to ${toDate}`,
         `*Total Reports:* ${repCount}`,
         `*Total Charges (Debit):* ₹${debit}`,
@@ -629,7 +678,7 @@ const BulkSettlement = () => {
       <div className="bg-white border border-[#D1D5DB] rounded-2xl p-4 space-y-3">
         <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center">
           <div className="flex gap-1 bg-[#F3F4F6] p-1 rounded-xl">
-            {[{v:'group',l:'By Group'},{v:'party',l:'By Party'}].map(o=>(
+            {[{v:'group',l:'By Group'},{v:'party',l:'By Customer'}].map(o=>(
               <button key={o.v} onClick={()=>{ setMode(o.v); setData(null); setSelectedTypeIds(null); }} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${mode===o.v?'bg-[#168B57] text-white':'text-[#6B7280]'}`}>{o.l}</button>
             ))}
           </div>
@@ -640,7 +689,7 @@ const BulkSettlement = () => {
             </select>
           ) : (
             <select value={customerId} onChange={e=>{ setCustomerId(e.target.value); setSelectedTypeIds(null); }} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white min-w-[200px]">
-              <option value="">Select party...</option>
+              <option value="">Select customer...</option>
               {customers.map(c=> <option key={c.id} value={c.id}>{c.company_name || c.name}</option>)}
             </select>
           )}

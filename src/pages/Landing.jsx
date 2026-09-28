@@ -436,7 +436,7 @@ export const Landing = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
               {[
                 { s: 'Client Brings Sample', d: 'Customer brings sample to lab — Water, Oil, Ghee, Feed, Rice Bran', c: 'bg-[#168B57]', Icon: User },
-                { s: 'We Log Sample', d: 'We record sample details, party name and date accurately', c: 'bg-[#0B6B43]', Icon: ClipboardList },
+                { s: 'We Log Sample', d: 'We record sample details, customer name and date accurately', c: 'bg-[#0B6B43]', Icon: ClipboardList },
                 { s: 'Lab Testing', d: 'Chemistry analysis — pH, FFA, Protein and all parameters tested', c: 'bg-amber-500', Icon: FlaskConical },
                 { s: 'Report Delivered', d: 'Auto KAL number with neat A4 PDF — ready to print and download', c: 'bg-sky-600', Icon: FileCheck },
               ].map((it, i) => (

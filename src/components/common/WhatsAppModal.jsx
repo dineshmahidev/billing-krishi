@@ -24,7 +24,7 @@ export const WhatsAppModal = ({
 
   useEffect(() => {
     if (isOpen) {
-      setTargetPhone(phone || '');
+      setTargetPhone(phone && phone.trim() ? phone.trim() : '9361229641');
       const savedCustom = localStorage.getItem('krishi_wa_custom_greeting');
       if (savedCustom) {
         setGreetingPreset('custom');
@@ -75,22 +75,54 @@ export const WhatsAppModal = ({
     }
 
     if (pdfUrl) {
-      lines.push('🔗 *Download / View PDF:*');
+      lines.push('🔗 *Direct PDF Download / View Link:*');
       lines.push(pdfUrl);
       lines.push('----------------------------------------');
     }
 
     lines.push('*Krishi Analytical Laboratory*');
     lines.push('182-B, Tiruppur Road, Kangeyam - 638701');
-    lines.push('Ph: +91 63793 12357');
+    lines.push('Ph: +91 63793 12357, +91 88838 64756');
 
     return lines.join('\n');
+  };
+
+  const [isSharingFile, setIsSharingFile] = useState(false);
+  const canShareFiles = typeof navigator !== 'undefined' && !!navigator.canShare;
+
+  const handleNativeShare = async () => {
+    if (!pdfUrl) return;
+    try {
+      setIsSharingFile(true);
+      const res = await fetch(pdfUrl);
+      const blob = await res.blob();
+      const filename = `${docTitle.replace(/[^a-zA-Z0-9_-]/g, '_')}.pdf`;
+      const file = new File([blob], filename, { type: 'application/pdf' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          title: docTitle,
+          text: buildFullMessage(),
+          files: [file]
+        });
+        onClose();
+      } else {
+        // Fallback to wa.me URL
+        handleSend();
+      }
+    } catch (err) {
+      console.warn('Native share error or cancelled:', err);
+      // If user cancelled or not supported, fallback to WhatsApp web link
+      handleSend();
+    } finally {
+      setIsSharingFile(false);
+    }
   };
 
   const handleSend = () => {
     let clean = (targetPhone || '').replace(/[^0-9]/g, '');
     if (!clean) {
-      const promptPhone = window.prompt('Please enter the 10-digit WhatsApp number:');
+      const promptPhone = window.prompt('Please enter the 10-digit WhatsApp number:', '9361229641');
       if (!promptPhone) return;
       clean = promptPhone.replace(/[^0-9]/g, '');
     }
@@ -114,7 +146,7 @@ export const WhatsAppModal = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-white">Share via WhatsApp</h3>
-              <p className="text-[11px] text-white/70">Customizable greeting &amp; direct PDF link</p>
+              <p className="text-[11px] text-white/70">Send to client or test directly on your mobile</p>
             </div>
           </div>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/10 text-white/70 hover:text-white transition-colors">
@@ -128,8 +160,26 @@ export const WhatsAppModal = ({
           {/* Party & Phone Input */}
           <div className="space-y-1.5">
             <div className="flex justify-between items-center text-[11px] font-bold text-[#374151]">
-              <span className="flex items-center gap-1"><Smartphone className="w-3.5 h-3.5 text-[#168B57]"/> Client WhatsApp Mobile Number:</span>
-              {recipientName && <span className="text-[#6B7280] font-medium truncate max-w-[200px]">{recipientName}</span>}
+              <span className="flex items-center gap-1"><Smartphone className="w-3.5 h-3.5 text-[#168B57]"/> WhatsApp Mobile Number:</span>
+              <div className="flex gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setTargetPhone('9361229641')}
+                  className="px-2 py-0.5 rounded-md bg-[#EAF7F0] text-[#0B6B43] hover:bg-[#D1EEE0] text-[10px] font-bold"
+                  title="Click to set test number 9361229641"
+                >
+                  Test: 9361229641
+                </button>
+                {phone && phone !== '9361229641' && (
+                  <button
+                    type="button"
+                    onClick={() => setTargetPhone(phone)}
+                    className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 text-[10px] font-bold"
+                  >
+                    Party: {phone}
+                  </button>
+                )}
+              </div>
             </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-[#6B7280] font-mono text-xs">+91</span>
@@ -204,17 +254,17 @@ export const WhatsAppModal = ({
             Cancel
           </button>
           <div className="flex items-center gap-2">
-            {pdfUrl && (
-              <a
-                href={pdfUrl}
-                target="_blank"
-                rel="noreferrer"
-                download
-                className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm"
-                title="Download PDF file locally"
+            {canShareFiles && pdfUrl && (
+              <button
+                type="button"
+                onClick={handleNativeShare}
+                disabled={isSharingFile}
+                className="px-3.5 py-2.5 rounded-xl bg-[#0B6B43] hover:bg-[#084D30] text-white font-bold text-xs flex items-center gap-1.5 transition-colors shadow-sm disabled:opacity-50"
+                title="Directly attach and share PDF file via native device share"
               >
-                <FileText className="w-3.5 h-3.5" /> Download PDF
-              </a>
+                <FileText className="w-3.5 h-3.5" />
+                {isSharingFile ? 'Preparing...' : 'Direct PDF Share'}
+              </button>
             )}
             <button
               type="button"

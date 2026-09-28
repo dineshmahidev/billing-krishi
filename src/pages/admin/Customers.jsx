@@ -134,6 +134,7 @@ const PartySummary = ({ customers }) => {
                 <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
                   <th className="py-2 px-3">Invoice No</th><th className="py-2 px-3">Report</th><th className="py-2 px-3">Date</th>
                   <th className="py-2 px-3 text-right">Total</th><th className="py-2 px-3">Status</th>
+                  <th className="py-2 px-3 text-right">Action</th>
                 </tr></thead>
                 <tbody className="divide-y divide-[#D1D5DB]/60">
                   {invoices.map(iv=>(
@@ -143,6 +144,19 @@ const PartySummary = ({ customers }) => {
                       <td className="py-2.5 px-3">{iv.created_at?.split('T')[0]}</td>
                       <td className="py-2.5 px-3 text-right font-bold">₹{Number(iv.total_amount||0).toFixed(2)}</td>
                       <td className="py-2.5 px-3"><span className={`px-2 py-1 rounded-full text-[11px] font-bold text-white ${iv.status==='paid'?'bg-emerald-500':iv.status==='partial'?'bg-sky-500':'bg-amber-500'}`}>{iv.status}</span></td>
+                      <td className="py-2.5 px-3 text-right">
+                        <button
+                          onClick={() => {
+                            const token = localStorage.getItem('auth_token');
+                            const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+                            window.open(`${base}/reports/${iv.report_id}/invoice/pdf${token ? `?token=${token}` : ''}`, '_blank');
+                          }}
+                          className="px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold"
+                          title="View Invoice PDF"
+                        >
+                          PDF
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

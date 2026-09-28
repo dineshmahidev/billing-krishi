@@ -2,7 +2,10 @@ import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import { useToast } from '../components/common/Toast';
 import { CustomerAutocomplete } from '../components/common/CustomerAutocomplete';
-import { Calendar, Building2, FlaskConical, Truck, Package, Hash, FileText } from 'lucide-react';
+import {
+  Calendar, Building2, FlaskConical, Truck, Package, Hash,
+  FileText, UserCheck, Store, ClipboardList, MessageSquare
+} from 'lucide-react';
 
 export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
   const { addToast } = useToast();
@@ -24,10 +27,15 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         company_name: company,
         party_name: company,
         customer_name: company,
+        address: d.address || d.customer?.address || '',
         sample_name: d.sample_name || '',
         vehicle_no: d.vehicle_no || '',
         bill_no: d.bill_no || '',
         bags_tons: d.bags_tons || '',
+        buyer: d.buyer || '',
+        seller: d.seller || '',
+        nature_of_sample: d.nature_of_sample || '',
+        remarks: d.remarks || '',
         report_type: d.report_type,
         report_no: d.report_no,
       });
@@ -37,6 +45,7 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         specification: x.specification,
         name: x.parameter?.name,
         unit: x.parameter?.unit,
+        custom_values: x.custom_values || {},
         enabled: x.enabled !== false,
       })));
     }).catch(()=> setLoadError('Failed to load report'));
@@ -48,6 +57,24 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
   if (!form) return <div className="p-8 text-center text-xs text-[#6B7280]">Loading...</div>;
 
   const showSpecEdit = form.report_type ? (form.report_type.show_specification ?? true) : true;
+  
+  const defaultFields = ['sample_date', 'party_name', 'sample_name', 'vehicle_no', 'bill_no', 'bags_tons'];
+  const visibleFields = form.report_type?.visible_fields && form.report_type.visible_fields.length > 0
+    ? form.report_type.visible_fields
+    : defaultFields;
+
+  const isFieldVisible = (key) => visibleFields.includes(key);
+
+  const updateCustomValue = (idx, col, val) => {
+    setResults(r => {
+      const copy = [...r];
+      copy[idx] = {
+        ...copy[idx],
+        custom_values: { ...(copy[idx].custom_values || {}), [col]: val }
+      };
+      return copy;
+    });
+  };
 
   const save = async () => {
     setSaving(true);
@@ -62,6 +89,7 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
           parameter_id: r.parameter_id,
           result: r.result,
           specification: r.specification,
+          custom_values: r.custom_values || {},
           enabled: r.enabled !== false,
         })),
       };
@@ -94,105 +122,176 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3">
             {/* Date */}
-            <div>
-              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-[#168B57]" /> Date *
-              </label>
-              <div className="relative mt-1">
-                <Calendar className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="date"
-                  value={form.sample_date}
-                  onChange={e => setForm({ ...form, sample_date: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+            {isFieldVisible('sample_date') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-[#168B57]" /> Date *
+                </label>
+                <div className="relative mt-1">
+                  <Calendar className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="date"
+                    value={form.sample_date}
+                    onChange={e => setForm({ ...form, sample_date: e.target.value })}
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Customer Name */}
+            {isFieldVisible('party_name') && (
+              <div>
+                <CustomerAutocomplete
+                  label="Customer Name"
+                  value={form.company_name}
+                  onChange={v => setForm(f => ({ ...f, company_name: v, party_name: v, customer_name: v }))}
+                  onSelect={c => setForm(f => ({ ...f, company_name: c.name, party_name: c.name, customer_name: c.name, address: c.address || f.address }))}
+                  placeholder="Search or enter customer name..."
                 />
               </div>
-            </div>
+            )}
 
-            {/* Party Name */}
-            <div>
-              <CustomerAutocomplete
-                label="Party Name"
-                value={form.company_name}
-                onChange={v => setForm(f => ({ ...f, company_name: v, party_name: v, customer_name: v }))}
-                onSelect={c => setForm(f => ({ ...f, company_name: c.name, party_name: c.name, customer_name: c.name }))}
-                placeholder="Search customer / enter new party name..."
-              />
-            </div>
+            {/* Address */}
+            {isFieldVisible('party_name') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5 text-[#168B57]" /> Address <span className="text-[10px] text-[#6B7280] font-normal">(optional / auto-fetched)</span>
+                </label>
+                <div className="relative mt-1">
+                  <Building2 className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={form.address || ''}
+                    onChange={e => setForm({ ...form, address: e.target.value })}
+                    placeholder="e.g. 182-B, Main Road, Kangeyam (auto-fetched from party if available)"
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Sample Name */}
-            <div>
-              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                <FlaskConical className="w-3.5 h-3.5 text-[#168B57]" /> Sample Name
-              </label>
-              <div className="relative mt-1">
-                <FlaskConical className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  value={form.sample_name}
-                  onChange={e => setForm({ ...form, sample_name: e.target.value })}
-                  placeholder="e.g. CATTLE FEED, GHEE, WATER"
-                  className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
-                />
+            {isFieldVisible('sample_name') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <FlaskConical className="w-3.5 h-3.5 text-[#168B57]" /> Sample Name
+                </label>
+                <div className="relative mt-1">
+                  <FlaskConical className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={form.sample_name}
+                    onChange={e => setForm({ ...form, sample_name: e.target.value })}
+                    placeholder="e.g. CATTLE FEED, GHEE, WATER"
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Vehicle No */}
-            <div>
-              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                <Truck className="w-3.5 h-3.5 text-[#168B57]" /> Vehicle No
-              </label>
-              <div className="relative mt-1">
-                <Truck className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  value={form.vehicle_no}
-                  onChange={e => setForm({ ...form, vehicle_no: e.target.value })}
-                  placeholder="e.g. TN 27 YY 3314"
-                  className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white uppercase"
-                />
+            {isFieldVisible('vehicle_no') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <Truck className="w-3.5 h-3.5 text-[#168B57]" /> Vehicle No
+                </label>
+                <div className="relative mt-1">
+                  <Truck className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={form.vehicle_no}
+                    onChange={e => setForm({ ...form, vehicle_no: e.target.value })}
+                    placeholder="e.g. TN 27 YY 3314"
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white uppercase"
+                  />
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Bill No */}
-            <div>
-              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Bill No <span className="text-[10px] text-[#6B7280] font-normal">(optional)</span>
-              </label>
-              <input
-                value={form.bill_no || ''}
-                onChange={e => setForm({ ...form, bill_no: e.target.value })}
-                placeholder="e.g. BL-1002"
-                className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
-              />
-            </div>
-
-            {/* Quantity */}
-            <div>
-              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                <Package className="w-3.5 h-3.5 text-[#168B57]" /> {form.report_type?.quantity_label || 'Tons / Bags'}
-              </label>
-              <div className="relative mt-1">
-                <Package className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+            {isFieldVisible('bill_no') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Bill No <span className="text-[10px] text-[#6B7280] font-normal">(optional)</span>
+                </label>
                 <input
-                  value={form.bags_tons}
-                  onChange={e => setForm({ ...form, bags_tons: e.target.value })}
-                  placeholder={form.report_type?.quantity_label === 'Unit' ? 'e.g. 50 Units' : 'e.g. 40 Bags / 20 Tons'}
-                  className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                  value={form.bill_no || ''}
+                  onChange={e => setForm({ ...form, bill_no: e.target.value })}
+                  placeholder="e.g. BL-1002"
+                  className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
                 />
               </div>
-            </div>
+            )}
 
-            {/* Report No */}
-            <div className="sm:col-span-2">
-              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Report No <span className="text-[10px] text-[#168B57] font-normal">(editable)</span>
-              </label>
-              <input
-                value={form.report_no || ''}
-                onChange={e => setForm({ ...form, report_no: e.target.value })}
-                placeholder="Blank = keep current"
-                className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white font-mono font-medium"
-              />
-            </div>
+            {/* Quantity */}
+            {isFieldVisible('bags_tons') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <Package className="w-3.5 h-3.5 text-[#168B57]" /> {form.report_type?.quantity_label || 'Tons / Bags'}
+                </label>
+                <div className="relative mt-1">
+                  <Package className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={form.bags_tons}
+                    onChange={e => setForm({ ...form, bags_tons: e.target.value })}
+                    placeholder={form.report_type?.quantity_label === 'Unit' ? 'e.g. 50 Units' : 'e.g. 40 Bags / 20 Tons'}
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Buyer */}
+            {isFieldVisible('buyer') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5 text-[#168B57]" /> Buyer (வாங்குபவர்)
+                </label>
+                <div className="relative mt-1">
+                  <UserCheck className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={form.buyer}
+                    onChange={e => setForm({ ...form, buyer: e.target.value })}
+                    placeholder="e.g. ABC Foods Pvt Ltd"
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Seller */}
+            {isFieldVisible('seller') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <Store className="w-3.5 h-3.5 text-[#168B57]" /> Seller (விற்பனையாளர்)
+                </label>
+                <div className="relative mt-1">
+                  <Store className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={form.seller}
+                    onChange={e => setForm({ ...form, seller: e.target.value })}
+                    placeholder="e.g. XYZ Agro Traders"
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Nature of Sample */}
+            {isFieldVisible('nature_of_sample') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <ClipboardList className="w-3.5 h-3.5 text-[#168B57]" /> Nature of Sample (மாதிரியின் தன்மை)
+                </label>
+                <div className="relative mt-1">
+                  <ClipboardList className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={form.nature_of_sample}
+                    onChange={e => setForm({ ...form, nature_of_sample: e.target.value })}
+                    placeholder="e.g. Solid Pellet / Liquid / Powder"
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -206,9 +305,12 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
               <thead>
                 <tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
                   <th className="py-2.5 px-3 w-10 text-center">S.No</th>
-                  <th className="py-2.5 px-3">Test Parameter</th>
+                  <th className="py-2.5 px-3">Parameter</th>
                   <th className="py-2.5 px-3 w-32">Result</th>
                   {showSpecEdit && <th className="py-2.5 px-3">Specification</th>}
+                  {(form.report_type?.custom_columns || []).map(col => (
+                    <th key={col} className="py-2.5 px-3">{col}</th>
+                  ))}
                   <th className="py-2.5 px-3 w-16 text-center">Include</th>
                 </tr>
               </thead>
@@ -254,6 +356,17 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
                           />
                         </td>
                       )}
+                      {(form.report_type?.custom_columns || []).map((col) => (
+                        <td key={col} className="py-2 px-3">
+                          <input
+                            value={r.custom_values?.[col] ?? ''}
+                            disabled={!on}
+                            onChange={e => updateCustomValue(i, col, e.target.value)}
+                            placeholder="-"
+                            className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
+                          />
+                        </td>
+                      ))}
                       <td className="py-2 px-3 text-center">
                         <input
                           type="checkbox"
@@ -274,6 +387,25 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
             </table>
           </div>
         </div>
+
+        {/* Remarks (Separately at the bottom) */}
+        {isFieldVisible('remarks') && (
+          <div className="pt-3 border-t border-[#D1D5DB]/60">
+            <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+              <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Remarks / Notes (குறிப்புகள்)
+            </label>
+            <div className="relative mt-1">
+              <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
+              <textarea
+                rows={2}
+                value={form.remarks}
+                onChange={e => setForm({ ...form, remarks: e.target.value })}
+                placeholder="e.g. Sample meets the required testing parameters..."
+                className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y"
+              />
+            </div>
+          </div>
+        )}
 
         {/* Linked Invoice Overview */}
         {invoice && (

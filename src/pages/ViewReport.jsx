@@ -38,7 +38,7 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
       docTitle: `TEST REPORT: ${repNo}`,
       summaryLines: [
         `*Report No:* ${repNo}`,
-        `*Party:* ${partyName}`,
+        `*Customer:* ${partyName}`,
         `*Type:* ${repType}`,
         `*Sample:* ${sample}`,
         `*Vehicle:* ${veh}`,
@@ -69,7 +69,7 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
       recipientName: partyName,
       docTitle: `INVOICE: ${invNo}`,
       summaryLines: [
-        `*Party:* ${partyName}`,
+        `*Customer:* ${partyName}`,
         `*Report No:* ${repNo}`,
         `*Invoice Date:* ${invDate}`,
         `*Subtotal:* ₹${subtotal}`,
@@ -137,18 +137,21 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
           <p className="text-xs font-mono font-bold mt-1">{report.report_no}</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 text-xs border border-[#111827] rounded-xl p-4 bg-[#F9FAFB]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs border border-[#111827] rounded-xl p-4 bg-[#F9FAFB]">
           <div className="space-y-1.5">
             <p><span className="font-bold text-[#111827]">Report No:</span> <span className="font-mono font-bold text-[#0B6B43]">{report.report_no}</span></p>
             <p><span className="font-bold text-[#111827]">Report Type:</span> {report.report_type?.name}</p>
             <p><span className="font-bold text-[#111827]">Date:</span> {report.sample_date ? report.sample_date.split('T')[0] : (report.created_at?.split('T')[0] || '-')}</p>
-            <p><span className="font-bold text-[#111827]">{report.report_type?.quantity_label || 'Tons / Bags'}:</span> {report.bags_tons || '-'}</p>
+            {report.bags_tons && <p><span className="font-bold text-[#111827]">{report.report_type?.quantity_label || 'Tons / Bags'}:</span> {report.bags_tons}</p>}
+            {report.buyer && <p><span className="font-bold text-[#111827]">Buyer:</span> {report.buyer}</p>}
+            {report.seller && <p><span className="font-bold text-[#111827]">Seller:</span> {report.seller}</p>}
           </div>
           <div className="space-y-1.5">
-            <p><span className="font-bold text-[#111827]">Party Name:</span> <strong className="text-[#111827]">{report.party_name || report.customer_name || '-'}</strong></p>
-            <p><span className="font-bold text-[#111827]">Sample Name:</span> {report.sample_name || '-'}</p>
-            <p><span className="font-bold text-[#111827]">Vehicle No:</span> {report.vehicle_no || '-'}</p>
-            <p><span className="font-bold text-[#111827]">Bill No:</span> {report.bill_no || '-'}</p>
+            <p><span className="font-bold text-[#111827]">Customer:</span> <strong className="text-[#111827]">{report.party_name || report.customer_name || '-'}</strong></p>
+            {(report.address || report.customer?.address) && <p><span className="font-bold text-[#111827]">Address:</span> {report.address || report.customer?.address}</p>}
+            <p><span className="font-bold text-[#111827]">Nature of Sample:</span> {report.nature_of_sample || report.sample_name || '-'}</p>
+            {report.vehicle_no && <p><span className="font-bold text-[#111827]">Vehicle No:</span> {report.vehicle_no}</p>}
+            {report.bill_no && <p><span className="font-bold text-[#111827]">Bill No:</span> {report.bill_no}</p>}
           </div>
         </div>
 
@@ -166,12 +169,19 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
                   <td className="py-2 px-3 font-bold text-[#000000]">{r.parameter?.name}</td>
                   <td className="py-2 px-3 text-center font-bold text-[#000000]">{r.result}{r.parameter?.unit === '%' && !String(r.result).includes('%') ? ' %' : ''}</td>
                   {(report.report_type?.show_specification??true) && <td className="py-2 px-3 text-[#000000]">{r.specification}</td>}
-                  {(report.report_type?.custom_columns||[]).map(c=> <td key={c} className="py-2 px-3 text-[#000000]">-</td>)}
+                  {(report.report_type?.custom_columns||[]).map(c=> <td key={c} className="py-2 px-3 text-[#000000]">{r.custom_values?.[c] || '—'}</td>)}
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
+        {report.remarks && (
+          <div className="border-l-4 border-[#0B6B43] bg-[#F9FAFB] p-3 rounded-r-xl text-xs">
+            <strong className="text-[#0B6B43]">Remarks / Notes: </strong>
+            <span className="font-semibold text-[#111827]">{report.remarks}</span>
+          </div>
+        )}
 
         <div className="text-center font-extrabold text-[11px] tracking-widest text-[#000000] py-1">*** END OF REPORT ***</div>
 

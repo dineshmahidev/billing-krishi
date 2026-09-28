@@ -79,6 +79,26 @@ export const downloadWord = async (reportId, filename) => {
   a.remove();
 };
 
+export const openInvoicePdf = async (reportId) => {
+  const token = localStorage.getItem('auth_token');
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  const url = `${base}/reports/${reportId}/invoice/pdf?_t=${Date.now()}${token ? `&token=${token}` : ''}`;
+  const win = window.open(url, '_blank');
+  if (!win) window.location.href = url;
+};
+
+export const downloadInvoicePdf = async (reportId, filename) => {
+  const token = localStorage.getItem('auth_token');
+  const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+  const url = `${base}/reports/${reportId}/invoice/pdf/download?_t=${Date.now()}${token ? `&token=${token}` : ''}`;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || `invoice-${reportId}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+};
+
 export const openInvoiceWord = async (reportId) => {
   const token = localStorage.getItem('auth_token');
   const base = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';

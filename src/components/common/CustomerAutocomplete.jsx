@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import api from '../../services/api';
 import { Building2 } from 'lucide-react';
 
-export const CustomerAutocomplete = ({ value, onChange, onSelect, placeholder="Party / Company", label }) => {
+export const CustomerAutocomplete = ({ value, onChange, onSelect, placeholder="Customer", label }) => {
   const [q, setQ] = useState(value || '');
   const [list, setList] = useState([]);
   const [open, setOpen] = useState(false);

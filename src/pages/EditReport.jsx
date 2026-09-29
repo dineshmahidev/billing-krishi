@@ -15,6 +15,8 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
   const [saving, setSaving] = useState(false);
   const [invoice, setInvoice] = useState(null);
   const [loadError, setLoadError] = useState('');
+  const [enableRemarks, setEnableRemarks] = useState(true);
+  const [enableNotes, setEnableNotes] = useState(true);
 
   useEffect(()=>{
     if (!reportId) return;
@@ -23,6 +25,15 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
     api.get(`/reports/${reportId}`).then(r=>{
       const d = r.data;
       const company = d.party_name || d.customer_name || '';
+      const visFields = Array.isArray(d.report_type?.visible_fields) ? d.report_type.visible_fields : ['sample_date', 'party_name', 'sample_name', 'vehicle_no', 'bill_no', 'bags_tons'];
+      const hasRemContent = d.remarks !== null && d.remarks !== undefined && d.remarks.trim() !== '';
+      const isRemVis = visFields.includes('remarks');
+      setEnableRemarks(hasRemContent || isRemVis);
+
+      const hasNotesContent = d.notes !== null && d.notes !== undefined && d.notes.trim() !== '';
+      const isNotesVis = visFields.includes('notes');
+      setEnableNotes(hasNotesContent || isNotesVis);
+
       setForm({
         sample_date: d.sample_date ? d.sample_date.split('T')[0] : '',
         company_name: company,
@@ -36,8 +47,12 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         buyer: d.buyer || '',
         seller: d.seller || '',
         nature_of_sample: d.nature_of_sample || '',
-        remarks: d.remarks !== null && d.remarks !== undefined && d.remarks !== '' ? d.remarks : (d.report_type?.default_remarks || ''),
-        notes: d.notes !== null && d.notes !== undefined && d.notes !== '' ? d.notes : (d.report_type?.default_notes || ''),
+        remarks: d.remarks !== null && d.remarks !== undefined && d.remarks !== ''
+          ? d.remarks
+          : (d.report_type?.default_remarks || 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.'),
+        notes: d.notes !== null && d.notes !== undefined && d.notes !== ''
+          ? d.notes
+          : (d.report_type?.default_notes || ''),
         report_type: d.report_type,
         report_no: d.report_no,
       });
@@ -87,6 +102,8 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         party_name: party,
         customer_name: party,
         coa_date: form.sample_date,
+        remarks: enableRemarks ? (form.remarks || '') : '',
+        notes: enableNotes ? (form.notes || '') : '',
         results: results.map(r => ({
           parameter_id: r.parameter_id,
           result: r.result,
@@ -418,13 +435,26 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
           })()}
         </div>
 
-        {/* Remarks (Separately at the bottom) */}
-        {isFieldVisible('remarks') && (
-          <div className="pt-3 border-t border-[#D1D5DB]/60">
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Remarks
-              </label>
+        {/* Remarks (Separately at the bottom with ON/OFF Checkbox) */}
+        <div className="pt-3 border-t border-[#D1D5DB]/60">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+            <label className="text-xs font-bold text-[#1F2937] flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={enableRemarks}
+                onChange={e => {
+                  const on = e.target.checked;
+                  setEnableRemarks(on);
+                  if (on && (!form.remarks || form.remarks.trim() === '')) {
+                    setForm(f => ({ ...f, remarks: form.report_type?.default_remarks || 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.' }));
+                  }
+                }}
+                className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57]"
+              />
+              <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" />
+              <span>Remarks {enableRemarks ? <span className="text-[10px] text-[#0B6B43] font-semibold">(ON - Included in PDF)</span> : <span className="text-[10px] text-[#6B7280] font-normal">(OFF - Excluded from PDF)</span>}</span>
+            </label>
+            {enableRemarks && (
               <button
                 type="button"
                 onClick={() => setForm(f => ({ ...f, remarks: 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.' }))}
@@ -433,7 +463,9 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
               >
                 + RM Test Note
               </button>
-            </div>
+            )}
+          </div>
+          {enableRemarks && (
             <div className="relative mt-1">
               <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
               <textarea
@@ -444,17 +476,30 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
                 className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
               />
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Notes (Separately at the bottom) */}
-        {isFieldVisible('notes') && (
-          <div className="pt-3 border-t border-[#D1D5DB]/60">
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Notes
-              </label>
-            </div>
+        {/* Notes (Separately at the bottom with ON/OFF Checkbox) */}
+        <div className="pt-3 border-t border-[#D1D5DB]/60">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+            <label className="text-xs font-bold text-[#1F2937] flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={enableNotes}
+                onChange={e => {
+                  const on = e.target.checked;
+                  setEnableNotes(on);
+                  if (on && (!form.notes || form.notes.trim() === '')) {
+                    setForm(f => ({ ...f, notes: form.report_type?.default_notes || '' }));
+                  }
+                }}
+                className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57]"
+              />
+              <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" />
+              <span>Notes {enableNotes ? <span className="text-[10px] text-[#0B6B43] font-semibold">(ON - Included in PDF)</span> : <span className="text-[10px] text-[#6B7280] font-normal">(OFF - Excluded from PDF)</span>}</span>
+            </label>
+          </div>
+          {enableNotes && (
             <div className="relative mt-1">
               <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
               <textarea
@@ -465,8 +510,8 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
                 className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
               />
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Linked Invoice Overview */}
         {invoice && (

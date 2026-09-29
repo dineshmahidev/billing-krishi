@@ -14,6 +14,8 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
   const [params, setParams] = useState([]);
   const [loadingParams, setLoadingParams] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [enableRemarks, setEnableRemarks] = useState(false);
+  const [enableNotes, setEnableNotes] = useState(false);
   const [form, setForm] = useState({
     report_type_id: '',
     sample_date: new Date().toISOString().split('T')[0],
@@ -71,6 +73,8 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
     const isNotesVis = visFields.includes('notes');
     const defRem = sel?.default_remarks || 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.';
     const defNotes = sel?.default_notes || '';
+    setEnableRemarks(isRemarksVis);
+    setEnableNotes(isNotesVis);
     setForm(f => ({
       ...f,
       report_type_id: v,
@@ -135,6 +139,8 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
         party_name: party,
         customer_name: party,
         coa_date: form.sample_date,
+        remarks: enableRemarks ? (form.remarks || '') : '',
+        notes: enableNotes ? (form.notes || '') : '',
         results: results.map(r => ({
           parameter_id: r.parameter_id,
           result: r.result || '-',
@@ -499,13 +505,27 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
               )}
             </div>
 
-            {/* Remarks (Separately at the bottom) */}
-            {isFieldVisible('remarks') && (
-              <div className="pt-3 border-t border-[#D1D5DB]/60">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                    <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Remarks
-                  </label>
+            {/* Remarks (Separately at the bottom with ON/OFF Checkbox) */}
+            <div className="pt-3 border-t border-[#D1D5DB]/60">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                <label className="text-xs font-bold text-[#1F2937] flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={enableRemarks}
+                    onChange={e => {
+                      const on = e.target.checked;
+                      setEnableRemarks(on);
+                      if (on && (!form.remarks || form.remarks.trim() === '')) {
+                        const sel = types.find(t => String(t.id) === String(form.report_type_id));
+                        setForm(f => ({ ...f, remarks: sel?.default_remarks || 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.' }));
+                      }
+                    }}
+                    className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57]"
+                  />
+                  <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" />
+                  <span>Remarks {enableRemarks ? <span className="text-[10px] text-[#0B6B43] font-semibold">(ON - Included in PDF)</span> : <span className="text-[10px] text-[#6B7280] font-normal">(OFF - Excluded from PDF)</span>}</span>
+                </label>
+                {enableRemarks && (
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, remarks: 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.' }))}
@@ -514,40 +534,56 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                   >
                     + RM Test Note
                   </button>
-                </div>
+                )}
+              </div>
+              {enableRemarks && (
                 <div className="relative mt-1">
                   <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
                   <textarea
                     rows={2}
-                    value={form.remarks}
+                    value={form.remarks || ''}
                     onChange={e => setForm({ ...form, remarks: e.target.value })}
                     placeholder="e.g. The difference between the RM Test and the RM Double Wash Test results should be within 2..."
                     className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
                   />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Notes (Separately at the bottom) */}
-            {isFieldVisible('notes') && (
-              <div className="pt-3 border-t border-[#D1D5DB]/60">
-                <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                    <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Notes
-                  </label>
-                </div>
+            {/* Notes (Separately at the bottom with ON/OFF Checkbox) */}
+            <div className="pt-3 border-t border-[#D1D5DB]/60">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                <label className="text-xs font-bold text-[#1F2937] flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={enableNotes}
+                    onChange={e => {
+                      const on = e.target.checked;
+                      setEnableNotes(on);
+                      if (on && (!form.notes || form.notes.trim() === '')) {
+                        const sel = types.find(t => String(t.id) === String(form.report_type_id));
+                        setForm(f => ({ ...f, notes: sel?.default_notes || '' }));
+                      }
+                    }}
+                    className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57]"
+                  />
+                  <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" />
+                  <span>Notes {enableNotes ? <span className="text-[10px] text-[#0B6B43] font-semibold">(ON - Included in PDF)</span> : <span className="text-[10px] text-[#6B7280] font-normal">(OFF - Excluded from PDF)</span>}</span>
+                </label>
+              </div>
+              {enableNotes && (
                 <div className="relative mt-1">
                   <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
                   <textarea
                     rows={2}
-                    value={form.notes}
+                    value={form.notes || ''}
                     onChange={e => setForm({ ...form, notes: e.target.value })}
                     placeholder="e.g. Terms & conditions or specific notes for this report..."
                     className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
                   />
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Actions */}
             <div className="flex flex-wrap gap-2 pt-3 border-t border-[#D1D5DB]/60">

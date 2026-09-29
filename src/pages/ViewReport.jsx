@@ -209,9 +209,16 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         </div>
 
         {report.remarks && (
-          <div className="border-l-4 border-[#0B6B43] bg-[#F9FAFB] p-3 rounded-r-xl text-xs">
-            <strong className="text-[#0B6B43]">Remarks / Notes: </strong>
-            <span className="font-semibold text-[#111827]">{report.remarks}</span>
+          <div className="py-1 text-xs">
+            <div className="font-extrabold text-[#111827] mb-1">Remarks:</div>
+            <div className="pl-6 text-[#1F2937] leading-relaxed">
+              {report.remarks.split(/(\b2\b|\bPass\b|\bFail\b)/gi).map((part, i) => {
+                if (['2', 'Pass', 'Fail'].includes(part)) {
+                  return <strong key={i} className="font-black text-black">{part}</strong>;
+                }
+                return part;
+              })}
+            </div>
           </div>
         )}
 

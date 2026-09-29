@@ -13,7 +13,8 @@ export const REPORT_FIELD_DEFINITIONS = [
   { key: 'buyer', label: 'Buyer', desc: 'Buyer / Consignee name' },
   { key: 'seller', label: 'Seller', desc: 'Seller / Supplier name' },
   { key: 'nature_of_sample', label: 'Nature of Sample', desc: 'Condition / appearance / packaging' },
-  { key: 'remarks', label: 'Remarks / Notes', desc: 'Special remarks or notes' },
+  { key: 'remarks', label: 'Remarks', desc: 'Remarks section below test results (e.g. Pass/Fail test comparison)' },
+  { key: 'notes', label: 'Notes', desc: 'Notes section below test results / above footer' },
 ];
 
 export const DEFAULT_VISIBLE_FIELDS = [
@@ -31,27 +32,28 @@ export const getDefaultTableColumns = (reportType = {}) => {
       key: c.key || `col_${i}`,
       label: c.label || c.name || `Column ${i + 1}`,
       visible: c.visible !== false,
-      type: c.type || (['s_no', 'parameter', 'specification', 'result'].includes(c.key) ? 'system' : 'custom')
+      type: c.type || (['s_no', 'parameter', 'specification', 'result'].includes(c.key) ? 'system' : 'custom'),
+      width: c.width || (c.key === 's_no' ? '8%' : (c.key === 'result' ? '18%' : (c.key === 'specification' ? '24%' : (c.key === 'parameter' ? '50%' : '20%'))))
     }));
   }
 
   const cols = [
-    { key: 's_no', label: 'S.No', visible: true, type: 'system' },
-    { key: 'parameter', label: 'Parameter', visible: true, type: 'system' },
+    { key: 's_no', label: 'S.No', visible: true, type: 'system', width: '8%' },
+    { key: 'parameter', label: 'Parameter', visible: true, type: 'system', width: '50%' },
   ];
 
   if (reportType.show_specification !== false) {
-    cols.push({ key: 'specification', label: 'Specification', visible: true, type: 'system' });
+    cols.push({ key: 'specification', label: 'Specification', visible: true, type: 'system', width: '24%' });
   } else {
-    cols.push({ key: 'specification', label: 'Specification', visible: false, type: 'system' });
+    cols.push({ key: 'specification', label: 'Specification', visible: false, type: 'system', width: '24%' });
   }
 
   const customs = Array.isArray(reportType.custom_columns) ? reportType.custom_columns : [];
   customs.forEach((cName, idx) => {
-    cols.push({ key: `custom_${idx + 1}`, label: cName, visible: true, type: 'custom' });
+    cols.push({ key: `custom_${idx + 1}`, label: cName, visible: true, type: 'custom', width: '20%' });
   });
 
-  cols.push({ key: 'result', label: 'Result', visible: true, type: 'system' });
+  cols.push({ key: 'result', label: 'Result', visible: true, type: 'system', width: '18%' });
   return cols;
 };
 
@@ -65,6 +67,8 @@ export const ReportTypes = () => {
     active: true,
     show_specification: true,
     visible_fields: [...DEFAULT_VISIBLE_FIELDS],
+    default_remarks: '',
+    default_notes: '',
     custom_columns: [],
     table_columns: getDefaultTableColumns()
   });
@@ -148,6 +152,21 @@ export const ReportTypes = () => {
     setForm({ ...form, table_columns: updated });
   };
 
+  const handleColumnWidthChange = (index, newWidth) => {
+    const updated = [...form.table_columns];
+    updated[index] = { ...updated[index], width: newWidth };
+    setForm({ ...form, table_columns: updated });
+  };
+
+  const handleAdjustColumnWidth = (index, deltaPercent) => {
+    const updated = [...form.table_columns];
+    const currentWStr = (updated[index].width || '20%').toString().replace('%', '').replace('px', '');
+    let currentW = parseFloat(currentWStr) || 20;
+    let nextW = Math.max(5, Math.min(75, currentW + deltaPercent));
+    updated[index] = { ...updated[index], width: `${Math.round(nextW)}%` };
+    setForm({ ...form, table_columns: updated });
+  };
+
   const handleColumnVisibilityToggle = (index) => {
     const updated = [...form.table_columns];
     const isNowVisible = !updated[index].visible;
@@ -187,7 +206,8 @@ export const ReportTypes = () => {
       key: `custom_${Date.now()}`,
       label: name,
       visible: true,
-      type: 'custom'
+      type: 'custom',
+      width: '20%'
     };
 
     const current = [...form.table_columns];
@@ -225,6 +245,8 @@ export const ReportTypes = () => {
       active: t.active,
       show_specification: t.show_specification ?? true,
       visible_fields: t.visible_fields && t.visible_fields.length > 0 ? t.visible_fields : [...DEFAULT_VISIBLE_FIELDS],
+      default_remarks: t.default_remarks || '',
+      default_notes: t.default_notes || '',
       custom_columns: t.custom_columns || [],
       table_columns: initialTableCols
     });
@@ -240,6 +262,8 @@ export const ReportTypes = () => {
       active: true,
       show_specification: true,
       visible_fields: [...DEFAULT_VISIBLE_FIELDS],
+      default_remarks: '',
+      default_notes: '',
       custom_columns: [],
       table_columns: getDefaultTableColumns()
     });
@@ -269,6 +293,8 @@ export const ReportTypes = () => {
         active: form.active,
         show_specification: showSpec,
         visible_fields: form.visible_fields || [...DEFAULT_VISIBLE_FIELDS],
+        default_remarks: form.default_remarks || null,
+        default_notes: form.default_notes || null,
         custom_columns: customCols,
         table_columns: form.table_columns
       };
@@ -412,7 +438,7 @@ export const ReportTypes = () => {
         {/* Quantity / Unit Radio Options */}
         <div className="border border-[#D1EEE0] bg-[#F9FAFB] rounded-xl p-3.5 space-y-2">
           <label className="text-xs font-bold text-[#0B6B43] block">
-            Quantity / Unit / Tons Field Label in Report & PDF:
+            Quantity / Unit / Tons Field Label in Report &amp; PDF:
           </label>
           <div className="flex flex-wrap items-center gap-4 text-xs text-[#1F2937]">
             <label className="inline-flex items-center gap-1.5 cursor-pointer font-bold text-[#0B6B43]">
@@ -478,8 +504,58 @@ export const ReportTypes = () => {
             )}
           </div>
           <p className="text-[11px] text-[#6B7280]">
-            Field name shown in Report Entry & PDF: <strong className="text-[#0B6B43]">{form.quantity_label || 'Tons / Bags'}</strong>
+            Field name shown in Report Entry &amp; PDF: <strong className="text-[#0B6B43]">{form.quantity_label || 'Tons / Bags'}</strong>
           </p>
+        </div>
+
+        {/* Default Remarks & Default Notes Templates */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {/* Default Remarks Template */}
+          <div className="border border-[#D1EEE0] bg-[#F9FAFB] rounded-xl p-3.5 space-y-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <label className="text-xs font-bold text-[#0B6B43] block">
+                  Default Remarks Template:
+                </label>
+                <p className="text-[11px] text-[#6B7280]">
+                  Auto-fills when <strong>Remarks</strong> is checked for this report type.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, default_remarks: 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.' }))}
+                className="text-[11px] font-bold text-[#0B6B43] bg-white hover:bg-emerald-50 border border-[#86C1A4] px-2.5 py-1 rounded-lg transition-colors"
+              >
+                + RM Test Preset
+              </button>
+            </div>
+            <textarea
+              rows={2}
+              value={form.default_remarks || ''}
+              onChange={e => setForm({ ...form, default_remarks: e.target.value })}
+              placeholder="e.g. The difference between the RM Test and the RM Double Wash Test results should be within 2..."
+              className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
+            />
+          </div>
+
+          {/* Default Notes Template */}
+          <div className="border border-[#D1EEE0] bg-[#F9FAFB] rounded-xl p-3.5 space-y-2">
+            <div>
+              <label className="text-xs font-bold text-[#0B6B43] block">
+                Default Notes Template:
+              </label>
+              <p className="text-[11px] text-[#6B7280]">
+                Auto-fills when <strong>Notes</strong> is checked for this report type.
+              </p>
+            </div>
+            <textarea
+              rows={2}
+              value={form.default_notes || ''}
+              onChange={e => setForm({ ...form, default_notes: e.target.value })}
+              placeholder="e.g. Standard terms, disclaimer, or notes for this report type..."
+              className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
+            />
+          </div>
         </div>
 
         {/* ALL Table Columns & Positions Manager */}
@@ -621,7 +697,7 @@ export const ReportTypes = () => {
                     </div>
 
                     {/* Column Label Input */}
-                    <div className="flex-1 min-w-[180px] flex items-center gap-2">
+                    <div className="flex-1 min-w-[150px] flex items-center gap-2">
                       <input
                         type="text"
                         value={col.label}
@@ -634,6 +710,34 @@ export const ReportTypes = () => {
                       }`}>
                         {isSystem ? 'System' : 'Custom'}
                       </span>
+                    </div>
+
+                    {/* Column Width Controls (Increase / Decrease / Set) */}
+                    <div className="flex items-center gap-1 shrink-0 bg-[#F3F4F6] px-2 py-1 rounded-lg border border-gray-200" title="Adjust column width in PDF report">
+                      <span className="text-[10px] font-bold text-gray-600 mr-0.5">Width:</span>
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustColumnWidth(idx, -2)}
+                        className="w-5 h-5 flex items-center justify-center rounded bg-white hover:bg-gray-200 border border-gray-300 text-gray-700 font-black text-xs transition-colors"
+                        title="Decrease column width (-2%)"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="text"
+                        value={col.width || (col.key === 's_no' ? '8%' : (col.key === 'result' ? '18%' : (col.key === 'specification' ? '24%' : (col.key === 'parameter' ? '50%' : '20%'))))}
+                        onChange={e => handleColumnWidthChange(idx, e.target.value)}
+                        className="w-14 text-center px-1 py-0.5 border border-gray-300 rounded bg-white text-[11px] font-bold text-[#0B6B43]"
+                        title="Set custom width (e.g. 10%, 25%, 50%)"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleAdjustColumnWidth(idx, 2)}
+                        className="w-5 h-5 flex items-center justify-center rounded bg-white hover:bg-gray-200 border border-gray-300 text-gray-700 font-black text-xs transition-colors"
+                        title="Increase column width (+2%)"
+                      >
+                        +
+                      </button>
                     </div>
 
                     {/* Visibility & Action Controls */}
@@ -669,7 +773,7 @@ export const ReportTypes = () => {
             {/* Live Table Header Preview */}
             <div className="mt-3 pt-3 border-t border-emerald-200">
               <span className="text-[10px] uppercase tracking-wider font-bold text-[#0B6B43] block mb-2">
-                Live Table Header Order Preview (As Rendered in PDF &amp; Report Screen):
+                Live Table Header Order &amp; Width Preview (As Rendered in PDF &amp; Report Screen):
               </span>
               
               <div className="overflow-x-auto border border-black rounded-lg bg-white shadow-xs">
@@ -681,13 +785,16 @@ export const ReportTypes = () => {
                         .map((c, i) => (
                           <th
                             key={c.key || i}
+                            style={{ width: c.width || 'auto' }}
                             className={`py-2 px-3 text-[11px] font-black uppercase text-black border-r border-black last:border-r-0 ${
-                              c.key === 's_no' ? 'text-center w-12' : (c.key === 'result' ? 'text-center w-28' : '')
+                              c.key === 's_no' ? 'text-center' : (c.key === 'result' ? 'text-center' : '')
                             }`}
                           >
                             <div className="flex items-center justify-between gap-1">
                               <span>{c.label}</span>
-                              <span className="text-[9px] font-mono text-emerald-700 bg-emerald-100 px-1 rounded">#{i + 1}</span>
+                              <span className="text-[9px] font-mono text-emerald-800 bg-emerald-100 px-1 rounded font-bold border border-emerald-300">
+                                {c.width || 'auto'}
+                              </span>
                             </div>
                           </th>
                         ))}
@@ -700,6 +807,7 @@ export const ReportTypes = () => {
                         .map((c, i) => (
                           <td
                             key={c.key || i}
+                            style={{ width: c.width || 'auto' }}
                             className={`py-2 px-3 border-r border-gray-300 last:border-r-0 ${
                               c.key === 's_no' ? 'text-center' : (c.key === 'result' ? 'text-center font-bold text-black' : '')
                             }`}

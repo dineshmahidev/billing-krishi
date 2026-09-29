@@ -36,7 +36,8 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         buyer: d.buyer || '',
         seller: d.seller || '',
         nature_of_sample: d.nature_of_sample || '',
-        remarks: d.remarks || '',
+        remarks: d.remarks !== null && d.remarks !== undefined && d.remarks !== '' ? d.remarks : (d.report_type?.default_remarks || ''),
+        notes: d.notes !== null && d.notes !== undefined && d.notes !== '' ? d.notes : (d.report_type?.default_notes || ''),
         report_type: d.report_type,
         report_no: d.report_no,
       });
@@ -420,17 +421,48 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         {/* Remarks (Separately at the bottom) */}
         {isFieldVisible('remarks') && (
           <div className="pt-3 border-t border-[#D1D5DB]/60">
-            <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-              <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Remarks / Notes
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Remarks
+              </label>
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, remarks: 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.' }))}
+                className="text-[11px] font-bold text-[#0B6B43] bg-[#EAF7F0] hover:bg-[#D1E7DD] border border-[#86C1A4] px-2.5 py-0.5 rounded-lg transition-colors"
+                title="Insert standard RM Test comparison note"
+              >
+                + RM Test Note
+              </button>
+            </div>
             <div className="relative mt-1">
               <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
               <textarea
                 rows={2}
-                value={form.remarks}
+                value={form.remarks || ''}
                 onChange={e => setForm({ ...form, remarks: e.target.value })}
-                placeholder="e.g. Sample meets the required testing parameters..."
-                className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y"
+                placeholder="e.g. The difference between the RM Test and the RM Double Wash Test results should be within 2..."
+                className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Notes (Separately at the bottom) */}
+        {isFieldVisible('notes') && (
+          <div className="pt-3 border-t border-[#D1D5DB]/60">
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" /> Notes
+              </label>
+            </div>
+            <div className="relative mt-1">
+              <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
+              <textarea
+                rows={2}
+                value={form.notes || ''}
+                onChange={e => setForm({ ...form, notes: e.target.value })}
+                placeholder="e.g. Terms & conditions or specific notes for this report..."
+                className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
               />
             </div>
           </div>

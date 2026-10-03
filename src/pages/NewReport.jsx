@@ -170,12 +170,12 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
   const selectedType = types.find(t => String(t.id) === String(form.report_type_id));
   const showSpec = selectedType ? (selectedType.show_specification ?? true) : true;
   
-  const defaultFields = ['sample_date', 'party_name', 'sample_name', 'vehicle_no', 'bill_no', 'bags_tons'];
+  const defaultFields = ['report_no', 'sample_date', 'party_name', 'sample_name', 'vehicle_no', 'bill_no', 'bags_tons'];
   const visibleFields = selectedType?.visible_fields && selectedType.visible_fields.length > 0
     ? selectedType.visible_fields
     : defaultFields;
 
-  const isFieldVisible = (key) => visibleFields.includes(key);
+  const isFieldVisible = (key) => key === 'report_no' || visibleFields.includes(key);
 
   return (
     <div className="space-y-5 max-w-4xl">
@@ -211,6 +211,24 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 <FileText className="w-3.5 h-3.5" /> Report Information (PDF Meta)
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3">
+                {/* Report No */}
+                {isFieldVisible('report_no') && (
+                  <div>
+                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                      <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Report No <span className="text-[10px] text-[#6B7280] font-normal">(optional / auto-generated if blank)</span>
+                    </label>
+                    <div className="relative mt-1">
+                      <Hash className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        value={form.report_no || ''}
+                        onChange={e => setForm({ ...form, report_no: e.target.value })}
+                        placeholder="e.g. KAL-4412 (leave blank to auto-generate)"
+                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white font-mono"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Date */}
                 {isFieldVisible('sample_date') && (
                   <div>

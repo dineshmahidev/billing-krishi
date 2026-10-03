@@ -75,12 +75,12 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
 
   const showSpecEdit = form.report_type ? (form.report_type.show_specification ?? true) : true;
   
-  const defaultFields = ['sample_date', 'party_name', 'sample_name', 'vehicle_no', 'bill_no', 'bags_tons'];
+  const defaultFields = ['report_no', 'sample_date', 'party_name', 'sample_name', 'vehicle_no', 'bill_no', 'bags_tons'];
   const visibleFields = form.report_type?.visible_fields && form.report_type.visible_fields.length > 0
     ? form.report_type.visible_fields
     : defaultFields;
 
-  const isFieldVisible = (key) => visibleFields.includes(key);
+  const isFieldVisible = (key) => key === 'report_no' || visibleFields.includes(key);
 
   const updateCustomValue = (idx, col, val) => {
     setResults(r => {
@@ -114,7 +114,8 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
       };
       delete payload.company_name;
       delete payload.report_type;
-      if (!payload.report_no) delete payload.report_no;
+      if (!payload.report_no || !payload.report_no.trim()) delete payload.report_no;
+      else payload.report_no = payload.report_no.trim();
       if (!payload.bill_no) delete payload.bill_no;
 
       await api.put(`/reports/${reportId}`, payload);
@@ -140,6 +141,24 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
             <FileText className="w-3.5 h-3.5" /> Report Information (PDF Meta)
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3">
+            {/* Report No */}
+            {isFieldVisible('report_no') && (
+              <div>
+                <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                  <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Report No
+                </label>
+                <div className="relative mt-1">
+                  <Hash className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    value={form.report_no || ''}
+                    onChange={e => setForm({ ...form, report_no: e.target.value })}
+                    placeholder="e.g. KAL-4412"
+                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white font-mono font-medium"
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Date */}
             {isFieldVisible('sample_date') && (
               <div>

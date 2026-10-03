@@ -4,6 +4,7 @@ import { useToast } from '../../components/common/Toast';
 import { CheckSquare, Square, Sliders, Layers, ArrowUp, ArrowDown, Trash2, Plus, MoveVertical } from 'lucide-react';
 
 export const REPORT_FIELD_DEFINITIONS = [
+  { key: 'report_no', label: 'Report No', desc: 'Manual or auto-generated report number (e.g. KAL-4412)' },
   { key: 'sample_date', label: 'Sample Date', desc: 'Sample collection / testing date', isCore: true },
   { key: 'party_name', label: 'Customer Name', desc: 'Customer name', isCore: true },
   { key: 'sample_name', label: 'Sample Name', desc: 'e.g. CATTLE FEED, GHEE, WATER' },
@@ -18,6 +19,7 @@ export const REPORT_FIELD_DEFINITIONS = [
 ];
 
 export const DEFAULT_VISIBLE_FIELDS = [
+  'report_no',
   'sample_date',
   'party_name',
   'sample_name',

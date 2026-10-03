@@ -138,7 +138,7 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
             <img src="/krishi-transparent.png" alt="logo" className="h-12 mx-auto" />
             <span className="text-[11px] font-black text-[#0B6B43] tracking-[2.5px] mt-0.5">KLA</span>
           </div>
-          <p className="text-[11px] text-[#6B7280] mt-2">182-B, Reliance Trends Near, Tiruppur Road, Kangeyam - 638701 &bull; Ph: +91 63793 12357 &bull; info@krishianalyticallab.com</p>
+          <p className="text-[11px] text-[#6B7280] mt-2">182-B, Reliance Trends Near, Tiruppur Road, Kangeyam - 638701 &bull; Ph: +91 63793 12357, +91 88838 64756 &bull; krishianalyticallab@gmail.com &bull; krishilab25.in</p>
           <div className="mt-2 inline-block px-4 py-1 bg-[#0B6B43] text-white text-xs font-bold tracking-widest uppercase">{report.report_type?.title || 'REPORT'}</div>
           <p className="text-xs font-mono font-bold mt-1">{report.report_no}</p>
         </div>

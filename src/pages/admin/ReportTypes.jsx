@@ -35,27 +35,30 @@ export const getDefaultTableColumns = (reportType = {}) => {
       label: c.label || c.name || `Column ${i + 1}`,
       visible: c.visible !== false,
       type: c.type || (['s_no', 'parameter', 'specification', 'result'].includes(c.key) ? 'system' : 'custom'),
-      width: c.width || (c.key === 's_no' ? '8%' : (c.key === 'result' ? '18%' : (c.key === 'specification' ? '24%' : (c.key === 'parameter' ? '50%' : '20%'))))
+      width: c.width || (c.key === 's_no' ? '8%' : (c.key === 'result' ? '18%' : (c.key === 'specification' ? '24%' : (c.key === 'parameter' ? '50%' : '20%')))),
+      affix_type: c.affix_type || 'none',
+      affix_value: c.affix_value || '',
+      align: c.align || (c.key === 'parameter' ? 'left' : 'center')
     }));
   }
 
   const cols = [
-    { key: 's_no', label: 'S.No', visible: true, type: 'system', width: '8%' },
-    { key: 'parameter', label: 'Parameter', visible: true, type: 'system', width: '50%' },
+    { key: 's_no', label: 'S.No', visible: true, type: 'system', width: '8%', affix_type: 'none', affix_value: '', align: 'center' },
+    { key: 'parameter', label: 'Parameter', visible: true, type: 'system', width: '50%', affix_type: 'none', affix_value: '', align: 'left' },
   ];
 
   if (reportType.show_specification !== false) {
-    cols.push({ key: 'specification', label: 'Specification', visible: true, type: 'system', width: '24%' });
+    cols.push({ key: 'specification', label: 'Specification', visible: true, type: 'system', width: '24%', affix_type: 'none', affix_value: '', align: 'center' });
   } else {
-    cols.push({ key: 'specification', label: 'Specification', visible: false, type: 'system', width: '24%' });
+    cols.push({ key: 'specification', label: 'Specification', visible: false, type: 'system', width: '24%', affix_type: 'none', affix_value: '', align: 'center' });
   }
 
   const customs = Array.isArray(reportType.custom_columns) ? reportType.custom_columns : [];
   customs.forEach((cName, idx) => {
-    cols.push({ key: `custom_${idx + 1}`, label: cName, visible: true, type: 'custom', width: '20%' });
+    cols.push({ key: `custom_${idx + 1}`, label: cName, visible: true, type: 'custom', width: '20%', affix_type: 'none', affix_value: '', align: 'center' });
   });
 
-  cols.push({ key: 'result', label: 'Result', visible: true, type: 'system', width: '18%' });
+  cols.push({ key: 'result', label: 'Result', visible: true, type: 'system', width: '18%', affix_type: 'none', affix_value: '', align: 'center' });
   return cols;
 };
 
@@ -77,6 +80,9 @@ export const ReportTypes = () => {
   const [editing, setEditing] = useState(null);
   const [newColName, setNewColName] = useState('');
   const [newColPosition, setNewColPosition] = useState('end');
+  const [newColAffixType, setNewColAffixType] = useState('none');
+  const [newColAffixValue, setNewColAffixValue] = useState('');
+  const [newColAlign, setNewColAlign] = useState('center');
   const [isCustomQty, setIsCustomQty] = useState(false);
 
   const loadTypes = async () => {
@@ -169,6 +175,24 @@ export const ReportTypes = () => {
     setForm({ ...form, table_columns: updated });
   };
 
+  const handleColumnAffixTypeChange = (index, newType) => {
+    const updated = [...form.table_columns];
+    updated[index] = { ...updated[index], affix_type: newType };
+    setForm({ ...form, table_columns: updated });
+  };
+
+  const handleColumnAffixValueChange = (index, newVal) => {
+    const updated = [...form.table_columns];
+    updated[index] = { ...updated[index], affix_value: newVal };
+    setForm({ ...form, table_columns: updated });
+  };
+
+  const handleColumnAlignChange = (index, newAlign) => {
+    const updated = [...form.table_columns];
+    updated[index] = { ...updated[index], align: newAlign || 'center' };
+    setForm({ ...form, table_columns: updated });
+  };
+
   const handleColumnVisibilityToggle = (index) => {
     const updated = [...form.table_columns];
     const isNowVisible = !updated[index].visible;
@@ -209,7 +233,10 @@ export const ReportTypes = () => {
       label: name,
       visible: true,
       type: 'custom',
-      width: '20%'
+      width: '20%',
+      affix_type: newColAffixType || 'none',
+      affix_value: newColAffixValue || '',
+      align: newColAlign || 'center'
     };
 
     const current = [...form.table_columns];
@@ -225,6 +252,9 @@ export const ReportTypes = () => {
     setForm({ ...form, table_columns: current });
     setNewColName('');
     setNewColPosition('end');
+    setNewColAffixType('none');
+    setNewColAffixValue('');
+    setNewColAlign('center');
     addToast(`Added column "${name}"`);
   };
 
@@ -271,6 +301,9 @@ export const ReportTypes = () => {
     });
     setNewColName('');
     setNewColPosition('end');
+    setNewColAffixType('none');
+    setNewColAffixValue('');
+    setNewColAlign('center');
     setIsCustomQty(false);
   };
 
@@ -581,8 +614,8 @@ export const ReportTypes = () => {
           </div>
 
           {/* Add New Column Box */}
-          <div className="flex flex-wrap sm:flex-nowrap gap-2 items-center bg-white p-3 rounded-xl border border-emerald-300 shadow-xs">
-            <div className="flex-1 min-w-[160px]">
+          <div className="flex flex-wrap gap-2.5 items-end bg-white p-3 rounded-xl border border-emerald-300 shadow-xs">
+            <div className="flex-1 min-w-[150px]">
               <label className="text-[10px] font-bold text-[#0B6B43] uppercase block mb-1">New Column Name / Label</label>
               <input
                 value={newColName}
@@ -598,14 +631,14 @@ export const ReportTypes = () => {
               />
             </div>
 
-            <div className="w-44">
+            <div className="w-36">
               <label className="text-[10px] font-bold text-[#0B6B43] uppercase block mb-1">Insert Position</label>
               <select
                 value={newColPosition}
                 onChange={e => setNewColPosition(e.target.value)}
                 className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-white font-medium"
               >
-                <option value="end">At End (Position {form.table_columns.length + 1})</option>
+                <option value="end">At End (Pos {form.table_columns.length + 1})</option>
                 <option value="0">Position 1 (At Start)</option>
                 {form.table_columns.map((c, idx) => (
                   <option key={idx} value={idx + 1}>
@@ -615,7 +648,45 @@ export const ReportTypes = () => {
               </select>
             </div>
 
-            <div className="self-end">
+            <div className="w-28">
+              <label className="text-[10px] font-bold text-[#0B6B43] uppercase block mb-1">Affix / Unit</label>
+              <select
+                value={newColAffixType}
+                onChange={e => setNewColAffixType(e.target.value)}
+                className="w-full px-2 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-white font-medium"
+              >
+                <option value="none">None</option>
+                <option value="suffix">Suffix (e.g. %)</option>
+                <option value="prefix">Prefix (e.g. ₹)</option>
+              </select>
+            </div>
+
+            {newColAffixType !== 'none' && (
+              <div className="w-24">
+                <label className="text-[10px] font-bold text-[#0B6B43] uppercase block mb-1">Symbol</label>
+                <input
+                  value={newColAffixValue}
+                  onChange={e => setNewColAffixValue(e.target.value)}
+                  placeholder="e.g. %"
+                  className="w-full px-2 py-1.5 border border-emerald-400 rounded-lg text-xs bg-white font-bold text-[#0B6B43] text-center"
+                />
+              </div>
+            )}
+
+            <div className="w-24">
+              <label className="text-[10px] font-bold text-[#0B6B43] uppercase block mb-1">Align</label>
+              <select
+                value={newColAlign}
+                onChange={e => setNewColAlign(e.target.value)}
+                className="w-full px-2 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-white font-medium"
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+              </select>
+            </div>
+
+            <div>
               <button
                 type="button"
                 onClick={handleAddColumn}
@@ -629,17 +700,19 @@ export const ReportTypes = () => {
           {/* List of All Columns with Full Position & Label Controls */}
           <div className="space-y-2">
             <label className="text-[11px] font-bold text-[#1F2937] block">
-              Configured Table Columns ({form.table_columns.length} columns) — Set Position &amp; Name:
+              Configured Table Columns ({form.table_columns.length} columns) — Set Position, Name, Align, Width &amp; Affix:
             </label>
             
             <div className="space-y-1.5">
               {form.table_columns.map((col, idx) => {
                 const isSystem = col.type === 'system';
                 const isVisible = col.visible !== false;
+                const hasAffix = col.affix_type && col.affix_type !== 'none' && col.affix_value;
+                const colAlign = col.align || (col.key === 'parameter' ? 'left' : 'center');
                 return (
                   <div
                     key={col.key || idx}
-                    className={`flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 p-2.5 rounded-xl border transition-all ${
+                    className={`flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl border transition-all ${
                       isVisible
                         ? 'border-emerald-300 bg-white shadow-xs'
                         : 'border-gray-200 bg-gray-50 opacity-60'
@@ -699,20 +772,65 @@ export const ReportTypes = () => {
                     </div>
 
                     {/* Column Label Input */}
-                    <div className="flex-1 min-w-[150px] flex items-center gap-2">
+                    <div className="flex-1 min-w-[130px] flex items-center gap-1.5">
                       <input
                         type="text"
                         value={col.label}
                         onChange={e => handleColumnLabelChange(idx, e.target.value)}
                         placeholder="Column Label"
-                        className="w-full px-3 py-1 border border-gray-300 rounded-lg text-xs font-bold text-[#1F2937] focus:ring-1 focus:ring-[#168B57] bg-white"
+                        className="w-full px-2.5 py-1 border border-gray-300 rounded-lg text-xs font-bold text-[#1F2937] focus:ring-1 focus:ring-[#168B57] bg-white"
                       />
-                      <span className={`text-[9px] font-semibold px-2 py-0.5 rounded uppercase shrink-0 ${
+                      <span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded uppercase shrink-0 ${
                         isSystem ? 'bg-blue-100 text-blue-800' : 'bg-emerald-100 text-emerald-800'
                       }`}>
                         {isSystem ? 'System' : 'Custom'}
                       </span>
                     </div>
+
+                    {/* Column Align Selector (Left / Center / Right) */}
+                    <div className="flex items-center gap-1 shrink-0 bg-[#F9FAFB] px-2 py-1 rounded-lg border border-gray-200" title="Text alignment in this column">
+                      <span className="text-[10px] font-bold text-gray-600">Align:</span>
+                      <select
+                        value={colAlign}
+                        onChange={e => handleColumnAlignChange(idx, e.target.value)}
+                        className="text-[10px] font-bold border border-gray-300 rounded px-1.5 py-0.5 bg-white text-gray-700"
+                      >
+                        <option value="left">Left</option>
+                        <option value="center">Center</option>
+                        <option value="right">Right</option>
+                      </select>
+                    </div>
+
+                    {/* Affix / Unit Controls (None / Suffix / Prefix + Symbol) */}
+                    {col.key !== 's_no' && col.key !== 'parameter' && (
+                      <div className="flex items-center gap-1 shrink-0 bg-[#F9FAFB] px-2 py-1 rounded-lg border border-gray-200" title="Default Prefix/Suffix with 1-letter space gap for all values in this column">
+                        <span className="text-[10px] font-bold text-gray-600">Affix:</span>
+                        <select
+                          value={col.affix_type || 'none'}
+                          onChange={e => handleColumnAffixTypeChange(idx, e.target.value)}
+                          className="text-[10px] font-bold border border-gray-300 rounded px-1.5 py-0.5 bg-white text-gray-700"
+                        >
+                          <option value="none">None</option>
+                          <option value="suffix">Suffix (12 %)</option>
+                          <option value="prefix">Prefix (₹ 500)</option>
+                        </select>
+                        {col.affix_type && col.affix_type !== 'none' && (
+                          <input
+                            type="text"
+                            value={col.affix_value || ''}
+                            onChange={e => handleColumnAffixValueChange(idx, e.target.value)}
+                            placeholder="e.g. %"
+                            className="w-14 px-1.5 py-0.5 border border-emerald-400 rounded bg-white text-[11px] font-bold text-[#0B6B43] text-center"
+                            title="Symbol/Unit (e.g. % or mg/kg or ₹)"
+                          />
+                        )}
+                        {hasAffix && (
+                          <span className="text-[9px] font-extrabold px-1.5 py-0.5 bg-emerald-100 text-[#0B6B43] rounded">
+                            {col.affix_type === 'suffix' ? `val ${col.affix_value}` : `${col.affix_value} val`}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {/* Column Width Controls (Increase / Decrease / Set) */}
                     <div className="flex items-center gap-1 shrink-0 bg-[#F3F4F6] px-2 py-1 rounded-lg border border-gray-200" title="Adjust column width in PDF report">
@@ -775,48 +893,50 @@ export const ReportTypes = () => {
             {/* Live Table Header Preview */}
             <div className="mt-3 pt-3 border-t border-emerald-200">
               <span className="text-[10px] uppercase tracking-wider font-bold text-[#0B6B43] block mb-2">
-                Live Table Header Order &amp; Width Preview (As Rendered in PDF &amp; Report Screen):
+                Live Table Header Order, Align &amp; Width Preview (As Rendered in PDF &amp; Report Screen):
               </span>
               
               <div className="overflow-x-auto border border-black rounded-lg bg-white shadow-xs">
-                <table className="w-full text-left text-xs border-collapse">
+                <table className="w-full text-xs border-collapse">
                   <thead>
                     <tr className="bg-[#EAF7F0] border-b border-black">
                       {form.table_columns
                         .filter(c => c.visible !== false)
-                        .map((c, i) => (
-                          <th
-                            key={c.key || i}
-                            style={{ width: c.width || 'auto' }}
-                            className={`py-2 px-3 text-[11px] font-black uppercase text-black border-r border-black last:border-r-0 ${
-                              c.key === 's_no' ? 'text-center' : (c.key === 'result' ? 'text-center' : '')
-                            }`}
-                          >
-                            <div className="flex items-center justify-between gap-1">
-                              <span>{c.label}</span>
-                              <span className="text-[9px] font-mono text-emerald-800 bg-emerald-100 px-1 rounded font-bold border border-emerald-300">
-                                {c.width || 'auto'}
-                              </span>
-                            </div>
-                          </th>
-                        ))}
+                        .map((c, i) => {
+                          const cAlign = c.align || (c.key === 'parameter' ? 'left' : 'center');
+                          return (
+                            <th
+                              key={c.key || i}
+                              style={{ width: c.width || 'auto', textAlign: cAlign }}
+                              className="py-2 px-3 text-[11px] font-black uppercase text-black border-r border-black last:border-r-0"
+                            >
+                              <div className={`flex items-center gap-1 ${cAlign === 'center' ? 'justify-center' : (cAlign === 'right' ? 'justify-end' : 'justify-between')}`}>
+                                <span>{c.label}</span>
+                                <span className="text-[9px] font-mono text-emerald-800 bg-emerald-100 px-1 rounded font-bold border border-emerald-300">
+                                  {c.width || 'auto'}
+                                </span>
+                              </div>
+                            </th>
+                          );
+                        })}
                     </tr>
                   </thead>
                   <tbody>
                     <tr className="bg-white text-[10px] text-gray-500 italic">
                       {form.table_columns
                         .filter(c => c.visible !== false)
-                        .map((c, i) => (
-                          <td
-                            key={c.key || i}
-                            style={{ width: c.width || 'auto' }}
-                            className={`py-2 px-3 border-r border-gray-300 last:border-r-0 ${
-                              c.key === 's_no' ? 'text-center' : (c.key === 'result' ? 'text-center font-bold text-black' : '')
-                            }`}
-                          >
-                            {c.key === 's_no' ? '1' : (c.key === 'parameter' ? 'Free Fatty Acids' : (c.key === 'result' ? '1.25 %' : (c.key === 'specification' ? 'Max 2.0 %' : `Sample ${c.label}`)))}
-                          </td>
-                        ))}
+                        .map((c, i) => {
+                          const cAlign = c.align || (c.key === 'parameter' ? 'left' : 'center');
+                          return (
+                            <td
+                              key={c.key || i}
+                              style={{ width: c.width || 'auto', textAlign: cAlign }}
+                              className="py-2 px-3 border-r border-gray-300 last:border-r-0"
+                            >
+                              {c.key === 's_no' ? '1' : (c.key === 'parameter' ? 'Free Fatty Acids' : (c.key === 'result' ? '1.25 %' : (c.key === 'specification' ? 'Max 2.0 %' : `Sample ${c.label}`)))}
+                            </td>
+                          );
+                        })}
                     </tr>
                   </tbody>
                 </table>

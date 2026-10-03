@@ -119,6 +119,46 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
     });
   };
 
+  const toggleRowAffix = (idx, colKey) => {
+    setResults(r => {
+      const copy = [...r];
+      const currentToggles = copy[idx].affix_toggles || {};
+      const currentVal = currentToggles[colKey] !== false;
+      copy[idx] = {
+        ...copy[idx],
+        affix_toggles: {
+          ...currentToggles,
+          [colKey]: !currentVal
+        }
+      };
+      return copy;
+    });
+  };
+
+  const formatCellWithAffix = (val, col, isEnabled = true) => {
+    if (!val || val === '-' || !isEnabled) return val;
+    const affixType = col.affix_type;
+    const affixVal = (col.affix_value || '').trim();
+    if (!affixType || affixType === 'none' || !affixVal) return val;
+
+    const strVal = String(val).trim();
+    if (affixType === 'suffix') {
+      const esc = affixVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (new RegExp(esc + '$').test(strVal)) {
+        return strVal.replace(new RegExp('\\s*' + esc + '$'), ` ${affixVal}`);
+      }
+      return `${strVal} ${affixVal}`;
+    }
+    if (affixType === 'prefix') {
+      const esc = affixVal.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (new RegExp('^' + esc).test(strVal)) {
+        return `${affixVal} ` + strVal.replace(new RegExp('^' + esc + '\\s*'), '');
+      }
+      return `${affixVal} ${strVal}`;
+    }
+    return val;
+  };
+
   const validate = () => {
     if (!form.report_type_id) { addToast('Report Type required', 'error'); return false; }
     if (!form.sample_date) { addToast('Date required', 'error'); return false; }
@@ -133,6 +173,12 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
     if (!validate()) return;
     setSaving(true);
     try {
+      const selectedType = types.find(t => String(t.id) === String(form.report_type_id));
+      const tableCols = Array.isArray(selectedType?.table_columns) && selectedType.table_columns.length > 0
+        ? selectedType.table_columns
+        : [];
+      const resCol = tableCols.find(c => c.key === 'result') || { affix_type: 'none', affix_value: '' };
+
       const party = form.company_name || form.party_name || form.customer_name;
       const payload = {
         ...form,
@@ -141,13 +187,25 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
         coa_date: form.sample_date,
         remarks: enableRemarks ? (form.remarks || '') : '',
         notes: enableNotes ? (form.notes || '') : '',
-        results: results.map(r => ({
-          parameter_id: r.parameter_id,
-          result: r.result || '-',
-          specification: r.specification,
-          custom_values: r.custom_values || {},
-          enabled: r.enabled !== false,
-        })),
+        results: results.map(r => {
+          const isResAffixOn = r.affix_toggles?.['result'] !== false;
+          const formattedRes = formatCellWithAffix(r.result, resCol, isResAffixOn);
+          
+          const formattedCustom = {};
+          Object.entries(r.custom_values || {}).forEach(([cName, cVal]) => {
+            const customCol = tableCols.find(c => c.label === cName || c.key === cName) || { affix_type: 'none', affix_value: '' };
+            const isCustomAffixOn = r.affix_toggles?.[customCol.key || cName] !== false;
+            formattedCustom[cName] = formatCellWithAffix(cVal, customCol, isCustomAffixOn);
+          });
+
+          return {
+            parameter_id: r.parameter_id,
+            result: formattedRes || '-',
+            specification: r.specification,
+            custom_values: formattedCustom,
+            enabled: r.enabled !== false,
+          };
+        }),
       };
       delete payload.company_name;
       if (!payload.report_no) delete payload.report_no;
@@ -421,17 +479,21 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                   const activeTableCols = getDefaultTableColumns(selectedType || {}).filter(c => c.visible !== false);
                   return (
                     <div className="mt-3 overflow-x-auto border border-[#D1D5DB] rounded-xl shadow-sm">
-                      <table className="w-full text-left text-xs">
+                      <table className="w-full text-xs">
                         <thead>
                           <tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                            {activeTableCols.map(col => (
-                              <th
-                                key={col.key}
-                                className={`py-2.5 px-3 ${col.key === 's_no' ? 'w-10 text-center' : (col.key === 'result' ? 'w-32' : '')}`}
-                              >
-                                {col.label}
-                              </th>
-                            ))}
+                            {activeTableCols.map(col => {
+                              const cAlign = col.align || (col.key === 'parameter' ? 'left' : 'center');
+                              return (
+                                <th
+                                  key={col.key}
+                                  style={{ textAlign: cAlign }}
+                                  className={`py-2.5 px-3 ${col.key === 's_no' ? 'w-10' : (col.key === 'result' ? 'w-32' : '')}`}
+                                >
+                                  {col.label}
+                                </th>
+                              );
+                            })}
                             <th className="py-2.5 px-3 w-16 text-center">Include</th>
                           </tr>
                         </thead>
@@ -442,16 +504,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                             return (
                               <tr key={r.parameter_id} className={on ? 'hover:bg-[#EAF7F0]/30' : 'bg-[#F3F4F6] opacity-60'}>
                                 {activeTableCols.map(col => {
+                                  const cAlign = col.align || (col.key === 'parameter' ? 'left' : 'center');
                                   if (col.key === 's_no') {
                                     return (
-                                      <td key={col.key} className="py-2 px-3 text-center font-bold text-[#6B7280]">
+                                      <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 font-bold text-[#6B7280]">
                                         {on ? `${sno}.` : '—'}
                                       </td>
                                     );
                                   }
                                   if (col.key === 'parameter') {
                                     return (
-                                      <td key={col.key} className="py-2 px-3 font-bold text-[#1F2937]">
+                                      <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 font-bold text-[#1F2937]">
                                         {r.name}
                                       </td>
                                     );
@@ -463,27 +526,44 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                                           value={r.specification}
                                           disabled={!on}
                                           onChange={e => updateSpec(i, e.target.value)}
+                                          style={{ textAlign: cAlign }}
                                           className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
                                         />
                                       </td>
                                     );
                                   }
                                   if (col.key === 'result') {
+                                    const hasAffix = col.affix_type && col.affix_type !== 'none' && col.affix_value;
+                                    const isAffixOn = r.affix_toggles?.['result'] !== false;
+                                    const displayAffix = col.affix_value || r.unit || '';
                                     return (
                                       <td key={col.key} className="py-2 px-3">
-                                        <div className="relative">
+                                        <div className="flex items-center gap-1">
                                           <input
                                             value={r.result}
                                             disabled={!on}
-                                            onChange={e => updateResult(i, e.target.value.replace('%', ''))}
+                                            onChange={e => updateResult(i, e.target.value)}
                                             placeholder="-"
-                                            className={`w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs font-medium disabled:bg-[#F3F4F6] ${r.unit === '%' ? 'pr-7' : ''}`}
+                                            style={{ textAlign: cAlign }}
+                                            className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs font-medium disabled:bg-[#F3F4F6]"
                                           />
-                                          {r.unit === '%' && (
-                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-[#168B57]">%</span>
+                                          {hasAffix && (
+                                            <button
+                                              type="button"
+                                              onClick={() => toggleRowAffix(i, 'result')}
+                                              disabled={!on}
+                                              title={isAffixOn ? `Affix "${col.affix_value}" ON for this row (Click to turn OFF)` : `Affix "${col.affix_value}" OFF for this row (Click to turn ON)`}
+                                              className={`px-1.5 py-1 rounded text-[11px] font-bold border transition-colors shrink-0 select-none ${
+                                                isAffixOn
+                                                  ? 'bg-emerald-50 text-[#0B6B43] border-emerald-300'
+                                                  : 'bg-gray-100 text-gray-400 border-gray-300 line-through'
+                                              }`}
+                                            >
+                                              {col.affix_value}
+                                            </button>
                                           )}
-                                          {r.unit && r.unit !== '%' && (
-                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-[#6B7280]">{r.unit}</span>
+                                          {!hasAffix && displayAffix && (
+                                            <span className="text-[11px] font-bold text-[#168B57] shrink-0 px-1">{displayAffix}</span>
                                           )}
                                         </div>
                                       </td>
@@ -491,15 +571,35 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                                   }
                                   // Custom column
                                   const customVal = r.custom_values?.[col.label] ?? (r.custom_values?.[col.key] ?? '');
+                                  const hasAffix = col.affix_type && col.affix_type !== 'none' && col.affix_value;
+                                  const isAffixOn = r.affix_toggles?.[col.key || col.label] !== false;
                                   return (
                                     <td key={col.key} className="py-2 px-3">
-                                      <input
-                                        value={customVal}
-                                        disabled={!on}
-                                        onChange={e => updateCustomValue(i, col.label, e.target.value)}
-                                        placeholder="-"
-                                        className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
-                                      />
+                                      <div className="flex items-center gap-1">
+                                        <input
+                                          value={customVal}
+                                          disabled={!on}
+                                          onChange={e => updateCustomValue(i, col.label, e.target.value)}
+                                          placeholder="-"
+                                          style={{ textAlign: cAlign }}
+                                          className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
+                                        />
+                                        {hasAffix && (
+                                          <button
+                                            type="button"
+                                            onClick={() => toggleRowAffix(i, col.key || col.label)}
+                                            disabled={!on}
+                                            title={isAffixOn ? `Affix "${col.affix_value}" ON for this row (Click to turn OFF)` : `Affix "${col.affix_value}" OFF for this row (Click to turn ON)`}
+                                            className={`px-1.5 py-1 rounded text-[11px] font-bold border transition-colors shrink-0 select-none ${
+                                              isAffixOn
+                                                ? 'bg-emerald-50 text-[#0B6B43] border-emerald-300'
+                                                : 'bg-gray-100 text-gray-400 border-gray-300 line-through'
+                                            }`}
+                                          >
+                                            {col.affix_value}
+                                          </button>
+                                        )}
+                                      </div>
                                     </td>
                                   );
                                 })}

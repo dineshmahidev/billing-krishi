@@ -166,41 +166,46 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs border border-[#000000]">
+          <table className="w-full text-xs border border-[#000000]">
             <thead>
               <tr className="bg-white text-[#000000] text-[11px] uppercase font-black border-b border-[#000000]">
-                {activeTableCols.map(col => (
-                  <th
-                    key={col.key}
-                    className={`py-2 px-3 ${col.key === 's_no' ? 'w-10 text-center' : (col.key === 'result' ? 'w-28 text-center' : '')}`}
-                  >
-                    {col.label}
-                  </th>
-                ))}
+                {activeTableCols.map(col => {
+                  const cAlign = col.align || (col.key === 'parameter' ? 'left' : 'center');
+                  return (
+                    <th
+                      key={col.key}
+                      style={{ width: col.width || 'auto', textAlign: cAlign }}
+                      className={`py-2 px-3 ${col.key === 's_no' ? 'w-10' : (col.key === 'result' ? 'w-28' : '')}`}
+                    >
+                      {col.label}
+                    </th>
+                  );
+                })}
               </tr>
             </thead>
             <tbody className="divide-y divide-[#000000]/20">
               {(report.results||[]).filter(r=>r.enabled !== false).map((r,i)=>(
                 <tr key={r.id} className="bg-white">
                   {activeTableCols.map(col => {
+                    const cAlign = col.align || (col.key === 'parameter' ? 'left' : 'center');
                     if (col.key === 's_no') {
-                      return <td key={col.key} className="py-2 px-3 text-center font-bold">{i+1}</td>;
+                      return <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 font-bold">{i+1}</td>;
                     }
                     if (col.key === 'parameter') {
-                      return <td key={col.key} className="py-2 px-3 font-bold text-[#000000]">{r.parameter?.name}</td>;
+                      return <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 font-bold text-[#000000]">{r.parameter?.name}</td>;
                     }
                     if (col.key === 'specification') {
-                      return <td key={col.key} className="py-2 px-3 text-[#000000]">{r.specification || r.parameter?.specification || '—'}</td>;
+                      return <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 text-[#000000]">{r.specification || r.parameter?.specification || '—'}</td>;
                     }
                     if (col.key === 'result') {
                       return (
-                        <td key={col.key} className="py-2 px-3 text-center font-bold text-[#000000]">
+                        <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 font-bold text-[#000000]">
                           {r.result}{r.parameter?.unit === '%' && !String(r.result).includes('%') ? ' %' : ''}
                         </td>
                       );
                     }
                     const customVal = r.custom_values?.[col.label] ?? (r.custom_values?.[col.key] ?? '—');
-                    return <td key={col.key} className="py-2 px-3 text-[#000000]">{customVal || '—'}</td>;
+                    return <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 text-[#000000]">{customVal || '—'}</td>;
                   })}
                 </tr>
               ))}

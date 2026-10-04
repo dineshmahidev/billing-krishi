@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Report PDF Layout Adjuster</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background: #F3F4F6; color: #1F2937; padding: 24px; }
+    h1 { font-size: 20px; color: #0B6B43; margin-bottom: 6px; }
+    p.desc { font-size: 13px; color: #6B7280; margin-bottom: 20px; }
+    
+    .layout { display: flex; gap: 24px; flex-wrap: wrap; }
+    .controls { flex: 1; min-width: 320px; background: #FFF; border: 1px solid #D1D5DB; border-radius: 16px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .preview { flex: 1.4; min-width: 480px; background: #FFF; border: 1px solid #D1D5DB; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    
+    .ctrl-group { margin-bottom: 16px; }
+    .ctrl-group label { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 6px; }
+    .ctrl-group label span { color: #168B57; font-weight: 800; }
+    input[type=range] { width: 100%; accent-color: #168B57; cursor: pointer; }
+
+    /* PDF Details Card Reproduction */
+    .details-outer-box {
+      width: 100%;
+      border: 1.5px solid #86C1A4;
+      border-radius: 6px;
+      background-color: #F8FDF9;
+      padding: 12px 14px;
+    }
+    
+    .inner-meta-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+    
+    .inner-meta-table td {
+      border: none;
+      padding: 3px 0;
+      vertical-align: top;
+      font-size: 13.5px;
+      line-height: 1.3;
+    }
+    
+    .lbl-col {
+      white-space: nowrap;
+      font-weight: 700;
+      color: #374151;
+      font-size: 13.5px;
+    }
+    
+    .val-col {
+      font-weight: 900;
+      color: #000000;
+      font-size: 14.5px;
+      word-wrap: break-word;
+    }
+    
+    .colon-sep {
+      font-weight: 900;
+      color: #1F2937;
+      font-size: 13.5px;
+      display: inline;
+    }
+
+    .badge {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    .badge span {
+      border: 1.5px solid #86C1A4;
+      background: #EAF7F0;
+      color: #0B6B43;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 4px 24px;
+      border-radius: 12px;
+    }
+
+    .code-box {
+      margin-top: 20px;
+      background: #1E293B;
+      color: #E2E8F0;
+      padding: 16px;
+      border-radius: 12px;
+      font-family: monospace;
+      font-size: 11px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .btn-copy {
+      background: #168B57;
+      color: #FFF;
+      border: none;
+      padding: 8px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .btn-copy:hover { background: #0B6B43; }
+  </style>
+</head>
+<body>
+
+  <h1>Interactive PDF Report Layout Adjuster</h1>
+  <p class="desc">Drag the sliders below to adjust spacing, gaps, and widths visually. Copy the values or generated code when satisfied!</p>
+
+  <div class="layout">
+    <!-- Controls -->
+    <div class="controls">
+      <h2 style="font-size: 15px; margin-bottom: 16px; color: #111827;">Visual Controls</h2>
+
+      <div class="ctrl-group">
+        <label>Right Column Shift (Padding Left): <span id="valRightPad">30px</span></label>
+        <input type="range" id="rightPad" min="0" max="150" value="30">
+      </div>
+
+      <div class="ctrl-group">
+        <label>Left Label Width: <span id="valLeftLabelW">114px</span></label>
+        <input type="range" id="leftLabelW" min="80" max="180" value="114">
+      </div>
+
+      <div class="ctrl-group">
+        <label>Right Label Width: <span id="valRightLabelW">115px</span></label>
+        <input type="range" id="rightLabelW" min="80" max="180" value="115">
+      </div>
+
+      <div class="ctrl-group">
+        <label>Colon to Value Gap: <span id="valColonGap">6px</span></label>
+        <input type="range" id="colonGap" min="2" max="25" value="6">
+      </div>
+
+      <div class="ctrl-group">
+        <label>Hanging Indent Padding: <span id="valIndent">10px</span></label>
+        <input type="range" id="indent" min="0" max="24" value="10">
+      </div>
+
+      <button class="btn-copy" onclick="copyCode()">Copy Updated Blade Snippet</button>
+    </div>
+
+    <!-- Preview -->
+    <div class="preview">
+      <div class="badge"><span>TEST REPORT</span></div>
+      
+      <div class="details-outer-box">
+        <table class="inner-meta-table">
+          <colgroup>
+            <col id="col1" style="width: 114px;">
+            <col id="col2" style="width: 36%;">
+            <col id="col3" style="width: 115px;">
+            <col id="col4" style="width: auto;">
+          </colgroup>
+          <tr>
+            <td class="lbl-col">Customer</td>
+            <td class="val-col" id="v1"><span class="colon-sep" id="c1">:</span>Sri Lakshmi Foods</td>
+            <td class="lbl-col" id="r1">Report Date</td>
+            <td class="val-col" id="v2"><span class="colon-sep" id="c2">:</span>04-Oct-2026</td>
+          </tr>
+          <tr>
+            <td class="lbl-col">Address</td>
+            <td class="val-col" id="v3"><span class="colon-sep" id="c3">:</span>44, Trichy Road, Singanallur, Coimbatore - 641018</td>
+            <td class="lbl-col" id="r2">Report No</td>
+            <td class="val-col" id="v4"><span class="colon-sep" id="c4">:</span>KAL-6002</td>
+          </tr>
+          <tr>
+            <td class="lbl-col">Nature of Sample</td>
+            <td class="val-col" id="v5"><span class="colon-sep" id="c5">:</span>Animal Feed</td>
+            <td class="lbl-col" id="r3">Tons / Bags</td>
+            <td class="val-col" id="v6"><span class="colon-sep" id="c6">:</span>440</td>
+          </tr>
+          <tr>
+            <td class="lbl-col">Bill No</td>
+            <td class="val-col" id="v7"><span class="colon-sep" id="c7">:</span>131</td>
+            <td class="lbl-col" id="r4">Buyer</td>
+            <td class="val-col" id="v8"><span class="colon-sep" id="c8">:</span>SHIVA SANKARI TRADERS</td>
+          </tr>
+          <tr>
+            <td class="lbl-col">Vehicle No</td>
+            <td class="val-col" id="v9"><span class="colon-sep" id="c9">:</span>TN 28 AW 2089</td>
+            <td class="lbl-col" id="r5">Seller</td>
+            <td class="val-col" id="v10"><span class="colon-sep" id="c10">:</span>VELMURUGAN TRADERS</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="code-box" id="codeOutput"></div>
+    </div>
+  </div>
+
+  <script>
+    const inputs = ['rightPad', 'leftLabelW', 'rightLabelW', 'colonGap', 'indent'];
+    
+    function update() {
+      const rp = document.getElementById('rightPad').value;
+      const lw = document.getElementById('leftLabelW').value;
+      const rw = document.getElementById('rightLabelW').value;
+      const cg = document.getElementById('colonGap').value;
+      const ind = document.getElementById('indent').value;
+
+      document.getElementById('valRightPad').innerText = rp + 'px';
+      document.getElementById('valLeftLabelW').innerText = lw + 'px';
+      document.getElementById('valRightLabelW').innerText = rw + 'px';
+      document.getElementById('valColonGap').innerText = cg + 'px';
+      document.getElementById('valIndent').innerText = ind + 'px';
+
+      document.getElementById('col1').style.width = lw + 'px';
+      document.getElementById('col3').style.width = rw + 'px';
+
+      // Update right labels padding-left
+      ['r1','r2','r3','r4','r5'].forEach(id => {
+        document.getElementById(id).style.paddingLeft = rp + 'px';
+      });
+
+      // Update colon spacing
+      for(let i=1; i<=10; i++) {
+        document.getElementById('c'+i).style.marginRight = cg + 'px';
+        document.getElementById('v'+i).style.paddingLeft = ind + 'px';
+        document.getElementById('v'+i).style.textIndent = '-' + ind + 'px';
+      }
+
+      const snippet = `<colgroup>
+    <col style="width: ${lw}px;">
+    <col style="width: 36%;">
+    <col style="width: ${rw}px;">
+    <col style="width: auto;">
+</colgroup>
+<!-- Right label padding-left: ${rp}px -->
+<!-- Colon right margin: ${cg}px -->
+<!-- Value hanging indent: ${ind}px -->`;
+
+      document.getElementById('codeOutput').innerText = snippet;
+    }
+
+    inputs.forEach(id => document.getElementById(id).addEventListener('input', update));
+    update();
+
+    function copyCode() {
+      const text = document.getElementById('codeOutput').innerText;
+      navigator.clipboard.writeText(text);
+      alert('Copied settings code! Paste it here in our chat and I will apply it instantly to report.blade.php.');
+    }
+  </script>
+
+</body>
+</html>

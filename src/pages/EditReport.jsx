@@ -46,7 +46,7 @@ export const EditReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
         bags_tons: d.bags_tons || '',
         buyer: d.buyer || '',
         seller: d.seller || '',
-        nature_of_sample: d.nature_of_sample || '',
+        nature_of_sample: d.nature_of_sample || d.report_type?.name || '',
         remarks: d.remarks !== null && d.remarks !== undefined && d.remarks !== ''
           ? d.remarks
           : (d.report_type?.default_remarks || 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.'),

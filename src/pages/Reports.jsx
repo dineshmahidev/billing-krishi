@@ -48,8 +48,8 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
   ).slice(0,8);
 
   const del = async (id, no) => {
-    if (!confirm(`Are you sure you want to delete report ${no}?`)) return;
-    try { await api.delete(`/reports/${id}`); addToast('Deleted'); loadReports(page); } catch (e){ addToast(e.response?.data?.message||'Delete failed','error'); }
+    if (!confirm(`Are you sure you want to move report ${no} to Trash?`)) return;
+    try { await api.delete(`/reports/${id}`); addToast(`Report ${no} moved to trash`, 'success'); loadReports(page); } catch (e){ addToast(e.response?.data?.message||'Delete failed','error'); }
   };
 
   const cards = [
@@ -132,6 +132,7 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
                         <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('view-report');}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#168B57]" title="View"><Eye className="w-3.5 h-3.5"/></button>
                         <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('edit-report');}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#1F2937]" title="Edit"><Pencil className="w-3.5 h-3.5"/></button>
                         <button onClick={()=>openPdf(r.id)} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#168B57]" title="Report PDF"><FileText className="w-3.5 h-3.5"/></button>
+                        <button onClick={()=>del(r.id, r.report_no)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600" title="Delete (Move to Trash)"><Trash2 className="w-3.5 h-3.5"/></button>
                         <button onClick={(e)=>{
                           if (menu?.id===r.id) { setMenu(null); return; }
                           const b = e.currentTarget.getBoundingClientRect();

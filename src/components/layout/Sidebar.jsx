@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { LayoutDashboard, FilePlus, Files, Users, Layers, FlaskConical, Settings, Globe, LogOut, Building2, Receipt } from 'lucide-react';
+import { LayoutDashboard, FilePlus, Files, Users, Layers, FlaskConical, Settings, Globe, LogOut, Building2, Receipt, Trash2 } from 'lucide-react';
 
 export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
   const { isAdmin, user, logout } = useAuth();
@@ -8,6 +8,7 @@ export const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
     { id:'dashboard', label:'Dashboard', icon: LayoutDashboard },
     { id:'new-report', label:'New Report', icon: FilePlus },
     { id:'reports', label:'Reports', icon: Files },
+    { id:'trash', label:'Trash', icon: Trash2 },
   ];
   const adminItems = [
     ...(!user?.is_demo ? [{ id:'staff', label:'Staff', icon: Users, admin:true }] : []),

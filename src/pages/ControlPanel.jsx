@@ -15,6 +15,7 @@ import { ReportTypes } from './admin/ReportTypes';
 import { Parameters } from './admin/Parameters';
 import { Cms } from './admin/Cms';
 import { Settings } from './admin/Settings';
+import { Trash } from './Trash';
 
 export const ControlPanel = () => {
   const { user, loading } = useAuth();
@@ -45,6 +46,7 @@ export const ControlPanel = () => {
           {activeTab==='reports' && <Reports setActiveTab={setActiveTab} setSelectedReportId={setSelectedReportId} />}
           {activeTab==='view-report' && <ViewReport reportId={selectedReportId} setActiveTab={setActiveTab} setSelectedReportId={setSelectedReportId} />}
           {activeTab==='edit-report' && <EditReport reportId={selectedReportId} setActiveTab={setActiveTab} setSelectedReportId={setSelectedReportId} />}
+          {activeTab==='trash' && <Trash setActiveTab={setActiveTab} />}
           {activeTab==='staff' && !user?.is_demo && <Staff />}
           {activeTab==='customers' && <Customers />}
           {activeTab==='invoices' && <Invoices />}

@@ -73,11 +73,13 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
     const isNotesVis = visFields.includes('notes');
     const defRem = sel?.default_remarks || 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.';
     const defNotes = sel?.default_notes || '';
+    const typeName = sel?.name || '';
     setEnableRemarks(isRemarksVis);
     setEnableNotes(isNotesVis);
     setForm(f => ({
       ...f,
       report_type_id: v,
+      nature_of_sample: typeName,
       remarks: isRemarksVis ? (f.remarks && f.remarks.trim() !== '' ? f.remarks : defRem) : '',
       notes: isNotesVis ? (f.notes && f.notes.trim() !== '' ? f.notes : defNotes) : ''
     }));

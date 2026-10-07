@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const Trash = ({ setActiveTab }) => {
   const { addToast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDemo } = useAuth();
   const [activeSubTab, setActiveSubTab] = useState('reports'); // 'reports' | 'invoices' | 'parameters' | 'report_types'
   const [reports, setReports] = useState([]);
   const [invoices, setInvoices] = useState([]);
@@ -51,6 +51,7 @@ export const Trash = ({ setActiveTab }) => {
   }, [search, activeSubTab]);
 
   const handleRestoreReport = async (id, reportNo) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`Restore report ${reportNo} (and its invoice) back to active records?`)) return;
     try {
       const res = await api.post(`/trash/reports/${id}/restore`);
@@ -62,6 +63,7 @@ export const Trash = ({ setActiveTab }) => {
   };
 
   const handleForceDeleteReport = async (id, reportNo) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`PERMANENT DELETE WARNING:\nAre you sure you want to PERMANENTLY delete report ${reportNo}?\nThis action CANNOT be undone!`)) return;
     try {
       const res = await api.delete(`/trash/reports/${id}/force`);
@@ -73,6 +75,7 @@ export const Trash = ({ setActiveTab }) => {
   };
 
   const handleRestoreInvoice = async (id, invNo) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`Restore invoice ${invNo}?`)) return;
     try {
       const res = await api.post(`/trash/invoices/${id}/restore`);
@@ -84,6 +87,7 @@ export const Trash = ({ setActiveTab }) => {
   };
 
   const handleForceDeleteInvoice = async (id, invNo) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`PERMANENT DELETE WARNING:\nAre you sure you want to PERMANENTLY delete invoice ${invNo}?\nThis action CANNOT be undone!`)) return;
     try {
       const res = await api.delete(`/trash/invoices/${id}/force`);
@@ -95,6 +99,7 @@ export const Trash = ({ setActiveTab }) => {
   };
 
   const handleRestoreParameter = async (id, name) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`Restore parameter "${name}"?`)) return;
     try {
       const res = await api.post(`/trash/parameters/${id}/restore`);
@@ -106,6 +111,7 @@ export const Trash = ({ setActiveTab }) => {
   };
 
   const handleForceDeleteParameter = async (id, name) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`PERMANENT DELETE WARNING:\nAre you sure you want to PERMANENTLY delete parameter "${name}"?\nThis action CANNOT be undone!`)) return;
     try {
       const res = await api.delete(`/trash/parameters/${id}/force`);
@@ -117,6 +123,7 @@ export const Trash = ({ setActiveTab }) => {
   };
 
   const handleRestoreReportType = async (id, name) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`Restore report type "${name}"?`)) return;
     try {
       const res = await api.post(`/trash/report-types/${id}/restore`);
@@ -128,6 +135,7 @@ export const Trash = ({ setActiveTab }) => {
   };
 
   const handleForceDeleteReportType = async (id, name) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`PERMANENT DELETE WARNING:\nAre you sure you want to PERMANENTLY delete report type "${name}"?\nThis action CANNOT be undone!`)) return;
     try {
       const res = await api.delete(`/trash/report-types/${id}/force`);
@@ -139,6 +147,7 @@ export const Trash = ({ setActiveTab }) => {
   };
 
   const handleEmptyTrash = async () => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!confirm(`PERMANENT DELETE ALL:\nAre you sure you want to EMPTY THE TRASH?\nAll soft-deleted reports, invoices, parameters, and report types will be PERMANENTLY removed.\nThis action CANNOT be undone!`)) return;
     try {
       const res = await api.delete('/trash/empty');
@@ -153,6 +162,11 @@ export const Trash = ({ setActiveTab }) => {
 
   return (
     <div className="space-y-4">
+      {isDemo && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-xs text-amber-800 font-semibold flex items-center justify-between">
+          <span>🔒 Demo Mode: You are in read-only access. Restoring and permanent deletion are disabled.</span>
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
@@ -170,7 +184,7 @@ export const Trash = ({ setActiveTab }) => {
           >
             <RefreshCw className="w-3.5 h-3.5" /> Refresh
           </button>
-          {isAdmin && totalTrashedCount > 0 && (
+          {isAdmin && !isDemo && totalTrashedCount > 0 && (
             <button
               onClick={handleEmptyTrash}
               className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 transition-colors text-white font-bold text-xs flex items-center gap-1.5 shadow-sm"
@@ -329,7 +343,7 @@ export const Trash = ({ setActiveTab }) => {
                     <th className="py-2.5 px-4">Type</th>
                     <th className="py-2.5 px-4">Sample</th>
                     <th className="py-2.5 px-4">Created By</th>
-                    <th className="py-2.5 px-4 text-right">Actions</th>
+                    {!isDemo && <th className="py-2.5 px-4 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#D1D5DB]/60">
@@ -343,26 +357,28 @@ export const Trash = ({ setActiveTab }) => {
                       <td className="py-2.5 px-4">{r.report_type?.name || '-'}</td>
                       <td className="py-2.5 px-4">{r.sample_name || '-'}</td>
                       <td className="py-2.5 px-4">{r.creator?.name || '-'}</td>
-                      <td className="py-2.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleRestoreReport(r.id, r.report_no)}
-                            className="px-2.5 py-1.5 rounded-lg bg-[#EAF7F0] text-[#168B57] hover:bg-[#168B57] hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                            title="Restore report"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" /> Restore
-                          </button>
-                          {isAdmin && (
+                      {!isDemo && (
+                        <td className="py-2.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => handleForceDeleteReport(r.id, r.report_no)}
-                              className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                              title="Permanently Delete"
+                              onClick={() => handleRestoreReport(r.id, r.report_no)}
+                              className="px-2.5 py-1.5 rounded-lg bg-[#EAF7F0] text-[#168B57] hover:bg-[#168B57] hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                              title="Restore report"
                             >
-                              <Trash2 className="w-3.5 h-3.5" /> Delete Permanently
+                              <RotateCcw className="w-3.5 h-3.5" /> Restore
                             </button>
-                          )}
-                        </div>
-                      </td>
+                            {isAdmin && (
+                              <button
+                                onClick={() => handleForceDeleteReport(r.id, r.report_no)}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                                title="Permanently Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete Permanently
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -384,7 +400,7 @@ export const Trash = ({ setActiveTab }) => {
                     <th className="py-2.5 px-4">Customer</th>
                     <th className="py-2.5 px-4">Amount (₹)</th>
                     <th className="py-2.5 px-4">Deleted Date</th>
-                    <th className="py-2.5 px-4 text-right">Actions</th>
+                    {!isDemo && <th className="py-2.5 px-4 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#D1D5DB]/60">
@@ -396,26 +412,28 @@ export const Trash = ({ setActiveTab }) => {
                       <td className="py-2.5 px-4 text-[#6B7280]">
                         {inv.deleted_at ? new Date(inv.deleted_at).toLocaleString() : '-'}
                       </td>
-                      <td className="py-2.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleRestoreInvoice(inv.id, inv.invoice_no)}
-                            className="px-2.5 py-1.5 rounded-lg bg-[#EAF7F0] text-[#168B57] hover:bg-[#168B57] hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                            title="Restore invoice"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" /> Restore
-                          </button>
-                          {isAdmin && (
+                      {!isDemo && (
+                        <td className="py-2.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => handleForceDeleteInvoice(inv.id, inv.invoice_no)}
-                              className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                              title="Permanently Delete"
+                              onClick={() => handleRestoreInvoice(inv.id, inv.invoice_no)}
+                              className="px-2.5 py-1.5 rounded-lg bg-[#EAF7F0] text-[#168B57] hover:bg-[#168B57] hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                              title="Restore invoice"
                             >
-                              <Trash2 className="w-3.5 h-3.5" /> Delete Permanently
+                              <RotateCcw className="w-3.5 h-3.5" /> Restore
                             </button>
-                          )}
-                        </div>
-                      </td>
+                            {isAdmin && (
+                              <button
+                                onClick={() => handleForceDeleteInvoice(inv.id, inv.invoice_no)}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                                title="Permanently Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete Permanently
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -437,7 +455,7 @@ export const Trash = ({ setActiveTab }) => {
                     <th className="py-2.5 px-4">Report Type</th>
                     <th className="py-2.5 px-4">Unit</th>
                     <th className="py-2.5 px-4">Deleted Date</th>
-                    <th className="py-2.5 px-4 text-right">Actions</th>
+                    {!isDemo && <th className="py-2.5 px-4 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#D1D5DB]/60">
@@ -449,26 +467,28 @@ export const Trash = ({ setActiveTab }) => {
                       <td className="py-2.5 px-4 text-[#6B7280]">
                         {p.deleted_at ? new Date(p.deleted_at).toLocaleString() : '-'}
                       </td>
-                      <td className="py-2.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleRestoreParameter(p.id, p.name)}
-                            className="px-2.5 py-1.5 rounded-lg bg-[#EAF7F0] text-[#168B57] hover:bg-[#168B57] hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                            title="Restore parameter"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" /> Restore
-                          </button>
-                          {isAdmin && (
+                      {!isDemo && (
+                        <td className="py-2.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => handleForceDeleteParameter(p.id, p.name)}
-                              className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                              title="Permanently Delete"
+                              onClick={() => handleRestoreParameter(p.id, p.name)}
+                              className="px-2.5 py-1.5 rounded-lg bg-[#EAF7F0] text-[#168B57] hover:bg-[#168B57] hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                              title="Restore parameter"
                             >
-                              <Trash2 className="w-3.5 h-3.5" /> Delete Permanently
+                              <RotateCcw className="w-3.5 h-3.5" /> Restore
                             </button>
-                          )}
-                        </div>
-                      </td>
+                            {isAdmin && (
+                              <button
+                                onClick={() => handleForceDeleteParameter(p.id, p.name)}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                                title="Permanently Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete Permanently
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
@@ -489,7 +509,7 @@ export const Trash = ({ setActiveTab }) => {
                     <th className="py-2.5 px-4">Report Type Name</th>
                     <th className="py-2.5 px-4">Title</th>
                     <th className="py-2.5 px-4">Deleted Date</th>
-                    <th className="py-2.5 px-4 text-right">Actions</th>
+                    {!isDemo && <th className="py-2.5 px-4 text-right">Actions</th>}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#D1D5DB]/60">
@@ -500,26 +520,28 @@ export const Trash = ({ setActiveTab }) => {
                       <td className="py-2.5 px-4 text-[#6B7280]">
                         {rt.deleted_at ? new Date(rt.deleted_at).toLocaleString() : '-'}
                       </td>
-                      <td className="py-2.5 px-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleRestoreReportType(rt.id, rt.name)}
-                            className="px-2.5 py-1.5 rounded-lg bg-[#EAF7F0] text-[#168B57] hover:bg-[#168B57] hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                            title="Restore report type"
-                          >
-                            <RotateCcw className="w-3.5 h-3.5" /> Restore
-                          </button>
-                          {isAdmin && (
+                      {!isDemo && (
+                        <td className="py-2.5 px-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <button
-                              onClick={() => handleForceDeleteReportType(rt.id, rt.name)}
-                              className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
-                              title="Permanently Delete"
+                              onClick={() => handleRestoreReportType(rt.id, rt.name)}
+                              className="px-2.5 py-1.5 rounded-lg bg-[#EAF7F0] text-[#168B57] hover:bg-[#168B57] hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                              title="Restore report type"
                             >
-                              <Trash2 className="w-3.5 h-3.5" /> Delete Permanently
+                              <RotateCcw className="w-3.5 h-3.5" /> Restore
                             </button>
-                          )}
-                        </div>
-                      </td>
+                            {isAdmin && (
+                              <button
+                                onClick={() => handleForceDeleteReportType(rt.id, rt.name)}
+                                className="px-2.5 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white font-bold text-xs flex items-center gap-1 transition-colors"
+                                title="Permanently Delete"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" /> Delete Permanently
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>

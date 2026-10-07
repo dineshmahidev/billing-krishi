@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import api, { openPdf } from '../services/api';
 import { useToast } from '../components/common/Toast';
+import { useAuth } from '../context/AuthContext';
 import { CustomerAutocomplete } from '../components/common/CustomerAutocomplete';
 import { getDefaultTableColumns } from './admin/ReportTypes';
 import {
   Calendar, Building2, FlaskConical, Truck, Package, Layers, Hash,
-  FileText, UserCheck, Store, ClipboardList, MessageSquare
+  FileText, UserCheck, Store, ClipboardList, MessageSquare, User, Tag
 } from 'lucide-react';
 
 export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
   const { addToast } = useToast();
+  const { isDemo } = useAuth();
   const [types, setTypes] = useState([]);
   const [params, setParams] = useState([]);
   const [loadingParams, setLoadingParams] = useState(false);
@@ -30,15 +32,23 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
     bags_tons: '',
     buyer: '',
     seller: '',
+    depositor_name: '',
+    cid_no: '',
+    si_no: '',
+    lot_no: '',
     nature_of_sample: '',
     remarks: '',
     notes: '',
   });
   const [results, setResults] = useState([]);
+  const [suggestions, setSuggestions] = useState({});
 
   useEffect(()=>{
     api.get('/report-types?active=1')
       .then(r => setTypes((r.data || []).filter(t => t.active !== false)))
+      .catch(()=>{});
+    api.get('/reports/field-suggestions')
+      .then(r => setSuggestions(r.data || {}))
       .catch(()=>{});
   }, []);
 
@@ -73,13 +83,15 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
     const isNotesVis = visFields.includes('notes');
     const defRem = sel?.default_remarks || 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.';
     const defNotes = sel?.default_notes || '';
-    const typeName = sel?.name || '';
+    const defNature = (sel?.default_nature_of_sample && sel.default_nature_of_sample.trim() !== '')
+      ? sel.default_nature_of_sample
+      : (sel?.name || '');
     setEnableRemarks(isRemarksVis);
     setEnableNotes(isNotesVis);
     setForm(f => ({
       ...f,
       report_type_id: v,
-      nature_of_sample: typeName,
+      nature_of_sample: defNature,
       remarks: isRemarksVis ? (f.remarks && f.remarks.trim() !== '' ? f.remarks : defRem) : '',
       notes: isNotesVis ? (f.notes && f.notes.trim() !== '' ? f.notes : defNotes) : ''
     }));
@@ -172,6 +184,10 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
   };
 
   const save = async (andPdf = false) => {
+    if (isDemo) {
+      addToast('Demo Mode: Creating reports is disabled in read-only mode', 'error');
+      return;
+    }
     if (!validate()) return;
     setSaving(true);
     try {
@@ -239,6 +255,11 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
 
   return (
     <div className="space-y-5 max-w-4xl">
+      {isDemo && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 text-xs text-amber-800 font-semibold flex items-center justify-between">
+          <span>🔒 Demo Mode: You are in read-only access. Creating new reports is disabled.</span>
+        </div>
+      )}
       <div>
         <h1 className="text-xl font-bold text-[#1F2937]">New Report</h1>
         <p className="text-xs text-[#6B7280]">Fill in details matching the official Certificate of Analysis format</p>
@@ -347,11 +368,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                     <div className="relative mt-1">
                       <FlaskConical className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
+                        list="list-sample_name"
                         value={form.sample_name}
                         onChange={e => setForm({ ...form, sample_name: e.target.value })}
                         placeholder="e.g. CATTLE FEED, GHEE, WATER"
                         className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
                       />
+                      <datalist id="list-sample_name">
+                        {(suggestions.sample_name || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
                 )}
@@ -365,11 +392,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                     <div className="relative mt-1">
                       <Truck className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
+                        list="list-vehicle_no"
                         value={form.vehicle_no}
                         onChange={e => setForm({ ...form, vehicle_no: e.target.value })}
                         placeholder="e.g. TN 27 YY 3314"
                         className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white uppercase"
                       />
+                      <datalist id="list-vehicle_no">
+                        {(suggestions.vehicle_no || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
                 )}
@@ -381,11 +414,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                       <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Bill No <span className="text-[10px] text-[#6B7280] font-normal">(optional)</span>
                     </label>
                     <input
+                      list="list-bill_no"
                       value={form.bill_no}
                       onChange={e => setForm({ ...form, bill_no: e.target.value })}
                       placeholder="e.g. BL-1002"
                       className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
                     />
+                    <datalist id="list-bill_no">
+                      {(suggestions.bill_no || []).map((item, idx) => (
+                        <option key={idx} value={item} />
+                      ))}
+                    </datalist>
                   </div>
                 )}
 
@@ -398,6 +437,7 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                     <div className="relative mt-1">
                       <Package className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
+                        list="list-bags_tons"
                         value={form.bags_tons}
                         onChange={e => setForm({ ...form, bags_tons: e.target.value })}
                         placeholder={
@@ -409,6 +449,11 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                         }
                         className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
                       />
+                      <datalist id="list-bags_tons">
+                        {(suggestions.bags_tons || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
                 )}
@@ -422,11 +467,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                     <div className="relative mt-1">
                       <UserCheck className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
+                        list="list-buyer"
                         value={form.buyer}
                         onChange={e => setForm({ ...form, buyer: e.target.value })}
                         placeholder="e.g. ABC Foods Pvt Ltd"
                         className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
                       />
+                      <datalist id="list-buyer">
+                        {(suggestions.buyer || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
                 )}
@@ -440,11 +491,113 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                     <div className="relative mt-1">
                       <Store className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
+                        list="list-seller"
                         value={form.seller}
                         onChange={e => setForm({ ...form, seller: e.target.value })}
                         placeholder="e.g. XYZ Agro Traders"
                         className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
                       />
+                      <datalist id="list-seller">
+                        {(suggestions.seller || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                )}
+
+                {/* Depositer Name */}
+                {isFieldVisible('depositor_name') && (
+                  <div>
+                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                      <User className="w-3.5 h-3.5 text-[#168B57]" /> Depositer Name
+                    </label>
+                    <div className="relative mt-1">
+                      <User className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        list="list-depositor_name"
+                        value={form.depositor_name || ''}
+                        onChange={e => setForm({ ...form, depositor_name: e.target.value })}
+                        placeholder="e.g. Ramesh Kumar"
+                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                      />
+                      <datalist id="list-depositor_name">
+                        {(suggestions.depositor_name || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                )}
+
+                {/* CID No */}
+                {isFieldVisible('cid_no') && (
+                  <div>
+                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                      <Hash className="w-3.5 h-3.5 text-[#168B57]" /> CID No
+                    </label>
+                    <div className="relative mt-1">
+                      <Hash className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        list="list-cid_no"
+                        value={form.cid_no || ''}
+                        onChange={e => setForm({ ...form, cid_no: e.target.value })}
+                        placeholder="e.g. CID-8849"
+                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                      />
+                      <datalist id="list-cid_no">
+                        {(suggestions.cid_no || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                )}
+
+                {/* SI No */}
+                {isFieldVisible('si_no') && (
+                  <div>
+                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                      <Hash className="w-3.5 h-3.5 text-[#168B57]" /> SI No
+                    </label>
+                    <div className="relative mt-1">
+                      <Hash className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        list="list-si_no"
+                        value={form.si_no || ''}
+                        onChange={e => setForm({ ...form, si_no: e.target.value })}
+                        placeholder="e.g. SI-102"
+                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                      />
+                      <datalist id="list-si_no">
+                        {(suggestions.si_no || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                )}
+
+                {/* Lot No */}
+                {isFieldVisible('lot_no') && (
+                  <div>
+                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                      <Tag className="w-3.5 h-3.5 text-[#168B57]" /> Lot No
+                    </label>
+                    <div className="relative mt-1">
+                      <Tag className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        list="list-lot_no"
+                        value={form.lot_no || ''}
+                        onChange={e => setForm({ ...form, lot_no: e.target.value })}
+                        placeholder="e.g. LOT-2026/04"
+                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white uppercase"
+                      />
+                      <datalist id="list-lot_no">
+                        {(suggestions.lot_no || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
                 )}
@@ -458,11 +611,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                     <div className="relative mt-1">
                       <ClipboardList className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
+                        list="list-nature_of_sample"
                         value={form.nature_of_sample}
                         onChange={e => setForm({ ...form, nature_of_sample: e.target.value })}
                         placeholder="e.g. Solid Pellet / Liquid / Powder"
                         className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
                       />
+                      <datalist id="list-nature_of_sample">
+                        {(suggestions.nature_of_sample || []).map((item, idx) => (
+                          <option key={idx} value={item} />
+                        ))}
+                      </datalist>
                     </div>
                   </div>
                 )}
@@ -708,14 +867,14 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
             {/* Actions */}
             <div className="flex flex-wrap gap-2 pt-3 border-t border-[#D1D5DB]/60">
               <button
-                disabled={saving}
+                disabled={saving || isDemo}
                 onClick={() => save(false)}
                 className="px-5 py-2.5 rounded-xl bg-[#168B57] text-white font-bold text-xs hover:bg-[#0B6B43] transition-colors disabled:opacity-60 shadow-sm"
               >
                 {saving ? 'Saving...' : 'Save Report'}
               </button>
               <button
-                disabled={saving}
+                disabled={saving || isDemo}
                 onClick={() => save(true)}
                 className="px-5 py-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 transition-colors shadow-[0_4px_12px_rgba(245,158,11,0.3)] disabled:opacity-60"
               >

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useToast } from '../../components/common/Toast';
+import { useAuth } from '../../context/AuthContext';
 import { Building2, Search, Plus, Pencil, Trash2, Phone, Mail, MapPin, X, CalendarDays, FileText, Receipt, FlaskConical, Wallet, Layers, Check } from 'lucide-react';
 
 const emptyForm = { name:'', company_name:'', contact_person:'', phone:'', email:'', address:'', gstin:'', city:'', state:'', notes:'' };
@@ -171,6 +172,7 @@ const PartySummary = ({ customers }) => {
 
 const GroupsTab = ({ customers, onMembersChanged }) => {
   const { addToast } = useToast();
+  const { isDemo } = useAuth();
   const [groups, setGroups] = useState([]);
   const [newName, setNewName] = useState('');
   const [selId, setSelId] = useState(null);
@@ -189,6 +191,7 @@ const GroupsTab = ({ customers, onMembersChanged }) => {
 
   const createGroup = async (e) => {
     e.preventDefault();
+    if (isDemo) { addToast('Demo mode: Action disabled','error'); return; }
     if (!newName.trim()) { addToast('Group name required','error'); return; }
     try {
       const r = await api.post('/customer-groups', { name:newName.trim() });
@@ -199,6 +202,7 @@ const GroupsTab = ({ customers, onMembersChanged }) => {
   };
 
   const renameGroup = async (g) => {
+    if (isDemo) { addToast('Demo mode: Action disabled','error'); return; }
     const name = prompt('Rename group', g.name);
     if (!name || name.trim()==='' || name.trim()===g.name) return;
     try { await api.put(`/customer-groups/${g.id}`, { name:name.trim() }); addToast('Group renamed'); loadGroups(); }
@@ -206,6 +210,7 @@ const GroupsTab = ({ customers, onMembersChanged }) => {
   };
 
   const deleteGroup = async (g) => {
+    if (isDemo) { addToast('Demo mode: Action disabled','error'); return; }
     if (!confirm(`Delete group "${g.name}"? Companies stay, only ungrouped.`)) return;
     try { await api.delete(`/customer-groups/${g.id}`); addToast('Group deleted'); if (selId===g.id){ setSelId(null); setPicked([]);} loadGroups(); }
     catch(err){ addToast(err.response?.data?.message||'Delete failed','error'); }
@@ -220,6 +225,7 @@ const GroupsTab = ({ customers, onMembersChanged }) => {
   const togglePick = (id) => setPicked(arr => arr.includes(id) ? arr.filter(x=>x!==id) : [...arr, id]);
 
   const assign = async () => {
+    if (isDemo) { addToast('Demo mode: Action disabled','error'); return; }
     if (!selectedGroup) return;
     setSaving(true);
     try {
@@ -232,16 +238,18 @@ const GroupsTab = ({ customers, onMembersChanged }) => {
 
   return (
     <div className="space-y-4">
-      <form onSubmit={createGroup} className="bg-white border border-[#D1D5DB] rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="w-9 h-9 rounded-xl bg-[#EAF7F0] flex items-center justify-center text-[#168B57]"><Layers className="w-5 h-5"/></div>
-        <div className="flex-1 w-full sm:w-auto">
-          <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="New group name (e.g. AMC Clients, Weekly Parties)" className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-        </div>
-        <button type="submit" className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs flex items-center gap-1"><Plus className="w-4 h-4"/> Create Group</button>
-      </form>
+      {!isDemo && (
+        <form onSubmit={createGroup} className="bg-white border border-[#D1D5DB] rounded-2xl p-4 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="w-9 h-9 rounded-xl bg-[#EAF7F0] flex items-center justify-center text-[#168B57]"><Layers className="w-5 h-5"/></div>
+          <div className="flex-1 w-full sm:w-auto">
+            <input value={newName} onChange={e=>setNewName(e.target.value)} placeholder="New group name (e.g. AMC Clients, Weekly Parties)" className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+          </div>
+          <button type="submit" className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs flex items-center gap-1"><Plus className="w-4 h-4"/> Create Group</button>
+        </form>
+      )}
 
       {loading ? <div className="bg-white border border-[#D1D5DB] rounded-2xl p-6 text-center text-xs text-[#6B7280]">Loading groups...</div>
-       : groups.length===0 ? <div className="bg-white border border-[#D1D5DB] rounded-2xl p-6 text-center text-xs text-[#6B7280]">No groups yet — create one above</div> : (
+       : groups.length===0 ? <div className="bg-white border border-[#D1D5DB] rounded-2xl p-6 text-center text-xs text-[#6B7280]">No groups yet</div> : (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
           {groups.map(g=>(
             <div key={g.id} onClick={()=>selectGroup(g)} className={`bg-white rounded-2xl overflow-hidden cursor-pointer border transition-shadow ${selId===g.id ? 'border-[#168B57] shadow-[0_0_0_3px_rgba(22,139,87,0.15)]' : 'border-[#D1D5DB] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)]'}`}>
@@ -254,13 +262,15 @@ const GroupsTab = ({ customers, onMembersChanged }) => {
                     </p>
                     <p className="text-[11px] text-[#6B7280]">{g.customers_count} compan{g.customers_count===1?'y':'ies'}</p>
                   </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={e=>{e.stopPropagation(); renameGroup(g);}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0]" title="Rename"><Pencil className="w-3.5 h-3.5 text-[#1F2937]"/></button>
-                    <button onClick={e=>{e.stopPropagation(); deleteGroup(g);}} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600" title="Delete"><Trash2 className="w-3.5 h-3.5"/></button>
-                  </div>
+                  {!isDemo && (
+                    <div className="flex gap-1 shrink-0">
+                      <button onClick={e=>{e.stopPropagation(); renameGroup(g);}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0]" title="Rename"><Pencil className="w-3.5 h-3.5 text-[#1F2937]"/></button>
+                      <button onClick={e=>{e.stopPropagation(); deleteGroup(g);}} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600" title="Delete"><Trash2 className="w-3.5 h-3.5"/></button>
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-wrap gap-1.5 min-h-[24px]">
-                  {(g.customers||[]).length===0 ? <span className="text-[11px] text-[#9CA3AF]">No companies — click to add</span> :
+                  {(g.customers||[]).length===0 ? <span className="text-[11px] text-[#9CA3AF]">No companies</span> :
                     (g.customers||[]).map(c=> <span key={c.id} className="px-2 py-0.5 rounded-full bg-[#EAF7F0] text-[#0B6B43] text-[10px] font-bold">{c.company_name || c.name}</span>)}
                 </div>
               </div>
@@ -271,8 +281,8 @@ const GroupsTab = ({ customers, onMembersChanged }) => {
 
       <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
         <div className="px-4 py-3 border-b border-[#D1D5DB] flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-bold text-[#0B6B43]">{selectedGroup ? `Select companies → add to "${selectedGroup.name}"` : 'Select a group above to add companies'}</p>
-          {selectedGroup && (
+          <p className="text-xs font-bold text-[#0B6B43]">{selectedGroup ? `Viewing group "${selectedGroup.name}"` : 'Select a group above'}</p>
+          {selectedGroup && !isDemo && (
             <div className="flex gap-2">
               <button onClick={()=>setPicked(customers.map(c=>c.id))} className="px-3 py-1.5 rounded-lg border border-[#D1D5DB] text-[11px] font-bold">Select all</button>
               <button onClick={()=>setPicked([])} className="px-3 py-1.5 rounded-lg border border-[#D1D5DB] text-[11px] font-bold">None</button>
@@ -312,6 +322,7 @@ const GroupsTab = ({ customers, onMembersChanged }) => {
 
 export const Customers = () => {
   const { addToast } = useToast();
+  const { isDemo } = useAuth();
   const [list, setList] = useState([]);
   const [search, setSearch] = useState('');
   const [form, setForm] = useState(emptyForm);
@@ -341,6 +352,7 @@ export const Customers = () => {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (isDemo) { addToast('Demo Mode: Action disabled','error'); return; }
     if (!form.name) { addToast('Name required','error'); return; }
     try {
       if (editing) await api.put(`/customers/${editing}`, form);
@@ -351,6 +363,7 @@ export const Customers = () => {
   };
 
   const del = async (id) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled','error'); return; }
     if (!confirm('Delete customer?')) return;
     try { await api.delete(`/customers/${id}`); addToast('Deleted'); loadCustomers(search); } catch { addToast('Delete failed','error'); }
   };
@@ -370,7 +383,9 @@ export const Customers = () => {
           <h1 className="text-xl font-bold">Customers / Companies</h1>
           <p className="text-xs text-[#6B7280]">Manage frequent parties — selectable in New Report with auto-fetch</p>
         </div>
-        <button onClick={openCreate} className="ml-auto px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs flex items-center gap-1"><Plus className="w-4 h-4"/> Add Company</button>
+        {!isDemo && (
+          <button onClick={openCreate} className="ml-auto px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs flex items-center gap-1"><Plus className="w-4 h-4"/> Add Company</button>
+        )}
       </div>
 
       <div className="flex gap-2 flex-wrap">
@@ -391,7 +406,7 @@ export const Customers = () => {
           {loading ? (
             <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Loading...</div>
           ) : list.length===0 ? (
-            <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">No companies yet — click <b>+ Add Company</b></div>
+            <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">No companies found</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
               {list.map(c=>(
@@ -420,10 +435,12 @@ export const Customers = () => {
                       {!c.phone && !c.email && !c.city && !c.state && <p className="text-[#9CA3AF]">No contact details</p>}
                     </div>
 
-                    <div className="flex gap-2 pt-2 border-t border-[#D1D5DB]/60">
-                      <button onClick={()=>openEdit(c)} className="flex-1 px-3 py-1.5 rounded-lg bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white text-xs font-bold flex items-center justify-center gap-1"><Pencil className="w-3.5 h-3.5"/> Edit</button>
-                      <button onClick={()=>del(c.id)} className="px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 transition-colors text-white text-xs font-bold flex items-center justify-center gap-1"><Trash2 className="w-3.5 h-3.5"/></button>
-                    </div>
+                    {!isDemo && (
+                      <div className="flex gap-2 pt-2 border-t border-[#D1D5DB]/60">
+                        <button onClick={()=>openEdit(c)} className="flex-1 px-3 py-1.5 rounded-lg bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white text-xs font-bold flex items-center justify-center gap-1"><Pencil className="w-3.5 h-3.5"/> Edit</button>
+                        <button onClick={()=>del(c.id)} className="px-3 py-1.5 rounded-lg bg-red-500 hover:bg-red-600 transition-colors text-white text-xs font-bold flex items-center justify-center gap-1"><Trash2 className="w-3.5 h-3.5"/></button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api, { openInvoiceWord, downloadInvoiceWord } from '../../services/api';
 import { useToast } from '../../components/common/Toast';
+import { useAuth } from '../../context/AuthContext';
 import { WhatsAppModal } from '../../components/common/WhatsAppModal';
 import { Receipt, Search, Filter, DollarSign, TrendingUp, Clock, FileType, FileDown, Pencil, X, Layers, Calculator, MessageCircle } from 'lucide-react';
 
@@ -20,6 +21,7 @@ export const openWhatsappMessage = (phone, text) => {
 
 export const Invoices = () => {
   const { addToast } = useToast();
+  const { isDemo } = useAuth();
   const [data, setData] = useState({ data:[], stats:{} });
   const [types, setTypes] = useState([]);
   const [search, setSearch] = useState('');
@@ -54,6 +56,7 @@ export const Invoices = () => {
   }, [search, company, typeFilter, status, from, to]);
 
   const toggleStatus = async (inv) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled','error'); return; }
     const newStatus = inv.status === 'paid' ? 'unpaid' : 'paid';
     try {
       await api.put(`/reports/${inv.report_id}/invoice/status`, { status: newStatus });
@@ -111,6 +114,7 @@ export const Invoices = () => {
   const stats = data.stats || {};
 
   const openEdit = async (inv) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled','error'); return; }
     setEditInv(inv); setLoadingInv(true);
     try {
       const r = await api.get(`/reports/${inv.report_id}/invoice`);
@@ -124,6 +128,7 @@ export const Invoices = () => {
   const liveSub = editItems.reduce((s,it)=> s + (Number(it.rate)||0) * (Number(it.qty)||0), 0);
   const liveGst = editInv?.gst_enabled ? liveSub * (Number(editInv.gst_percent)||0) / 100 : 0;
   const saveItems = async () => {
+    if (isDemo) { addToast('Demo Mode: Action disabled','error'); return; }
     if (!editInv) return;
     setSaving(true);
     try {
@@ -233,13 +238,15 @@ export const Invoices = () => {
                   <td className="py-2 px-3 text-right">{inv.gst_enabled ? <>₹{Number(inv.gst_amount).toFixed(2)} ({inv.gst_percent}%)</> : '—'}</td>
                   <td className="py-2 px-3 text-right font-bold">₹{Number(inv.total_amount).toFixed(2)}</td>
                   <td className="py-2 px-3">
-                      <button onClick={()=>toggleStatus(inv)} className={`px-2 py-1 rounded-full text-[11px] font-bold text-white ${inv.status==='paid' ? 'bg-emerald-500' : inv.status==='partial' ? 'bg-sky-500' : 'bg-amber-500'}`}>
+                      <button disabled={isDemo} onClick={()=>toggleStatus(inv)} className={`px-2 py-1 rounded-full text-[11px] font-bold text-white ${inv.status==='paid' ? 'bg-emerald-500' : inv.status==='partial' ? 'bg-sky-500' : 'bg-amber-500'} ${isDemo ? 'opacity-70 cursor-not-allowed' : ''}`}>
                       {inv.status}
                     </button>
                   </td>
                   <td className="py-2 px-3 text-right">
                     <div className="flex gap-1 justify-end">
-                      <button onClick={()=>openEdit(inv)} title="Edit rates & quantity" className="px-2 py-1 rounded-lg bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white text-[11px] font-bold flex items-center gap-1"><Pencil className="w-3 h-3"/></button>
+                      {!isDemo && (
+                        <button onClick={()=>openEdit(inv)} title="Edit rates & quantity" className="px-2 py-1 rounded-lg bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white text-[11px] font-bold flex items-center gap-1"><Pencil className="w-3 h-3"/></button>
+                      )}
                       <button onClick={()=>openInvoice(inv.report_id)} title="View Invoice PDF" className="px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold flex items-center gap-1">PDF</button>
                       <button onClick={()=>shareInvoiceWhatsapp(inv)} title="Share via WhatsApp" className="px-2 py-1 rounded-lg bg-[#25D366] hover:bg-[#1EBE5D] text-white text-[11px] font-bold flex items-center gap-1 shadow-sm"><MessageCircle className="w-3 h-3"/></button>
                       <button onClick={()=>openInvoiceDoc(inv.report_id)} title="Open invoice Word" className="px-2 py-1 rounded-lg bg-sky-600 text-white text-[11px] font-bold flex items-center gap-1"><FileType className="w-3 h-3"/></button>

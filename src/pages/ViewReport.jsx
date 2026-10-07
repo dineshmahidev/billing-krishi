@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api, { openPdf, downloadPdf, openWord, downloadWord, openInvoiceWord, downloadInvoiceWord, printReport } from '../services/api';
 import { Printer, FileText, Pencil, ArrowLeft, FileDown, FileType, MessageCircle } from 'lucide-react';
 import { useToast } from '../components/common/Toast';
+import { useAuth } from '../context/AuthContext';
 import { WhatsAppModal } from '../components/common/WhatsAppModal';
 import { getDefaultTableColumns } from './admin/ReportTypes';
 
@@ -11,6 +12,7 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
   const [invoice, setInvoice] = useState(null);
   const [waModal, setWaModal] = useState({ isOpen: false, phone: '', recipientName: '', docTitle: '', summaryLines: [], pdfUrl: '' });
   const { addToast } = useToast();
+  const { isDemo } = useAuth();
 
   useEffect(()=>{
     if (!reportId) return;
@@ -123,7 +125,9 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
       <div className="flex items-center gap-2 no-print">
         <button onClick={()=>setActiveTab('reports')} className="px-3 py-2 rounded-xl bg-white border border-[#D1D5DB] text-xs font-bold flex items-center gap-1"><ArrowLeft className="w-4 h-4"/> Back to Reports</button>
         <div className="flex flex-wrap gap-1 ml-auto">
-          <button onClick={()=>{setSelectedReportId(report.id); setActiveTab('edit-report');}} className="px-3 py-2 rounded-xl bg-white border border-[#D1D5DB] text-xs font-bold flex items-center gap-1 hover:bg-[#F9FAFB]"><Pencil className="w-4 h-4"/> Edit</button>
+          {!isDemo && (
+            <button onClick={()=>{setSelectedReportId(report.id); setActiveTab('edit-report');}} className="px-3 py-2 rounded-xl bg-white border border-[#D1D5DB] text-xs font-bold flex items-center gap-1 hover:bg-[#F9FAFB]"><Pencil className="w-4 h-4"/> Edit</button>
+          )}
           <button onClick={handleReportWhatsapp} className="px-3 py-2 rounded-xl bg-[#25D366] text-white font-bold text-xs flex items-center gap-1 hover:bg-[#1EBE5D] shadow-sm"><MessageCircle className="w-4 h-4"/> WhatsApp</button>
           <button onClick={handlePdf} className="px-3 py-2 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center gap-1 hover:bg-amber-600 shadow-[0_4px_12px_rgba(245,158,11,0.3)]"><FileText className="w-4 h-4"/> Report PDF</button>
           <button onClick={handleWord} className="px-3 py-2 rounded-xl bg-sky-600 text-white font-bold text-xs flex items-center gap-1 hover:bg-sky-700"><FileType className="w-4 h-4"/> Report Word</button>
@@ -145,19 +149,23 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs border border-[#111827] rounded-xl p-4 bg-[#F9FAFB]">
           <div className="space-y-1.5">
-            <p><span className="font-bold text-[#111827]">Report No:</span> <span className="font-mono font-bold text-[#0B6B43]">{report.report_no}</span></p>
-            <p><span className="font-bold text-[#111827]">Report Type:</span> {report.report_type?.name}</p>
-            <p><span className="font-bold text-[#111827]">Date:</span> {report.sample_date ? report.sample_date.split('T')[0] : (report.created_at?.split('T')[0] || '-')}</p>
+            {report.report_no && <p><span className="font-bold text-[#111827]">Report No:</span> <span className="font-mono font-bold text-[#0B6B43]">{report.report_no}</span></p>}
+            {report.report_type?.name && <p><span className="font-bold text-[#111827]">Report Type:</span> {report.report_type?.name}</p>}
+            {report.sample_date && <p><span className="font-bold text-[#111827]">Date:</span> {report.sample_date.split('T')[0]}</p>}
             {report.bags_tons && <p><span className="font-bold text-[#111827]">{report.report_type?.quantity_label || 'Tons / Bags'}:</span> {report.bags_tons}</p>}
             {report.buyer && <p><span className="font-bold text-[#111827]">Buyer:</span> {report.buyer}</p>}
             {report.seller && <p><span className="font-bold text-[#111827]">Seller:</span> {report.seller}</p>}
+            {report.depositor_name && <p><span className="font-bold text-[#111827]">Depositer Name:</span> {report.depositor_name}</p>}
           </div>
           <div className="space-y-1.5">
-            <p><span className="font-bold text-[#111827]">Customer:</span> <strong className="text-[#111827]">{report.party_name || report.customer_name || '-'}</strong></p>
+            {(report.party_name || report.customer_name) && <p><span className="font-bold text-[#111827]">Customer:</span> <strong className="text-[#111827]">{report.party_name || report.customer_name}</strong></p>}
             {(report.address || report.customer?.address) && <p><span className="font-bold text-[#111827]">Address:</span> {report.address || report.customer?.address}</p>}
-            <p><span className="font-bold text-[#111827]">Nature of Sample:</span> {report.nature_of_sample || report.sample_name || '-'}</p>
+            {(report.nature_of_sample || report.sample_name || report.report_type?.name) && <p><span className="font-bold text-[#111827]">Nature of Sample:</span> {report.nature_of_sample || report.sample_name || report.report_type?.name}</p>}
             {report.vehicle_no && <p><span className="font-bold text-[#111827]">Vehicle No:</span> {report.vehicle_no}</p>}
             {report.bill_no && <p><span className="font-bold text-[#111827]">Bill No:</span> {report.bill_no}</p>}
+            {report.cid_no && <p><span className="font-bold text-[#111827]">CID No:</span> {report.cid_no}</p>}
+            {report.si_no && <p><span className="font-bold text-[#111827]">SI No:</span> {report.si_no}</p>}
+            {report.lot_no && <p><span className="font-bold text-[#111827]">Lot No:</span> {report.lot_no}</p>}
           </div>
         </div>
 
@@ -247,7 +255,7 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
           <div className="border-2 border-[#168B57]/30 rounded-2xl p-4 bg-gradient-to-br from-[#EAF7F0]/40 to-white space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-bold text-[#0B6B43] flex items-center gap-2"><FileText className="w-4 h-4" /> Separate Invoice <span className="text-xs font-mono bg-white border border-[#D1D5DB] px-2 py-0.5 rounded">{invoice.invoice_no}</span></h3>
-              <label className="flex items-center gap-2 text-xs font-bold"><input type="checkbox" checked={!!invoice.gst_enabled} onChange={toggleGst} /> GST {invoice.gst_enabled ? 'ON' : 'OFF'} ({invoice.gst_percent}%)</label>
+              <label className="flex items-center gap-2 text-xs font-bold"><input type="checkbox" checked={!!invoice.gst_enabled} disabled={isDemo} onChange={toggleGst} /> GST {invoice.gst_enabled ? 'ON' : 'OFF'} ({invoice.gst_percent}%)</label>
             </div>
             <div className={`grid gap-3 text-xs ${invoice.gst_enabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
               <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">Subtotal</p><p className="font-bold text-sm">₹{Number(invoice.subtotal).toFixed(2)}</p></div>

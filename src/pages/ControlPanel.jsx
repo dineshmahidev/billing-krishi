@@ -13,6 +13,7 @@ import { Customers } from './admin/Customers';
 import { Invoices } from './admin/Invoices';
 import { ReportTypes } from './admin/ReportTypes';
 import { Parameters } from './admin/Parameters';
+import { Enquiries } from './admin/Enquiries';
 import { Cms } from './admin/Cms';
 import { Settings } from './admin/Settings';
 import { Trash } from './Trash';
@@ -47,6 +48,7 @@ export const ControlPanel = () => {
           {activeTab==='view-report' && <ViewReport reportId={selectedReportId} setActiveTab={setActiveTab} setSelectedReportId={setSelectedReportId} />}
           {activeTab==='edit-report' && <EditReport reportId={selectedReportId} setActiveTab={setActiveTab} setSelectedReportId={setSelectedReportId} />}
           {activeTab==='trash' && <Trash setActiveTab={setActiveTab} />}
+          {activeTab==='enquiries' && <Enquiries />}
           {activeTab==='staff' && !user?.is_demo && <Staff />}
           {activeTab==='customers' && <Customers />}
           {activeTab==='invoices' && <Invoices />}

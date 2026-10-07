@@ -1,18 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import api, { openPdf } from '../services/api';
-import { FilePlus, Search, Eye, Pencil, FileText, Printer, CalendarClock, TrendingUp } from 'lucide-react';
+import { FilePlus, Search, Eye, Pencil, FileText, Printer, CalendarClock, TrendingUp, Globe, Users } from 'lucide-react';
 
 export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
   const [metrics, setMetrics] = useState({ total_reports:0, today_reports:0, month_reports:0 });
+  const [traffic, setTraffic] = useState({ total_visits:0, today_visits:0, unique_ips:0 });
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const loadDashboard = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/dashboard');
+      const [res, trafRes] = await Promise.all([
+        api.get('/dashboard'),
+        api.get('/traffic/stats').catch(()=>({ data: { total_visits:0, today_visits:0 } })),
+      ]);
       setMetrics(res.data.metrics || {});
       setRecent(res.data.recent_reports || []);
+      setTraffic(trafRes.data || { total_visits:0, today_visits:0, unique_ips:0 });
     } catch {} finally { setLoading(false); }
   };
 
@@ -30,12 +35,12 @@ export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-2xl bg-[#168B57] text-white flex items-start justify-between shadow-[0_8px_20px_rgba(22,139,87,0.25)]">
           <div>
             <p className="text-[11px] font-bold uppercase text-white/80">Total Reports</p>
             <p className="text-2xl font-black text-white mt-1">{metrics.total_reports}</p>
-            <p className="text-[11px] text-white/70 mt-0.5">All time</p>
+            <p className="text-[11px] text-white/70 mt-0.5">All time created</p>
           </div>
           <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white"><FileText className="w-5 h-5"/></div>
         </div>
@@ -54,6 +59,14 @@ export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
             <p className="text-[11px] text-white/70 mt-0.5">Current billing month</p>
           </div>
           <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white"><TrendingUp className="w-5 h-5"/></div>
+        </div>
+        <div className="p-5 rounded-2xl bg-emerald-700 text-white flex items-start justify-between shadow-[0_8px_20px_rgba(4,120,87,0.25)]">
+          <div>
+            <p className="text-[11px] font-bold uppercase text-white/80">Web Traffic</p>
+            <p className="text-2xl font-black text-white mt-1">{traffic.total_visits.toLocaleString()}</p>
+            <p className="text-[11px] text-white/80 mt-0.5">{traffic.today_visits} visits today</p>
+          </div>
+          <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center text-white"><Globe className="w-5 h-5"/></div>
         </div>
       </div>
 

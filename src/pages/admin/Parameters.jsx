@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useToast } from '../../components/common/Toast';
+import { useAuth } from '../../context/AuthContext';
 
 export const Parameters = () => {
   const { addToast } = useToast();
+  const { isDemo } = useAuth();
   const [types, setTypes] = useState([]);
   const [selected, setSelected] = useState('');
   const [list, setList] = useState([]);
@@ -19,6 +21,7 @@ export const Parameters = () => {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     try {
       const payload = { ...form, report_type_id: selected, display_order: form.display_order ? parseInt(form.display_order) : undefined, price: form.price ? parseFloat(form.price) : 0 };
       if (editing) await api.put(`/parameters/${editing}`, payload);
@@ -29,10 +32,12 @@ export const Parameters = () => {
   };
 
   const toggle = async (p) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     try { await api.put(`/parameters/${p.id}`, { active: !p.active }); loadParams(); } catch {}
   };
 
   const remove = async (p) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!window.confirm(`Remove "${p.name}" from this type?\n\nOld reports keep their row — it just won't appear for new reports.`)) return;
     try {
       const r = await api.delete(`/parameters/${p.id}`);
@@ -55,24 +60,26 @@ export const Parameters = () => {
 
       {selected && (
         <>
-          <form onSubmit={submit} className="bg-white border border-[#D1D5DB] rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <input required placeholder="Parameter Name (e.g. Oil Content)" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input placeholder="Short Code / Initials (e.g. OC, FFA, SS — auto if blank)" value={form.short_code} onChange={e=>setForm({...form, short_code:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input placeholder="Unit (e.g. %, mg/l)" value={form.unit} onChange={e=>setForm({...form, unit:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input placeholder="Specification (e.g. 0.50 % Max)" value={form.specification} onChange={e=>setForm({...form, specification:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input type="number" step="0.01" placeholder="Price ₹ (test cost)" value={form.price} onChange={e=>setForm({...form, price:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input placeholder="HSN Code" value={form.hsn_code} onChange={e=>setForm({...form, hsn_code:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input type="number" placeholder="Display Order" value={form.display_order} onChange={e=>setForm({...form, display_order:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.active} onChange={e=>setForm({...form, active:e.target.checked})} /> Active</label>
-            <div className="sm:col-span-2 flex gap-2">
-              <button type="submit" className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs">{editing?'Update':'Add Parameter'}</button>
-              {editing && <button type="button" onClick={()=>{setEditing(null); setForm({name:'',short_code:'',unit:'',specification:'',price:'',hsn_code:'',display_order:'',active:true});}} className="px-3 py-2 rounded-xl border border-[#D1D5DB] text-xs">Cancel</button>}
-            </div>
-          </form>
+          {!isDemo && (
+            <form onSubmit={submit} className="bg-white border border-[#D1D5DB] rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <input required placeholder="Parameter Name (e.g. Oil Content)" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+              <input placeholder="Short Code / Initials (e.g. OC, FFA, SS — auto if blank)" value={form.short_code} onChange={e=>setForm({...form, short_code:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+              <input placeholder="Unit (e.g. %, mg/l)" value={form.unit} onChange={e=>setForm({...form, unit:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+              <input placeholder="Specification (e.g. 0.50 % Max)" value={form.specification} onChange={e=>setForm({...form, specification:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+              <input type="number" step="0.01" placeholder="Price ₹ (test cost)" value={form.price} onChange={e=>setForm({...form, price:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+              <input placeholder="HSN Code" value={form.hsn_code} onChange={e=>setForm({...form, hsn_code:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+              <input type="number" placeholder="Display Order" value={form.display_order} onChange={e=>setForm({...form, display_order:e.target.value})} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+              <label className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.active} onChange={e=>setForm({...form, active:e.target.checked})} /> Active</label>
+              <div className="sm:col-span-2 flex gap-2">
+                <button type="submit" className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs">{editing?'Update':'Add Parameter'}</button>
+                {editing && <button type="button" onClick={()=>{setEditing(null); setForm({name:'',short_code:'',unit:'',specification:'',price:'',hsn_code:'',display_order:'',active:true});}} className="px-3 py-2 rounded-xl border border-[#D1D5DB] text-xs">Cancel</button>}
+              </div>
+            </form>
+          )}
 
           <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]"><th className="py-2 px-3">#</th><th className="py-2 px-3">Name</th><th className="py-2 px-3">Short Code</th><th className="py-2 px-3">Unit</th><th className="py-2 px-3">Specification</th><th className="py-2 px-3">Price</th><th className="py-2 px-3">HSN</th><th className="py-2 px-3">Order</th><th className="py-2 px-3">Active</th><th className="py-2 px-3 text-right">Actions</th></tr></thead>
+              <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]"><th className="py-2 px-3">#</th><th className="py-2 px-3">Name</th><th className="py-2 px-3">Short Code</th><th className="py-2 px-3">Unit</th><th className="py-2 px-3">Specification</th><th className="py-2 px-3">Price</th><th className="py-2 px-3">HSN</th><th className="py-2 px-3">Order</th><th className="py-2 px-3">Active</th>{!isDemo && <th className="py-2 px-3 text-right">Actions</th>}</tr></thead>
               <tbody className="divide-y divide-[#D1D5DB]/60">
                 {list.map(p=>(
                   <tr key={p.id}>
@@ -85,11 +92,13 @@ export const Parameters = () => {
                     <td className="py-2 px-3">{p.hsn_code || '-'}</td>
                     <td className="py-2 px-3">{p.display_order}</td>
                     <td className="py-2 px-3">{p.active?'Yes':'No'}</td>
-                    <td className="py-2 px-3 text-right flex items-center justify-end gap-1">
-                      <button onClick={()=>{setEditing(p.id); setForm({name:p.name, short_code:p.short_code||'', unit:p.unit||'', specification:p.specification||'', price:p.price||'', hsn_code:p.hsn_code||'', display_order:p.display_order, active:p.active});}} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">Edit</button>
-                      <button onClick={()=>toggle(p)} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">{p.active?'Disable':'Enable'}</button>
-                      <button onClick={()=>remove(p)} className="px-2 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">Delete</button>
-                    </td>
+                    {!isDemo && (
+                      <td className="py-2 px-3 text-right flex items-center justify-end gap-1">
+                        <button onClick={()=>{setEditing(p.id); setForm({name:p.name, short_code:p.short_code||'', unit:p.unit||'', specification:p.specification||'', price:p.price||'', hsn_code:p.hsn_code||'', display_order:p.display_order, active:p.active});}} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">Edit</button>
+                        <button onClick={()=>toggle(p)} className="px-2 py-1 rounded-lg border border-[#D1D5DB] text-xs">{p.active?'Disable':'Enable'}</button>
+                        <button onClick={()=>remove(p)} className="px-2 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">Delete</button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useToast } from '../../components/common/Toast';
+import { useAuth } from '../../context/AuthContext';
 import { CheckSquare, Square, Sliders, Layers, ArrowUp, ArrowDown, Trash2, Plus, MoveVertical } from 'lucide-react';
 
 export const REPORT_FIELD_DEFINITIONS = [
@@ -13,6 +14,10 @@ export const REPORT_FIELD_DEFINITIONS = [
   { key: 'bags_tons', label: 'Quantity (Bags / Tons / Unit)', desc: 'Batch / load quantity' },
   { key: 'buyer', label: 'Buyer', desc: 'Buyer / Consignee name' },
   { key: 'seller', label: 'Seller', desc: 'Seller / Supplier name' },
+  { key: 'depositor_name', label: 'Depositer Name', desc: 'Depositer / Sender name' },
+  { key: 'cid_no', label: 'CID No', desc: 'Customer ID / CID Number' },
+  { key: 'si_no', label: 'SI No', desc: 'Serial / Reference SI Number' },
+  { key: 'lot_no', label: 'Lot No', desc: 'Batch / Lot Number' },
   { key: 'nature_of_sample', label: 'Nature of Sample', desc: 'Condition / appearance / packaging' },
   { key: 'remarks', label: 'Remarks', desc: 'Remarks section below test results (e.g. Pass/Fail test comparison)' },
   { key: 'notes', label: 'Notes', desc: 'Notes section below test results / above footer' },
@@ -64,11 +69,13 @@ export const getDefaultTableColumns = (reportType = {}) => {
 
 export const ReportTypes = () => {
   const { addToast } = useToast();
+  const { isDemo } = useAuth();
   const [list, setList] = useState([]);
   const [form, setForm] = useState({
     name: '',
     title: 'TEST REPORT',
     quantity_label: 'Quantity',
+    default_nature_of_sample: '',
     active: true,
     show_specification: true,
     visible_fields: [...DEFAULT_VISIBLE_FIELDS],
@@ -274,6 +281,7 @@ export const ReportTypes = () => {
       name: t.name,
       title: t.title || 'TEST REPORT',
       quantity_label: qLabel,
+      default_nature_of_sample: t.default_nature_of_sample || '',
       active: t.active,
       show_specification: t.show_specification ?? true,
       visible_fields: t.visible_fields && t.visible_fields.length > 0 ? t.visible_fields : [...DEFAULT_VISIBLE_FIELDS],
@@ -291,6 +299,7 @@ export const ReportTypes = () => {
       name: '',
       title: 'TEST REPORT',
       quantity_label: 'Tons / Bags',
+      default_nature_of_sample: '',
       active: true,
       show_specification: true,
       visible_fields: [...DEFAULT_VISIBLE_FIELDS],
@@ -309,6 +318,7 @@ export const ReportTypes = () => {
 
   const submit = async (e) => {
     e.preventDefault();
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     try {
       const qLabel = form.quantity_label?.trim() || 'Tons / Bags';
       
@@ -325,6 +335,7 @@ export const ReportTypes = () => {
         name: form.name,
         title: form.title || 'TEST REPORT',
         quantity_label: qLabel,
+        default_nature_of_sample: form.default_nature_of_sample || null,
         active: form.active,
         show_specification: showSpec,
         visible_fields: form.visible_fields || [...DEFAULT_VISIBLE_FIELDS],
@@ -345,6 +356,7 @@ export const ReportTypes = () => {
   };
 
   const remove = async (t) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     if (!window.confirm(`Delete report type "${t.name}"?\n\nIts parameters are removed with it. Types with existing reports cannot be deleted.`)) return;
     try {
       const r = await api.delete(`/report-types/${t.id}`);
@@ -357,6 +369,7 @@ export const ReportTypes = () => {
   };
 
   const toggleActive = async (t) => {
+    if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
     try {
       await api.put(`/report-types/${t.id}`, { active: !t.active });
       addToast(`"${t.name}" is now ${!t.active ? 'Active' : 'Disabled'}`);
@@ -543,8 +556,27 @@ export const ReportTypes = () => {
           </p>
         </div>
 
-        {/* Default Remarks & Default Notes Templates */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        {/* Default Nature of Sample, Remarks & Notes Templates */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          {/* Default Nature of Sample Template */}
+          <div className="border border-[#D1EEE0] bg-[#F9FAFB] rounded-xl p-3.5 space-y-2">
+            <div>
+              <label className="text-xs font-bold text-[#0B6B43] block">
+                Default Nature of Sample:
+              </label>
+              <p className="text-[11px] text-[#6B7280]">
+                Prebuilt mapped value auto-filled in new reports (overrides report type name if set).
+              </p>
+            </div>
+            <textarea
+              rows={2}
+              value={form.default_nature_of_sample || ''}
+              onChange={e => setForm({ ...form, default_nature_of_sample: e.target.value })}
+              placeholder="e.g. CATTLE FEED, GHEE, WATER or custom description..."
+              className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
+            />
+          </div>
+
           {/* Default Remarks Template */}
           <div className="border border-[#D1EEE0] bg-[#F9FAFB] rounded-xl p-3.5 space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -948,7 +980,8 @@ export const ReportTypes = () => {
         <div className="flex gap-2 pt-1">
           <button
             type="submit"
-            className="px-5 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs shadow-sm"
+            disabled={isDemo}
+            className="px-5 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs shadow-sm disabled:opacity-50"
           >
             {editing ? 'Update Report Type' : 'Add Report Type'}
           </button>
@@ -975,7 +1008,7 @@ export const ReportTypes = () => {
               <th className="py-2.5 px-4">Mapped Fields</th>
               <th className="py-2.5 px-4">Table Columns Order</th>
               <th className="py-2.5 px-4">Active / Status</th>
-              <th className="py-2.5 px-4 text-right">Actions</th>
+              {!isDemo && <th className="py-2.5 px-4 text-right">Actions</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-[#D1D5DB]/60">
@@ -1021,6 +1054,7 @@ export const ReportTypes = () => {
                   <td className="py-2.5 px-4">
                     <button
                       type="button"
+                      disabled={isDemo}
                       onClick={() => toggleActive(t)}
                       className={`px-2.5 py-1 rounded-full text-[11px] font-bold transition-colors ${
                         t.active ? 'bg-[#EAF7F0] text-[#0B6B43] hover:bg-emerald-100' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
@@ -1030,12 +1064,14 @@ export const ReportTypes = () => {
                       {t.active ? '✓ Active (ON)' : '✗ Disabled (OFF)'}
                     </button>
                   </td>
-                  <td className="py-2.5 px-4 text-right">
-                    <div className="flex gap-1 justify-end">
-                      <button onClick={() => startEdit(t)} className="px-3 py-1 rounded-lg border border-[#D1D5DB] text-xs font-bold hover:bg-[#F9FAFB]">Edit</button>
-                      <button onClick={() => remove(t)} className="px-3 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">Delete</button>
-                    </div>
-                  </td>
+                  {!isDemo && (
+                    <td className="py-2.5 px-4 text-right">
+                      <div className="flex gap-1 justify-end">
+                        <button onClick={() => startEdit(t)} className="px-3 py-1 rounded-lg border border-[#D1D5DB] text-xs font-bold hover:bg-[#F9FAFB]">Edit</button>
+                        <button onClick={() => remove(t)} className="px-3 py-1 rounded-lg border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50">Delete</button>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               );
             })}

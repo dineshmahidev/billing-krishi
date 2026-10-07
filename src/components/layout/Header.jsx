@@ -18,12 +18,8 @@ export const Header = ({ onToggleSidebar }) => {
           <button onClick={onToggleSidebar} className="lg:hidden p-2 text-[#6B7280] hover:bg-[#EAF7F0] rounded-xl border border-transparent hover:border-[#D1D5DB]">
             <Menu className="w-5 h-5" />
           </button>
-          <div className="flex items-center gap-2">
-            <img src="/krishi-transparent.png" alt="Krishi" className="h-9 sm:h-10 w-10 object-contain bg-white" />
-            <div className="hidden sm:block">
-              <p className="text-xs font-bold leading-none text-[#168B57]">KRISHI ANALYTICAL LAB</p>
-              <p className="text-[10px] text-black font-semibold">Discovering Solutions, One Test at a Time</p>
-            </div>
+          <div className="flex items-center">
+            <img src="/krishi-transparent.png" alt="Krishi Analytical Lab" className="h-10 sm:h-11 w-auto object-contain" />
           </div>
           <span className="hidden lg:flex items-center gap-1.5 ml-3 bg-[#EAF7F0] border border-[#D1EEE0] text-[#0B6B43] text-[11px] font-bold px-2.5 py-1 rounded-full">
             <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" /> Control Panel

@@ -7,7 +7,7 @@ import { WhatsAppModal } from '../components/common/WhatsAppModal';
 
 export const Reports = ({ setActiveTab, setSelectedReportId }) => {
   const { addToast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDemo } = useAuth();
   const [reports, setReports] = useState([]);
   const [types, setTypes] = useState([]);
   const [customers, setCustomers] = useState([]);
@@ -48,6 +48,7 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
   ).slice(0,8);
 
   const del = async (id, no) => {
+    if (isDemo) { addToast('Demo mode is read-only', 'error'); return; }
     if (!confirm(`Are you sure you want to move report ${no} to Trash?`)) return;
     try { await api.delete(`/reports/${id}`); addToast(`Report ${no} moved to trash`, 'success'); loadReports(page); } catch (e){ addToast(e.response?.data?.message||'Delete failed','error'); }
   };
@@ -61,9 +62,17 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
 
   return (
     <div className="space-y-4">
+      {isDemo && (
+        <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-center gap-2 text-amber-800 text-xs font-bold">
+          <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+          <span>Demo Access Mode (Read-Only): Only existing demo data is accessible. Creating, editing, and deleting reports are disabled.</span>
+        </div>
+      )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <h1 className="text-xl font-bold text-[#1F2937]">Reports</h1>
-        <button onClick={()=>setActiveTab('new-report')} className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs">+ New Report</button>
+        {!isDemo && (
+          <button onClick={()=>setActiveTab('new-report')} className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs">+ New Report</button>
+        )}
       </div>
 
       {/* Stats (respect date/party/type/search filters) */}
@@ -130,9 +139,13 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
                     <td className="py-2.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
                         <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('view-report');}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#168B57]" title="View"><Eye className="w-3.5 h-3.5"/></button>
-                        <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('edit-report');}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#1F2937]" title="Edit"><Pencil className="w-3.5 h-3.5"/></button>
+                        {!isDemo && (
+                          <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('edit-report');}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#1F2937]" title="Edit"><Pencil className="w-3.5 h-3.5"/></button>
+                        )}
                         <button onClick={()=>openPdf(r.id)} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#168B57]" title="Report PDF"><FileText className="w-3.5 h-3.5"/></button>
-                        <button onClick={()=>del(r.id, r.report_no)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600" title="Delete (Move to Trash)"><Trash2 className="w-3.5 h-3.5"/></button>
+                        {!isDemo && (
+                          <button onClick={()=>del(r.id, r.report_no)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600" title="Delete (Move to Trash)"><Trash2 className="w-3.5 h-3.5"/></button>
+                        )}
                         <button onClick={(e)=>{
                           if (menu?.id===r.id) { setMenu(null); return; }
                           const b = e.currentTarget.getBoundingClientRect();

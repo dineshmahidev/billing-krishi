@@ -393,7 +393,7 @@ export const Landing = () => {
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => setSampleModalOpen(true)}
-                  className="relative group overflow-hidden bg-gradient-to-r from-[#168B57] via-[#0E7A4A] to-[#0B5C38] hover:from-[#1AA366] hover:to-[#168B57] text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-2.5 rounded-full shadow-lg shadow-emerald-700/25 hover:shadow-xl hover:shadow-emerald-600/35 active:scale-95 transition-all duration-300 flex items-center gap-2 border border-emerald-400/40"
+                  className="hidden sm:flex relative group overflow-hidden bg-gradient-to-r from-[#168B57] via-[#0E7A4A] to-[#0B5C38] hover:from-[#1AA366] hover:to-[#168B57] text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-2.5 rounded-full shadow-lg shadow-emerald-700/25 hover:shadow-xl hover:shadow-emerald-600/35 active:scale-95 transition-all duration-300 items-center gap-2 border border-emerald-400/40"
                 >
                   <span className="absolute inset-0 w-1/2 h-full bg-white/20 skew-x-12 -translate-x-full group-hover:translate-x-[300%] transition-transform duration-1000 ease-out pointer-events-none" />
                   <TestTube className="w-4 h-4 text-emerald-200 group-hover:rotate-12 transition-transform duration-300" />
@@ -479,12 +479,8 @@ export const Landing = () => {
           {/* ==================================================== */}
           <div className="lg:hidden block mt-2 space-y-3">
             
-            {/* Top Compact Brand Badge & Headline */}
+            {/* Top Compact Brand Headline */}
             <div className="text-center pt-1 px-1">
-              <div className="inline-flex items-center gap-1.5 bg-[#EAF7F0] text-[#0B6B43] px-3 py-1 rounded-full text-[11px] font-extrabold border border-[#168B57]/20 shadow-xs mb-2">
-                <Sparkles className="w-3.5 h-3.5 text-[#168B57]" />
-                <span>Accurate Testing • Certified Reports</span>
-              </div>
               <h1 className="font-display font-black text-3xl sm:text-4xl text-gray-900 leading-tight tracking-tight">
                 REPORTS <span className="text-[#0B6B43]">DELIVERED</span>
               </h1>

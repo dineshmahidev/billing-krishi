@@ -252,26 +252,26 @@ export const ViewReport = ({ reportId, setActiveTab, setSelectedReportId }) => {
 
         {/* Separate Invoice - not in analysis report */}
         {invoice && (
-          <div className="border-2 border-[#168B57]/30 rounded-2xl p-4 bg-gradient-to-br from-[#EAF7F0]/40 to-white space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-[#0B6B43] flex items-center gap-2"><FileText className="w-4 h-4" /> Separate Invoice <span className="text-xs font-mono bg-white border border-[#D1D5DB] px-2 py-0.5 rounded">{invoice.invoice_no}</span></h3>
-              <label className="flex items-center gap-2 text-xs font-bold"><input type="checkbox" checked={!!invoice.gst_enabled} disabled={isDemo} onChange={toggleGst} /> GST {invoice.gst_enabled ? 'ON' : 'OFF'} ({invoice.gst_percent}%)</label>
+          <div className="border border-emerald-200/60 rounded-3xl p-6 bg-gradient-to-br from-[#EAF7F0]/40 via-white to-white shadow-[0_4px_25px_rgba(22,139,87,0.04)] space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h3 className="text-sm font-black text-[#0B6B43] flex items-center gap-2"><FileText className="w-4 h-4" /> Separate Invoice <span className="text-xs font-mono bg-white border border-gray-200 px-2.5 py-0.5 rounded-xl text-gray-900 shadow-2xs">{invoice.invoice_no}</span></h3>
+              <label className="flex items-center gap-2 text-xs font-bold text-gray-700 cursor-pointer"><input type="checkbox" checked={!!invoice.gst_enabled} disabled={isDemo} onChange={toggleGst} className="accent-[#168B57] w-4 h-4 rounded-md" /> GST {invoice.gst_enabled ? 'ON' : 'OFF'} ({invoice.gst_percent}%)</label>
             </div>
             <div className={`grid gap-3 text-xs ${invoice.gst_enabled ? 'grid-cols-3' : 'grid-cols-2'}`}>
-              <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">Subtotal</p><p className="font-bold text-sm">₹{Number(invoice.subtotal).toFixed(2)}</p></div>
-              {invoice.gst_enabled && <div className="bg-white border border-[#D1D5DB] rounded-xl p-3 text-center"><p className="text-[#6B7280]">GST ({invoice.gst_percent}%)</p><p className="font-bold text-sm">₹{Number(invoice.gst_amount).toFixed(2)}</p></div>}
-              <div className="bg-[#0B6B43] text-white rounded-xl p-3 text-center"><p className="opacity-80 text-xs">Total</p><p className="font-bold text-sm">₹{Number(invoice.total_amount).toFixed(2)}</p></div>
+              <div className="bg-white border border-gray-100 rounded-2xl p-4 text-center shadow-2xs"><p className="text-gray-400 font-medium text-[11px]">Subtotal</p><p className="font-black text-sm text-gray-900 mt-1">₹{Number(invoice.subtotal).toFixed(2)}</p></div>
+              {invoice.gst_enabled && <div className="bg-white border border-gray-100 rounded-2xl p-4 text-center shadow-2xs"><p className="text-gray-400 font-medium text-[11px]">GST ({invoice.gst_percent}%)</p><p className="font-black text-sm text-gray-900 mt-1">₹{Number(invoice.gst_amount).toFixed(2)}</p></div>}
+              <div className="bg-gradient-to-r from-[#168B57] to-[#0B6B43] text-white rounded-2xl p-4 text-center shadow-xs"><p className="text-white/80 font-medium text-[11px]">Total</p><p className="font-black text-sm mt-1">₹{Number(invoice.total_amount).toFixed(2)}</p></div>
             </div>
-            <div className="flex gap-2">
-              <button onClick={handleInvoicePdf} className="flex-1 py-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs flex items-center justify-center gap-1 hover:bg-amber-600"><FileText className="w-4 h-4"/> Invoice PDF</button>
-              <button onClick={handleInvoiceDownload} className="flex-1 py-2.5 rounded-xl bg-white border-2 border-[#168B57] text-[#0B6B43] font-bold text-xs flex items-center justify-center gap-1 hover:bg-[#EAF7F0]"><FileDown className="w-4 h-4"/> Invoice ↓</button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button onClick={handleInvoicePdf} className="py-2.5 px-4 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs hover:scale-[1.01] active:scale-[0.99] transition-all"><FileText className="w-4 h-4"/> Invoice PDF</button>
+              <button onClick={handleInvoiceDownload} className="py-2.5 px-4 rounded-2xl bg-white border border-emerald-300 text-[#0B6B43] font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-[#EAF7F0] hover:scale-[1.01] active:scale-[0.99] transition-all shadow-2xs"><FileDown className="w-4 h-4"/> Invoice ↓</button>
             </div>
-            <div className="flex gap-2">
-              <button onClick={handleInvoiceWord} className="flex-1 py-2.5 rounded-xl bg-sky-600 text-white font-bold text-xs flex items-center justify-center gap-1 hover:bg-sky-700"><FileType className="w-4 h-4"/> Invoice Word</button>
-              <button onClick={handleInvoiceWordDownload} className="flex-1 py-2.5 rounded-xl bg-white border-2 border-sky-400 text-sky-700 font-bold text-xs flex items-center justify-center gap-1 hover:bg-sky-50"><FileDown className="w-4 h-4"/> Word ↓</button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button onClick={handleInvoiceWord} className="py-2.5 px-4 rounded-2xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs hover:scale-[1.01] active:scale-[0.99] transition-all"><FileType className="w-4 h-4"/> Invoice Word</button>
+              <button onClick={handleInvoiceWordDownload} className="py-2.5 px-4 rounded-2xl bg-white border border-sky-300 text-sky-700 font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-sky-50 hover:scale-[1.01] active:scale-[0.99] transition-all shadow-2xs"><FileDown className="w-4 h-4"/> Word ↓</button>
             </div>
-            <button onClick={handleInvoiceWhatsapp} className="w-full py-2.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-colors"><MessageCircle className="w-4 h-4"/> Share Invoice on WhatsApp</button>
-            <p className="text-[11px] text-[#6B7280] text-center">Invoice is separate from Analysis Report — PDF, Word &amp; WhatsApp sharing. Toggle GST on/off here.</p>
+            <button onClick={handleInvoiceWhatsapp} className="w-full py-2.5 px-4 rounded-2xl bg-[#25D366] hover:bg-[#1EBE5D] text-white font-bold text-xs flex items-center justify-center gap-2 shadow-[0_4px_14px_rgba(37,211,102,0.3)] hover:scale-[1.01] active:scale-[0.99] transition-all"><MessageCircle className="w-4 h-4"/> Share Invoice on WhatsApp</button>
+            <p className="text-[11px] text-gray-400 font-medium text-center">Invoice is separate from Analysis Report — PDF, Word &amp; WhatsApp sharing. Toggle GST on/off here.</p>
           </div>
         )}
 

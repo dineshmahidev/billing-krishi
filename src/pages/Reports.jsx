@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api, { openPdf, openWord, printReport } from '../services/api';
-import { Search, Eye, Pencil, Trash2, FileText, Printer, FileType, Users, FlaskConical, FileClock, ChevronDown, MoreVertical, Receipt, MessageCircle } from 'lucide-react';
+import { Search, Eye, Pencil, Trash2, FileText, Printer, FileType, Users, FlaskConical, FileClock, FileCheck, ChevronDown, MoreVertical, Receipt, MessageCircle, ArrowUpRight } from 'lucide-react';
 import { useToast } from '../components/common/Toast';
 import { useAuth } from '../context/AuthContext';
 import { WhatsAppModal } from '../components/common/WhatsAppModal';
@@ -54,103 +54,189 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
   };
 
   const cards = [
-    { label:'Total Reports', value: stats.total_reports ?? '-', icon: FileText, cls:'bg-[#168B57] border-[#168B57]', shadow:'shadow-[0_8px_20px_rgba(22,139,87,0.25)]' },
-    { label:'Parties', value: stats.parties ?? '-', icon: Users, cls:'bg-sky-500 border-sky-600', shadow:'shadow-[0_8px_20px_rgba(14,165,233,0.25)]' },
-    { label:'Tests (parameters)', value: stats.tests ?? '-', icon: FlaskConical, cls:'bg-amber-500 border-amber-600', shadow:'shadow-[0_8px_20px_rgba(245,158,11,0.25)]' },
-    { label:'Completed / Draft', value: `${stats.completed ?? 0} / ${stats.draft ?? 0}`, icon: FileClock, cls:'bg-[#1F2937] border-[#1F2937]', shadow:'shadow-[0_8px_20px_rgba(31,41,55,0.25)]' },
+    {
+      label: 'TOTAL REPORTS',
+      value: stats.total_reports ?? '-',
+      icon: FileText,
+      color: 'text-[#168B57]',
+      bubbleBg: 'bg-[#EAF7F0]',
+      bubbleColor: 'text-[#168B57]',
+      borderColor: 'border-emerald-100/70',
+      shadowColor: 'shadow-[0_4px_25px_rgba(22,139,87,0.03)]'
+    },
+    {
+      label: 'PARTIES',
+      value: stats.parties ?? '-',
+      icon: Users,
+      color: 'text-[#0284C7]',
+      bubbleBg: 'bg-[#E0F2FE]',
+      bubbleColor: 'text-[#0284C7]',
+      borderColor: 'border-sky-100/70',
+      shadowColor: 'shadow-[0_4px_25px_rgba(14,165,233,0.03)]'
+    },
+    {
+      label: 'TESTS (PARAMETERS)',
+      value: stats.tests ?? '-',
+      icon: FlaskConical,
+      color: 'text-[#D97706]',
+      bubbleBg: 'bg-[#FEF3C7]',
+      bubbleColor: 'text-[#D97706]',
+      borderColor: 'border-amber-100/70',
+      shadowColor: 'shadow-[0_4px_25px_rgba(245,158,11,0.03)]'
+    },
+    {
+      label: 'COMPLETED REPORTS',
+      value: stats.completed ?? 0,
+      icon: FileCheck,
+      color: 'text-[#8B5CF6]',
+      bubbleBg: 'bg-[#F3E8FF]',
+      bubbleColor: 'text-[#8B5CF6]',
+      borderColor: 'border-purple-100/70',
+      shadowColor: 'shadow-[0_4px_25px_rgba(139,92,246,0.03)]'
+    },
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {isDemo && (
-        <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 flex items-center gap-2 text-amber-800 text-xs font-bold">
+        <div className="bg-amber-50 border border-amber-300 rounded-2xl p-4 flex items-center gap-2 text-amber-800 text-xs font-bold">
           <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
           <span>Demo Access Mode (Read-Only): Only existing demo data is accessible. Creating, editing, and deleting reports are disabled.</span>
         </div>
       )}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <h1 className="text-xl font-bold text-[#1F2937]">Reports</h1>
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Reports</h1>
+          <p className="text-xs text-gray-400 font-medium mt-0.5">Laboratory Report Management System • Complete Database</p>
+        </div>
         {!isDemo && (
-          <button onClick={()=>setActiveTab('new-report')} className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs">+ New Report</button>
+          <button onClick={()=>setActiveTab('new-report')} className="px-5 py-2.5 rounded-2xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs shadow-xs">+ New Report</button>
         )}
       </div>
 
-      {/* Stats (respect date/party/type/search filters) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {cards.map(({label, value, icon: Icon, cls, shadow})=>(
-          <div key={label} className={`${cls} ${shadow} border rounded-2xl p-4 text-white`}>
-            <p className="text-[11px] font-bold text-white/80 flex items-center gap-1"><Icon className="w-3 h-3"/> {label}</p>
-            <p className="text-lg font-bold text-white">{value}</p>
-            <p className="text-[11px] text-white/70">{from && to ? `${from} → ${to}` : from ? `From ${from}` : to ? `Until ${to}` : 'All dates'}</p>
+      {/* Stats (matching Dashboard container UI) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {cards.map(({label, value, icon: Icon, color, bubbleBg, bubbleColor, borderColor, shadowColor})=>(
+          <div
+            key={label}
+            className={`bg-white rounded-3xl p-6 border ${borderColor} ${shadowColor} flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]`}
+          >
+            <div className="flex items-start justify-between">
+              <span className={`${color} text-xs font-black tracking-wider flex items-center gap-1.5 uppercase`}>
+                {label} <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+              </span>
+              <div className={`w-10 h-10 rounded-2xl ${bubbleBg} flex items-center justify-center ${bubbleColor} shrink-0`}>
+                <Icon className="w-5 h-5 stroke-[2.2]" />
+              </div>
+            </div>
+            <p className="text-4xl font-black text-gray-900 tracking-tight leading-none my-3">
+              {value}
+            </p>
+            <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+              <span className="text-xs font-medium text-gray-400">
+                {from && to ? `${from} → ${to}` : from ? `From ${from}` : to ? `Until ${to}` : 'All dates'}
+              </span>
+            </div>
           </div>
         ))}
       </div>
 
-      <div className="bg-white border border-[#D1D5DB] rounded-2xl p-4 flex flex-col md:flex-row gap-3">
+      <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 flex flex-col md:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search Report No, Customer, Sample..." className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            value={search}
+            onChange={e=>setSearch(e.target.value)}
+            placeholder="Search Report No, Customer, Sample..."
+            className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+          />
         </div>
-        <div className="relative md:w-56">
-          <Users className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input value={party} onChange={e=>{setParty(e.target.value); setOpenSug(true);}} onFocus={()=>setOpenSug(true)} onBlur={()=>setTimeout(()=>setOpenSug(false), 150)} placeholder="Customer — pick dropdown or type" className="w-full pl-9 pr-8 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-          <ChevronDown className="w-3.5 h-3.5 text-[#6B7280] absolute right-3 top-1/2 -translate-y-1/2" />
+        <div className="relative md:w-64">
+          <Users className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            value={party}
+            onChange={e=>{setParty(e.target.value); setOpenSug(true);}}
+            onFocus={()=>setOpenSug(true)}
+            onBlur={()=>setTimeout(()=>setOpenSug(false), 150)}
+            placeholder="Customer — pick or type"
+            className="w-full pl-10 pr-9 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+          />
+          <ChevronDown className="w-3.5 h-3.5 text-gray-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           {openSug && (
-            <div className="absolute z-30 mt-1 w-full bg-white border border-[#D1D5DB] rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] max-h-56 overflow-y-auto">
-              <button type="button" onMouseDown={()=>{setParty(''); setOpenSug(false);}} className="w-full text-left px-3 py-2 text-xs font-bold text-[#0B6B43] hover:bg-[#EAF7F0]">All Customers</button>
+            <div className="absolute z-30 mt-1 w-full bg-white border border-gray-200 rounded-2xl shadow-[0_10px_30px_rgba(0,0,0,0.12)] max-h-56 overflow-y-auto p-1.5">
+              <button type="button" onMouseDown={()=>{setParty(''); setOpenSug(false);}} className="w-full text-left px-3 py-2 text-xs font-bold text-[#168B57] hover:bg-emerald-50 rounded-xl transition-colors">All Customers</button>
               {suggestions.length===0 ? (
-                <div className="px-3 py-2 text-xs text-[#6B7280]">No match — will search as typed: <b>{party}</b></div>
+                <div className="px-3 py-2 text-xs text-gray-400 font-medium">No match — will search as typed: <b>{party}</b></div>
               ) : suggestions.map(c=>(
-                <button key={c.id} type="button" onMouseDown={()=>{setParty(c.company_name||c.name); setOpenSug(false);}} className="w-full text-left px-3 py-2 text-xs hover:bg-[#EAF7F0] flex items-center justify-between gap-2">
-                  <span className="font-bold text-[#1F2937] truncate">{c.company_name || c.name}</span>
-                  {c.phone && <span className="text-[#6B7280] shrink-0">{c.phone}</span>}
+                <button key={c.id} type="button" onMouseDown={()=>{setParty(c.company_name||c.name); setOpenSug(false);}} className="w-full text-left px-3 py-2 text-xs hover:bg-emerald-50 rounded-xl flex items-center justify-between gap-2 transition-colors">
+                  <span className="font-bold text-gray-900 truncate">{c.company_name || c.name}</span>
+                  {c.phone && <span className="text-gray-400 shrink-0 text-[11px] font-medium">{c.phone}</span>}
                 </button>
               ))}
             </div>
           )}
         </div>
-        <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white">
+        <select
+          value={typeFilter}
+          onChange={e=>setTypeFilter(e.target.value)}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+        >
           <option value="">All Types</option>
           {types.map(t=><option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
-        <input type="date" value={from} onChange={e=>setFrom(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-        <input type="date" value={to} onChange={e=>setTo(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+        <input
+          type="date"
+          value={from}
+          onChange={e=>setFrom(e.target.value)}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+        />
+        <input
+          type="date"
+          value={to}
+          onChange={e=>setTo(e.target.value)}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+        />
         {(party||search||typeFilter||from||to) && (
-          <button onClick={()=>{setParty(''); setSearch(''); setTypeFilter(''); setFrom(''); setTo('');}} className="px-3 py-2 rounded-xl border border-[#D1D5DB] text-xs font-bold text-[#6B7280] hover:bg-[#EAF7F0]">Clear</button>
+          <button
+            onClick={()=>{setParty(''); setSearch(''); setTypeFilter(''); setFrom(''); setTo('');}}
+            className="px-4 py-2.5 rounded-2xl border border-gray-200 text-xs font-bold text-gray-600 bg-white hover:bg-gray-50 shadow-2xs transition-all"
+          >
+            Clear
+          </button>
         )}
       </div>
 
-      <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
-        {loading ? <div className="p-8 text-center text-xs text-[#6B7280]">Loading...</div> : reports.length===0 ? <div className="p-8 text-center text-xs text-[#6B7280]">No reports found</div> : (
+      <div className="bg-white rounded-3xl p-6 shadow-sm border border-neutral-100/80 space-y-4">
+        {loading ? <div className="py-12 text-center text-xs text-gray-400 font-medium">Loading reports...</div> : reports.length===0 ? <div className="py-12 text-center text-xs text-gray-400 font-medium">No report records found. Click &quot;New Report&quot; to create one.</div> : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                <th className="py-2.5 px-4">Report No</th><th className="py-2.5 px-4">Date</th><th className="py-2.5 px-4">Customer</th><th className="py-2.5 px-4">Type</th><th className="py-2.5 px-4">Sample</th><th className="py-2.5 px-4">By</th><th className="py-2.5 px-4 text-right">Actions</th>
+            <table className="w-full text-left text-xs border-separate border-spacing-y-1">
+              <thead><tr className="bg-[#EFEAFD] text-[11px] uppercase font-black tracking-wider text-[#7A709E]">
+                <th className="py-3 px-4 rounded-l-2xl">REPORT NO</th><th className="py-3 px-4">DATE</th><th className="py-3 px-4">CUSTOMER</th><th className="py-3 px-4">TYPE</th><th className="py-3 px-4">SAMPLE</th><th className="py-3 px-4">BY</th><th className="py-3 px-4 text-right rounded-r-2xl">ACTIONS</th>
               </tr></thead>
-              <tbody className="divide-y divide-[#D1D5DB]/60">
+              <tbody>
                 {reports.map(r=>(
-                  <tr key={r.id} className="hover:bg-[#EAF7F0]/30">
-                    <td className="py-2.5 px-4 font-mono font-bold text-[#0B6B43]">{r.report_no}</td>
-                    <td className="py-2.5 px-4">{r.sample_date ? r.sample_date.split('T')[0] : r.created_at?.split('T')[0]}</td>
-                    <td className="py-2.5 px-4 font-bold text-[#1F2937]">{r.party_name || r.customer_name || '-'}</td>
-                    <td className="py-2.5 px-4">{r.report_type?.name}</td>
-                    <td className="py-2.5 px-4">{r.sample_name || '-'}</td>
-                    <td className="py-2.5 px-4">{r.creator?.name || '-'}</td>
-                    <td className="py-2.5 px-4 text-right">
+                  <tr key={r.id} className="hover:bg-purple-50/40 transition-colors">
+                    <td className="py-3 px-4 font-mono font-bold text-purple-700">{r.report_no}</td>
+                    <td className="py-3 px-4 text-gray-500 font-medium">{r.sample_date ? r.sample_date.split('T')[0] : r.created_at?.split('T')[0]}</td>
+                    <td className="py-3 px-4 font-bold text-gray-900">{r.party_name || r.customer_name || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 font-medium">{r.report_type?.name}</td>
+                    <td className="py-3 px-4 text-gray-600 font-medium">{r.sample_name || '-'}</td>
+                    <td className="py-3 px-4 text-gray-500 font-medium">{r.creator?.name || '-'}</td>
+                    <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('view-report');}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#168B57]" title="View"><Eye className="w-3.5 h-3.5"/></button>
+                        <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('view-report');}} className="p-1.5 rounded-xl hover:bg-purple-100/60 text-purple-700 transition-colors" title="View"><Eye className="w-3.5 h-3.5"/></button>
                         {!isDemo && (
-                          <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('edit-report');}} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#1F2937]" title="Edit"><Pencil className="w-3.5 h-3.5"/></button>
+                          <button onClick={()=>{setSelectedReportId(r.id); setActiveTab('edit-report');}} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-700 transition-colors" title="Edit"><Pencil className="w-3.5 h-3.5"/></button>
                         )}
-                        <button onClick={()=>openPdf(r.id)} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#168B57]" title="Report PDF"><FileText className="w-3.5 h-3.5"/></button>
+                        <button onClick={()=>openPdf(r.id)} className="p-1.5 rounded-xl hover:bg-emerald-50 text-emerald-700 transition-colors" title="Report PDF"><FileText className="w-3.5 h-3.5"/></button>
                         {!isDemo && (
-                          <button onClick={()=>del(r.id, r.report_no)} className="p-1.5 rounded-lg hover:bg-red-50 text-red-600" title="Delete (Move to Trash)"><Trash2 className="w-3.5 h-3.5"/></button>
+                          <button onClick={()=>del(r.id, r.report_no)} className="p-1.5 rounded-xl hover:bg-red-50 text-red-600 transition-colors" title="Delete (Move to Trash)"><Trash2 className="w-3.5 h-3.5"/></button>
                         )}
                         <button onClick={(e)=>{
                           if (menu?.id===r.id) { setMenu(null); return; }
                           const b = e.currentTarget.getBoundingClientRect();
                           setMenu({ id:r.id, top:b.bottom+6, right:Math.max(8, window.innerWidth-b.right) });
-                        }} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#6B7280]" title="More actions"><MoreVertical className="w-3.5 h-3.5"/></button>
+                        }} className="p-1.5 rounded-xl hover:bg-gray-100 text-gray-500 transition-colors" title="More actions"><MoreVertical className="w-3.5 h-3.5"/></button>
                       </div>
                     </td>
                   </tr>
@@ -159,11 +245,11 @@ export const Reports = ({ setActiveTab, setSelectedReportId }) => {
             </table>
           </div>
         )}
-        <div className="p-3 border-t border-[#D1D5DB] flex items-center justify-between text-xs">
-          <span className="text-[#6B7280]">Page {page} of {lastPage}</span>
+        <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
+          <span className="text-gray-400 font-medium">Page {page} of {lastPage}</span>
           <div className="flex gap-1">
-            <button disabled={page<=1} onClick={()=>loadReports(page-1)} className="px-3 py-1 rounded-lg border border-[#D1D5DB] disabled:opacity-50">Prev</button>
-            <button disabled={page>=lastPage} onClick={()=>loadReports(page+1)} className="px-3 py-1 rounded-lg border border-[#D1D5DB] disabled:opacity-50">Next</button>
+            <button disabled={page<=1} onClick={()=>loadReports(page-1)} className="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-bold disabled:opacity-40 hover:bg-gray-50 transition-colors">Prev</button>
+            <button disabled={page>=lastPage} onClick={()=>loadReports(page+1)} className="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-bold disabled:opacity-40 hover:bg-gray-50 transition-colors">Next</button>
           </div>
         </div>
       </div>

@@ -20,7 +20,21 @@ body { background: #FFFFFF; color: #1F2937; }
   body { background: #fff; }
 }
 
+/* Display Typography & Utilities */
+.font-display {
+  font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
-::-webkit-scrollbar-track { background: #F9FAFB; }
+::-webkit-scrollbar-thumb { background: #333d37; border-radius: 4px; }
+::-webkit-scrollbar-track { background: #0b0e0d; }
+
+@keyframes serviceFade {
+  0% { opacity: 0.2; transform: scale(0.985); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.animate-serviceFade {
+  animation: serviceFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

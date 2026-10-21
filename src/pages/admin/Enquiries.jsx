@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageSquare, Trash2, Search, RefreshCw, Eye, EyeOff, Globe, Users, TrendingUp, Mail, Phone, TestTube } from 'lucide-react';
+import { MessageSquare, Trash2, Search, RefreshCw, Eye, EyeOff, Globe, Users, TrendingUp, Mail, Phone, TestTube, ArrowUpRight } from 'lucide-react';
 import api from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
@@ -69,54 +69,78 @@ export const Enquiries = () => {
         </button>
       </div>
 
-      {/* Traffic Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-[#D1EEE0] shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-[#6B7280]">Total Website Traffic</p>
-            <p className="text-2xl font-black text-[#0B6B43] mt-1">{traffic.total_visits.toLocaleString()}</p>
-            <p className="text-[11px] text-[#168B57] font-medium mt-0.5">Total page views</p>
+      {/* Traffic Stats Cards (matching Dashboard container UI) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div className="bg-white rounded-3xl p-6 border border-emerald-100/70 shadow-[0_4px_25px_rgba(22,139,87,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+          <div className="flex items-start justify-between">
+            <span className="text-[#168B57] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+              TOTAL WEBSITE TRAFFIC <ArrowUpRight className="w-3.5 h-3.5 text-[#168B57]/60" />
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-[#EAF7F0] flex items-center justify-center text-[#168B57] shrink-0">
+              <Globe className="w-5 h-5 stroke-[2.2]" />
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[#EAF7F0] flex items-center justify-center text-[#168B57]">
-            <Globe className="w-6 h-6" />
-          </div>
-        </div>
-
-        <div className="bg-white p-5 rounded-2xl border border-[#D1EEE0] shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-[#6B7280]">Today's Visitors</p>
-            <p className="text-2xl font-black text-[#0B6B43] mt-1">{traffic.today_visits.toLocaleString()}</p>
-            <p className="text-[11px] text-emerald-600 font-medium mt-0.5">Visits today</p>
-          </div>
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
-            <TrendingUp className="w-6 h-6" />
+          <p className="text-4xl font-black text-gray-900 tracking-tight leading-none my-3">
+            {traffic.total_visits?.toLocaleString() || 0}
+          </p>
+          <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+            <span className="text-xs font-medium text-gray-400">
+              Total page views
+            </span>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-[#D1EEE0] shadow-sm flex items-center justify-between">
-          <div>
-            <p className="text-xs font-bold text-[#6B7280]">Unique Visitors</p>
-            <p className="text-2xl font-black text-[#0B6B43] mt-1">{traffic.unique_ips.toLocaleString()}</p>
-            <p className="text-[11px] text-[#168B57] font-medium mt-0.5">Unique IP addresses</p>
+        <div className="bg-white rounded-3xl p-6 border border-sky-100/70 shadow-[0_4px_25px_rgba(14,165,233,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+          <div className="flex items-start justify-between">
+            <span className="text-[#0284C7] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+              TODAY&apos;S VISITORS <ArrowUpRight className="w-3.5 h-3.5 text-[#0284C7]/60" />
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-[#E0F2FE] flex items-center justify-center text-[#0284C7] shrink-0">
+              <TrendingUp className="w-5 h-5 stroke-[2.2]" />
+            </div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-[#EAF7F0] flex items-center justify-center text-[#168B57]">
-            <Users className="w-6 h-6" />
+          <p className="text-4xl font-black text-gray-900 tracking-tight leading-none my-3">
+            {traffic.today_visits?.toLocaleString() || 0}
+          </p>
+          <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+            <span className="text-xs font-medium text-gray-400">
+              Visits today
+            </span>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-3xl p-6 border border-purple-100/70 shadow-[0_4px_25px_rgba(139,92,246,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+          <div className="flex items-start justify-between">
+            <span className="text-[#8B5CF6] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+              UNIQUE VISITORS <ArrowUpRight className="w-3.5 h-3.5 text-[#8B5CF6]/60" />
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-[#F3E8FF] flex items-center justify-center text-[#8B5CF6] shrink-0">
+              <Users className="w-5 h-5 stroke-[2.2]" />
+            </div>
+          </div>
+          <p className="text-4xl font-black text-gray-900 tracking-tight leading-none my-3">
+            {traffic.unique_ips?.toLocaleString() || 0}
+          </p>
+          <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+            <span className="text-xs font-medium text-gray-400">
+              Unique IP addresses
+            </span>
           </div>
         </div>
       </div>
 
       {/* Enquiries Section */}
-      <div className="bg-white border border-[#D1D5DB]/80 rounded-2xl shadow-sm p-4 sm:p-5 space-y-4">
+      <div className="bg-white rounded-3xl shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 p-5 space-y-4">
         {/* Controls */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="relative w-full sm:w-80">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#6B7280]" />
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, phone, email..."
-              className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-[#168B57]"
+              className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
             />
           </div>
 
@@ -124,7 +148,7 @@ export const Enquiries = () => {
             <select
               value={typeFilter}
               onChange={(e) => setTypeFilter(e.target.value)}
-              className="border border-[#D1D5DB] rounded-xl px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-[#168B57]"
+              className="border border-gray-200/90 rounded-2xl px-3.5 py-2.5 text-xs font-medium bg-gray-50/70 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
             >
               <option value="">All Types</option>
               <option value="sample">Sample Test Requests</option>
@@ -136,15 +160,15 @@ export const Enquiries = () => {
         {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-[#EAF7F0] text-[#0B6B43] font-bold uppercase text-[10px] tracking-wider">
-              <tr>
-                <th className="px-4 py-3 rounded-l-xl">Ref / Date</th>
+            <thead>
+              <tr className="bg-[#EFEAFD] text-[#7A709E] font-bold uppercase text-[10px] tracking-wider rounded-2xl">
+                <th className="px-4 py-3 rounded-l-2xl">Ref / Date</th>
                 <th className="px-4 py-3">Type</th>
                 <th className="px-4 py-3">Customer Name</th>
                 <th className="px-4 py-3">Phone & Email</th>
                 <th className="px-4 py-3">Sample Category</th>
                 <th className="px-4 py-3">Message</th>
-                <th className="px-4 py-3 text-right rounded-r-xl">Action</th>
+                <th className="px-4 py-3 text-right rounded-r-2xl">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">

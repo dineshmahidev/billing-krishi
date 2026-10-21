@@ -265,17 +265,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
         <p className="text-xs text-[#6B7280]">Fill in details matching the official Certificate of Analysis format</p>
       </div>
 
-      <div className="bg-white/70 backdrop-blur-xl border border-white/50 rounded-2xl p-5 space-y-4 shadow-[0_8px_32px_rgba(0,0,0,0.08)]">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 space-y-6">
         <div>
-          <label className="text-xs font-bold text-[#1F2937] flex items-center gap-1">
-            <Layers className="w-3.5 h-3.5 text-[#168B57]" /> Report Type *
+          <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
+            <Layers className="w-4 h-4 text-[#168B57]" /> Report Type *
           </label>
-          <div className="relative mt-1">
-            <Layers className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+          <div className="relative">
+            <Layers className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               value={form.report_type_id}
               onChange={onTypeChange}
-              className="w-full pl-9 pr-3 py-2.5 border border-[#D1D5DB] rounded-xl text-xs bg-white font-medium shadow-sm"
+              className="w-full pl-10 pr-4 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs cursor-pointer"
             >
               <option value="">-- Select Report Type --</option>
               {types.map(t => (
@@ -287,24 +287,24 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
 
         {selectedType && (
           <>
-            <div className="pt-3 border-t border-[#D1D5DB]/60">
-              <h3 className="text-xs font-bold text-[#0B6B43] uppercase tracking-wider flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5" /> Report Information (PDF Meta)
+            <div className="pt-4 border-t border-gray-100">
+              <h3 className="text-xs font-black text-[#0B6B43] uppercase tracking-wider flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#168B57]" /> Report Information (PDF Meta)
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
                 {/* Report No */}
                 {isFieldVisible('report_no') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                      <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Report No <span className="text-[10px] text-[#6B7280] font-normal">(optional / auto-generated if blank)</span>
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
+                      <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Report No <span className="text-[10px] text-gray-400 font-normal">(optional / auto-generated if blank)</span>
                     </label>
-                    <div className="relative mt-1">
-                      <Hash className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Hash className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         value={form.report_no || ''}
                         onChange={e => setForm({ ...form, report_no: e.target.value })}
                         placeholder="e.g. KAL-4412 (leave blank to auto-generate)"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white font-mono"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-mono font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                     </div>
                   </div>
@@ -313,16 +313,16 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Date */}
                 {isFieldVisible('sample_date') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <Calendar className="w-3.5 h-3.5 text-[#168B57]" /> Date *
                     </label>
-                    <div className="relative mt-1">
-                      <Calendar className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Calendar className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         type="date"
                         value={form.sample_date}
                         onChange={e => setForm({ ...form, sample_date: e.target.value })}
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs cursor-pointer"
                       />
                     </div>
                   </div>
@@ -344,16 +344,16 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Address */}
                 {isFieldVisible('party_name') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                      <Building2 className="w-3.5 h-3.5 text-[#168B57]" /> Address <span className="text-[10px] text-[#6B7280] font-normal">(optional / auto-fetched)</span>
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
+                      <Building2 className="w-3.5 h-3.5 text-[#168B57]" /> Address <span className="text-[10px] text-gray-400 font-normal">(optional / auto-fetched)</span>
                     </label>
-                    <div className="relative mt-1">
-                      <Building2 className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Building2 className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         value={form.address || ''}
                         onChange={e => setForm({ ...form, address: e.target.value })}
                         placeholder="e.g. 182-B, Main Road, Kangeyam (auto-fetched from party if available)"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                     </div>
                   </div>
@@ -362,17 +362,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Sample Name */}
                 {isFieldVisible('sample_name') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <FlaskConical className="w-3.5 h-3.5 text-[#168B57]" /> Sample Name
                     </label>
-                    <div className="relative mt-1">
-                      <FlaskConical className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <FlaskConical className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-sample_name"
                         value={form.sample_name}
                         onChange={e => setForm({ ...form, sample_name: e.target.value })}
                         placeholder="e.g. CATTLE FEED, GHEE, WATER"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-sample_name">
                         {(suggestions.sample_name || []).map((item, idx) => (
@@ -386,17 +386,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Vehicle No */}
                 {isFieldVisible('vehicle_no') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <Truck className="w-3.5 h-3.5 text-[#168B57]" /> Vehicle No
                     </label>
-                    <div className="relative mt-1">
-                      <Truck className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Truck className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-vehicle_no"
                         value={form.vehicle_no}
                         onChange={e => setForm({ ...form, vehicle_no: e.target.value })}
                         placeholder="e.g. TN 27 YY 3314"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white uppercase"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 uppercase focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-vehicle_no">
                         {(suggestions.vehicle_no || []).map((item, idx) => (
@@ -410,15 +410,15 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Bill No */}
                 {isFieldVisible('bill_no') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
-                      <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Bill No <span className="text-[10px] text-[#6B7280] font-normal">(optional)</span>
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
+                      <Hash className="w-3.5 h-3.5 text-[#168B57]" /> Bill No <span className="text-[10px] text-gray-400 font-normal">(optional)</span>
                     </label>
                     <input
                       list="list-bill_no"
                       value={form.bill_no}
                       onChange={e => setForm({ ...form, bill_no: e.target.value })}
                       placeholder="e.g. BL-1002"
-                      className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                      className="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                     />
                     <datalist id="list-bill_no">
                       {(suggestions.bill_no || []).map((item, idx) => (
@@ -431,11 +431,11 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Quantity / Tons / Bags */}
                 {isFieldVisible('bags_tons') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <Package className="w-3.5 h-3.5 text-[#168B57]" /> {selectedType?.quantity_label || 'Tons / Bags'}
                     </label>
-                    <div className="relative mt-1">
-                      <Package className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Package className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-bags_tons"
                         value={form.bags_tons}
@@ -447,7 +447,7 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                                 ? 'e.g. 20 Tons'
                                 : 'e.g. 40 Bags / 20 Tons')
                         }
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-bags_tons">
                         {(suggestions.bags_tons || []).map((item, idx) => (
@@ -461,17 +461,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Buyer */}
                 {isFieldVisible('buyer') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <UserCheck className="w-3.5 h-3.5 text-[#168B57]" /> Buyer
                     </label>
-                    <div className="relative mt-1">
-                      <UserCheck className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <UserCheck className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-buyer"
                         value={form.buyer}
                         onChange={e => setForm({ ...form, buyer: e.target.value })}
                         placeholder="e.g. ABC Foods Pvt Ltd"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-buyer">
                         {(suggestions.buyer || []).map((item, idx) => (
@@ -485,17 +485,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Seller */}
                 {isFieldVisible('seller') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <Store className="w-3.5 h-3.5 text-[#168B57]" /> Seller
                     </label>
-                    <div className="relative mt-1">
-                      <Store className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Store className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-seller"
                         value={form.seller}
                         onChange={e => setForm({ ...form, seller: e.target.value })}
                         placeholder="e.g. XYZ Agro Traders"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-seller">
                         {(suggestions.seller || []).map((item, idx) => (
@@ -509,17 +509,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Depositer Name */}
                 {isFieldVisible('depositor_name') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <User className="w-3.5 h-3.5 text-[#168B57]" /> Depositer Name
                     </label>
-                    <div className="relative mt-1">
-                      <User className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <User className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-depositor_name"
                         value={form.depositor_name || ''}
                         onChange={e => setForm({ ...form, depositor_name: e.target.value })}
                         placeholder="e.g. Ramesh Kumar"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-depositor_name">
                         {(suggestions.depositor_name || []).map((item, idx) => (
@@ -533,17 +533,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* CID No */}
                 {isFieldVisible('cid_no') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <Hash className="w-3.5 h-3.5 text-[#168B57]" /> CID No
                     </label>
-                    <div className="relative mt-1">
-                      <Hash className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Hash className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-cid_no"
                         value={form.cid_no || ''}
                         onChange={e => setForm({ ...form, cid_no: e.target.value })}
                         placeholder="e.g. CID-8849"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-cid_no">
                         {(suggestions.cid_no || []).map((item, idx) => (
@@ -557,17 +557,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* SI No */}
                 {isFieldVisible('si_no') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <Hash className="w-3.5 h-3.5 text-[#168B57]" /> SI No
                     </label>
-                    <div className="relative mt-1">
-                      <Hash className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Hash className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-si_no"
                         value={form.si_no || ''}
                         onChange={e => setForm({ ...form, si_no: e.target.value })}
                         placeholder="e.g. SI-102"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-si_no">
                         {(suggestions.si_no || []).map((item, idx) => (
@@ -581,17 +581,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Lot No */}
                 {isFieldVisible('lot_no') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <Tag className="w-3.5 h-3.5 text-[#168B57]" /> Lot No
                     </label>
-                    <div className="relative mt-1">
-                      <Tag className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <Tag className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-lot_no"
                         value={form.lot_no || ''}
                         onChange={e => setForm({ ...form, lot_no: e.target.value })}
                         placeholder="e.g. LOT-2026/04"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white uppercase"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 uppercase focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-lot_no">
                         {(suggestions.lot_no || []).map((item, idx) => (
@@ -605,17 +605,17 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 {/* Nature of Sample */}
                 {isFieldVisible('nature_of_sample') && (
                   <div>
-                    <label className="text-xs font-semibold text-[#1F2937] flex items-center gap-1">
+                    <label className="text-xs font-bold text-gray-700 flex items-center gap-1.5 mb-1.5">
                       <ClipboardList className="w-3.5 h-3.5 text-[#168B57]" /> Nature of Sample
                     </label>
-                    <div className="relative mt-1">
-                      <ClipboardList className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
+                    <div className="relative">
+                      <ClipboardList className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                       <input
                         list="list-nature_of_sample"
                         value={form.nature_of_sample}
                         onChange={e => setForm({ ...form, nature_of_sample: e.target.value })}
                         placeholder="e.g. Solid Pellet / Liquid / Powder"
-                        className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white"
+                        className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
                       />
                       <datalist id="list-nature_of_sample">
                         {(suggestions.nature_of_sample || []).map((item, idx) => (
@@ -629,66 +629,66 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
             </div>
 
             {/* Test Results */}
-            <div className="pt-3 border-t border-[#D1D5DB]/60">
-              <h3 className="text-xs font-bold text-[#0B6B43] uppercase tracking-wider">
+            <div className="pt-4 border-t border-gray-100">
+              <h3 className="text-xs font-black text-[#0B6B43] uppercase tracking-wider">
                 Test Results {showSpec ? '' : '(Specification hidden)'}
               </h3>
               {loadingParams ? (
-                <p className="text-xs text-[#6B7280] py-4">Loading parameters...</p>
+                <p className="text-xs text-gray-500 py-4">Loading parameters...</p>
               ) : (
                 (() => {
                   const activeTableCols = getDefaultTableColumns(selectedType || {}).filter(c => c.visible !== false);
                   return (
-                    <div className="mt-3 overflow-x-auto border border-[#D1D5DB] rounded-xl shadow-sm">
+                    <div className="mt-3 overflow-hidden border border-gray-200/80 rounded-2xl shadow-sm bg-white">
                       <table className="w-full text-xs">
                         <thead>
-                          <tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
+                          <tr className="bg-[#EFEAFD] text-[11px] uppercase font-bold text-[#7A709E] border-b border-purple-100/60">
                             {activeTableCols.map(col => {
                               const cAlign = col.align || (col.key === 'parameter' ? 'left' : 'center');
                               return (
                                 <th
                                   key={col.key}
                                   style={{ textAlign: cAlign }}
-                                  className={`py-2.5 px-3 ${col.key === 's_no' ? 'w-10' : (col.key === 'result' ? 'w-32' : '')}`}
+                                  className={`py-3 px-3.5 ${col.key === 's_no' ? 'w-12' : (col.key === 'result' ? 'w-36' : '')}`}
                                 >
                                   {col.label}
                                 </th>
                               );
                             })}
-                            <th className="py-2.5 px-3 w-16 text-center">Include</th>
+                            <th className="py-3 px-3.5 w-16 text-center">Include</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-[#D1D5DB]/60 bg-white">
+                        <tbody className="divide-y divide-gray-100 bg-white">
                           {results.map((r, i) => {
                             const on = r.enabled !== false;
                             const sno = results.slice(0, i).filter(x => x.enabled !== false).length + (on ? 1 : 0);
                             return (
-                              <tr key={r.parameter_id} className={on ? 'hover:bg-[#EAF7F0]/30' : 'bg-[#F3F4F6] opacity-60'}>
+                              <tr key={r.parameter_id} className={on ? 'hover:bg-emerald-50/30 transition-colors' : 'bg-gray-50/60 opacity-60'}>
                                 {activeTableCols.map(col => {
                                   const cAlign = col.align || (col.key === 'parameter' ? 'left' : 'center');
                                   if (col.key === 's_no') {
                                     return (
-                                      <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 font-bold text-[#6B7280]">
+                                      <td key={col.key} style={{ textAlign: cAlign }} className="py-2.5 px-3.5 font-bold text-gray-500">
                                         {on ? `${sno}.` : '—'}
                                       </td>
                                     );
                                   }
                                   if (col.key === 'parameter') {
                                     return (
-                                      <td key={col.key} style={{ textAlign: cAlign }} className="py-2 px-3 font-bold text-[#1F2937]">
+                                      <td key={col.key} style={{ textAlign: cAlign }} className="py-2.5 px-3.5 font-bold text-gray-900">
                                         {r.name}
                                       </td>
                                     );
                                   }
                                   if (col.key === 'specification') {
                                     return (
-                                      <td key={col.key} className="py-2 px-3">
+                                      <td key={col.key} className="py-2.5 px-3.5">
                                         <input
                                           value={r.specification}
                                           disabled={!on}
                                           onChange={e => updateSpec(i, e.target.value)}
                                           style={{ textAlign: cAlign }}
-                                          className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
+                                          className="w-full px-3 py-1.5 bg-gray-50/70 border border-gray-200/90 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all disabled:bg-gray-100 disabled:text-gray-400"
                                         />
                                       </td>
                                     );
@@ -698,15 +698,15 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                                     const isAffixOn = r.affix_toggles?.['result'] !== false;
                                     const displayAffix = col.affix_value || r.unit || '';
                                     return (
-                                      <td key={col.key} className="py-2 px-3">
-                                        <div className="flex items-center gap-1">
+                                      <td key={col.key} className="py-2.5 px-3.5">
+                                        <div className="flex items-center gap-1.5">
                                           <input
                                             value={r.result}
                                             disabled={!on}
                                             onChange={e => updateResult(i, e.target.value)}
                                             placeholder="-"
                                             style={{ textAlign: cAlign }}
-                                            className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs font-medium disabled:bg-[#F3F4F6]"
+                                            className="w-full px-3 py-1.5 bg-gray-50/70 border border-gray-200/90 rounded-xl text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all disabled:bg-gray-100 disabled:text-gray-400"
                                           />
                                           {hasAffix && (
                                             <button
@@ -714,7 +714,7 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                                               onClick={() => toggleRowAffix(i, 'result')}
                                               disabled={!on}
                                               title={isAffixOn ? `Affix "${col.affix_value}" ON for this row (Click to turn OFF)` : `Affix "${col.affix_value}" OFF for this row (Click to turn ON)`}
-                                              className={`px-1.5 py-1 rounded text-[11px] font-bold border transition-colors shrink-0 select-none ${
+                                              className={`px-2 py-1 rounded-lg text-[11px] font-bold border transition-all shrink-0 select-none shadow-2xs ${
                                                 isAffixOn
                                                   ? 'bg-emerald-50 text-[#0B6B43] border-emerald-300'
                                                   : 'bg-gray-100 text-gray-400 border-gray-300 line-through'
@@ -735,15 +735,15 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                                   const hasAffix = col.affix_type && col.affix_type !== 'none' && col.affix_value;
                                   const isAffixOn = r.affix_toggles?.[col.key || col.label] !== false;
                                   return (
-                                    <td key={col.key} className="py-2 px-3">
-                                      <div className="flex items-center gap-1">
+                                    <td key={col.key} className="py-2.5 px-3.5">
+                                      <div className="flex items-center gap-1.5">
                                         <input
                                           value={customVal}
                                           disabled={!on}
                                           onChange={e => updateCustomValue(i, col.label, e.target.value)}
                                           placeholder="-"
                                           style={{ textAlign: cAlign }}
-                                          className="w-full px-2.5 py-1.5 border border-[#D1D5DB] rounded-lg text-xs bg-[#F9FAFB] disabled:bg-[#F3F4F6]"
+                                          className="w-full px-3 py-1.5 bg-gray-50/70 border border-gray-200/90 rounded-xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all disabled:bg-gray-100 disabled:text-gray-400"
                                         />
                                         {hasAffix && (
                                           <button
@@ -751,7 +751,7 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                                             onClick={() => toggleRowAffix(i, col.key || col.label)}
                                             disabled={!on}
                                             title={isAffixOn ? `Affix "${col.affix_value}" ON for this row (Click to turn OFF)` : `Affix "${col.affix_value}" OFF for this row (Click to turn ON)`}
-                                            className={`px-1.5 py-1 rounded text-[11px] font-bold border transition-colors shrink-0 select-none ${
+                                            className={`px-2 py-1 rounded-lg text-[11px] font-bold border transition-all shrink-0 select-none shadow-2xs ${
                                               isAffixOn
                                                 ? 'bg-emerald-50 text-[#0B6B43] border-emerald-300'
                                                 : 'bg-gray-100 text-gray-400 border-gray-300 line-through'
@@ -764,13 +764,13 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                                     </td>
                                   );
                                 })}
-                                <td className="py-2 px-3 text-center">
+                                <td className="py-2.5 px-3.5 text-center">
                                   <input
                                     type="checkbox"
                                     checked={on}
                                     onChange={() => toggleEnabled(i)}
                                     title={on ? 'Included in report & PDF' : 'Excluded from report & PDF'}
-                                    className="w-4 h-4 accent-[#168B57] cursor-pointer"
+                                    className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57] cursor-pointer"
                                   />
                                 </td>
                               </tr>
@@ -785,9 +785,9 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
             </div>
 
             {/* Remarks (Separately at the bottom with ON/OFF Checkbox) */}
-            <div className="pt-3 border-t border-[#D1D5DB]/60">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                <label className="text-xs font-bold text-[#1F2937] flex items-center gap-2 cursor-pointer select-none">
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <label className="text-xs font-bold text-gray-800 flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={enableRemarks}
@@ -801,14 +801,14 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                     }}
                     className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57]"
                   />
-                  <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" />
-                  <span>Remarks {enableRemarks ? <span className="text-[10px] text-[#0B6B43] font-semibold">(ON - Included in PDF)</span> : <span className="text-[10px] text-[#6B7280] font-normal">(OFF - Excluded from PDF)</span>}</span>
+                  <MessageSquare className="w-4 h-4 text-[#168B57]" />
+                  <span>Remarks {enableRemarks ? <span className="text-[10px] text-[#0B6B43] font-bold">(ON - Included in PDF)</span> : <span className="text-[10px] text-gray-400 font-normal">(OFF - Excluded from PDF)</span>}</span>
                 </label>
                 {enableRemarks && (
                   <button
                     type="button"
                     onClick={() => setForm(f => ({ ...f, remarks: 'The difference between the RM Test and the RM Double Wash Test results should be within 2. If the difference is within this specified limit, the sample will be considered as Pass. If it exceeds this limit, the sample will be considered as Fail.' }))}
-                    className="text-[11px] font-bold text-[#0B6B43] bg-[#EAF7F0] hover:bg-[#D1E7DD] border border-[#86C1A4] px-2.5 py-0.5 rounded-lg transition-colors"
+                    className="text-[11px] font-bold text-[#0B6B43] bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-1 rounded-xl transition-all shadow-2xs"
                     title="Insert standard RM Test comparison note"
                   >
                     + RM Test Note
@@ -816,23 +816,23 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                 )}
               </div>
               {enableRemarks && (
-                <div className="relative mt-1">
-                  <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
+                <div className="relative mt-2">
+                  <MessageSquare className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 pointer-events-none" />
                   <textarea
                     rows={2}
                     value={form.remarks || ''}
                     onChange={e => setForm({ ...form, remarks: e.target.value })}
                     placeholder="e.g. The difference between the RM Test and the RM Double Wash Test results should be within 2..."
-                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs resize-y"
                   />
                 </div>
               )}
             </div>
 
             {/* Notes (Separately at the bottom with ON/OFF Checkbox) */}
-            <div className="pt-3 border-t border-[#D1D5DB]/60">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
-                <label className="text-xs font-bold text-[#1F2937] flex items-center gap-2 cursor-pointer select-none">
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <label className="text-xs font-bold text-gray-800 flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={enableNotes}
@@ -846,37 +846,37 @@ export const NewReport = ({ setActiveTab, setSelectedReportId }) => {
                     }}
                     className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57]"
                   />
-                  <MessageSquare className="w-3.5 h-3.5 text-[#168B57]" />
-                  <span>Notes {enableNotes ? <span className="text-[10px] text-[#0B6B43] font-semibold">(ON - Included in PDF)</span> : <span className="text-[10px] text-[#6B7280] font-normal">(OFF - Excluded from PDF)</span>}</span>
+                  <MessageSquare className="w-4 h-4 text-[#168B57]" />
+                  <span>Notes {enableNotes ? <span className="text-[10px] text-[#0B6B43] font-bold">(ON - Included in PDF)</span> : <span className="text-[10px] text-gray-400 font-normal">(OFF - Excluded from PDF)</span>}</span>
                 </label>
               </div>
               {enableNotes && (
-                <div className="relative mt-1">
-                  <MessageSquare className="w-4 h-4 text-[#6B7280] absolute left-3 top-2.5" />
+                <div className="relative mt-2">
+                  <MessageSquare className="w-4 h-4 text-gray-400 absolute left-3.5 top-3 pointer-events-none" />
                   <textarea
                     rows={2}
                     value={form.notes || ''}
                     onChange={e => setForm({ ...form, notes: e.target.value })}
                     placeholder="e.g. Terms & conditions or specific notes for this report..."
-                    className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white resize-y text-[#1F2937]"
+                    className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs resize-y"
                   />
                 </div>
               )}
             </div>
 
             {/* Actions */}
-            <div className="flex flex-wrap gap-2 pt-3 border-t border-[#D1D5DB]/60">
+            <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
               <button
                 disabled={saving || isDemo}
                 onClick={() => save(false)}
-                className="px-5 py-2.5 rounded-xl bg-[#168B57] text-white font-bold text-xs hover:bg-[#0B6B43] transition-colors disabled:opacity-60 shadow-sm"
+                className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#168B57] to-[#0B6B43] hover:from-[#0B6B43] hover:to-[#168B57] text-white font-bold text-xs shadow-[0_4px_14px_rgba(22,139,87,0.25)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
               >
                 {saving ? 'Saving...' : 'Save Report'}
               </button>
               <button
                 disabled={saving || isDemo}
                 onClick={() => save(true)}
-                className="px-5 py-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 transition-colors shadow-[0_4px_12px_rgba(245,158,11,0.3)] disabled:opacity-60"
+                className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-500 text-white font-bold text-xs shadow-[0_4px_14px_rgba(245,158,11,0.25)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
               >
                 Save &amp; Generate PDF
               </button>

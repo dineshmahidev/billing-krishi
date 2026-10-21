@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useToast } from '../../components/common/Toast';
+import { Building2, Receipt, Mail, Send, ShieldCheck, Image as ImageIcon, Save, CheckCircle2 } from 'lucide-react';
 
 export const Settings = () => {
   const { addToast } = useToast();
@@ -76,63 +77,81 @@ export const Settings = () => {
   return (
     <div className="space-y-4 max-w-3xl">
       <h1 className="text-xl font-bold text-[#1F2937]">Lab Settings</h1>
-      <form onSubmit={save} className="bg-white border border-[#D1D5DB] rounded-2xl p-6 space-y-4">
-        <div>
-          <label className="text-xs font-bold">Lab Name</label>
-          <input value={form.lab_name} onChange={e=>setForm({...form, lab_name:e.target.value})} className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-        </div>
-        <div>
-          <label className="text-xs font-bold">Tagline</label>
-          <input value={form.tagline} onChange={e=>setForm({...form, tagline:e.target.value})} className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-        </div>
-        <div>
-          <label className="text-xs font-bold">Address</label>
-          <textarea rows="2" value={form.address} onChange={e=>setForm({...form, address:e.target.value})} className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div><label className="text-xs font-bold">Phone</label><input value={form.phone} onChange={e=>setForm({...form, phone:e.target.value})} className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" /></div>
-          <div><label className="text-xs font-bold">Email</label><input type="email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" /></div>
-          <div><label className="text-xs font-bold">Website</label><input value={form.website} onChange={e=>setForm({...form, website:e.target.value})} placeholder="https://krishilab25.in" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" /></div>
+      <form onSubmit={save} className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-xs font-black text-[#0B6B43] uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-gray-100">
+            <Building2 className="w-4 h-4 text-[#168B57]" /> General Information
+          </h3>
+          <div>
+            <label className="text-xs font-bold text-gray-700">Lab Name</label>
+            <input value={form.lab_name} onChange={e=>setForm({...form, lab_name:e.target.value})} className="mt-1.5 w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-700">Tagline</label>
+            <input value={form.tagline} onChange={e=>setForm({...form, tagline:e.target.value})} className="mt-1.5 w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" />
+          </div>
+          <div>
+            <label className="text-xs font-bold text-gray-700">Address</label>
+            <textarea rows="2" value={form.address} onChange={e=>setForm({...form, address:e.target.value})} className="mt-1.5 w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs resize-y" />
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div><label className="text-xs font-bold text-gray-700">Phone</label><input value={form.phone} onChange={e=>setForm({...form, phone:e.target.value})} className="mt-1.5 w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" /></div>
+            <div><label className="text-xs font-bold text-gray-700">Email</label><input type="email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} className="mt-1.5 w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" /></div>
+            <div><label className="text-xs font-bold text-gray-700">Website</label><input value={form.website} onChange={e=>setForm({...form, website:e.target.value})} placeholder="https://krishilab25.in" className="mt-1.5 w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" /></div>
+          </div>
         </div>
 
-        <div className="bg-[#EAF7F0] border border-[#D1EEE0] rounded-xl p-4 space-y-3">
-          <h3 className="text-xs font-bold text-[#0B6B43]">Invoice & GST Settings</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div><label className="text-xs font-bold">Default GST %</label><input type="number" step="0.01" value={form.default_gst_percent} onChange={e=>setForm({...form, default_gst_percent:e.target.value})} className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" /></div>
-            <div><label className="text-xs font-bold">Invoice Prefix</label><input value={form.invoice_prefix} onChange={e=>setForm({...form, invoice_prefix:e.target.value})} className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" /></div>
-            <div><label className="text-xs font-bold">GSTIN</label><input value={form.gstin} onChange={e=>setForm({...form, gstin:e.target.value})} placeholder="33AAAFK8921B1Z2" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" /></div>
-            <label className="flex items-center gap-2 text-xs font-bold mt-6"><input type="checkbox" checked={!!form.gst_enabled} onChange={e=>setForm({...form, gst_enabled:e.target.checked})} /> GST Enabled (on/off per invoice)</label>
+        <div className="bg-emerald-50/40 border border-emerald-100 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xs">
+          <h3 className="text-xs font-black text-[#0B6B43] uppercase tracking-wider flex items-center gap-2">
+            <Receipt className="w-4 h-4 text-[#168B57]" /> Invoice &amp; GST Settings
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div><label className="text-xs font-bold text-gray-700">Default GST %</label><input type="number" step="0.01" value={form.default_gst_percent} onChange={e=>setForm({...form, default_gst_percent:e.target.value})} className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
+            <div><label className="text-xs font-bold text-gray-700">Invoice Prefix</label><input value={form.invoice_prefix} onChange={e=>setForm({...form, invoice_prefix:e.target.value})} className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
+            <div><label className="text-xs font-bold text-gray-700">GSTIN</label><input value={form.gstin} onChange={e=>setForm({...form, gstin:e.target.value})} placeholder="33AAAFK8921B1Z2" className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
+            <div className="flex items-center">
+              <label className="flex items-center gap-2.5 text-xs font-bold text-gray-800 cursor-pointer select-none mt-4 sm:mt-6">
+                <input type="checkbox" checked={!!form.gst_enabled} onChange={e=>setForm({...form, gst_enabled:e.target.checked})} className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57]" />
+                GST Enabled (on/off per invoice)
+              </label>
+            </div>
           </div>
-          <p className="text-[11px] text-[#6B7280]">When disabled, invoices will be generated without GST. You can also toggle per invoice in Reports.</p>
+          <p className="text-[11px] text-gray-500 font-medium">When disabled, invoices will be generated without GST. You can also toggle per invoice in Reports.</p>
         </div>
 
-        <div className="bg-[#F3F4F6] border border-[#D1D5DB] rounded-xl p-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs font-bold text-[#1F2937]">Email / SMTP (used for enquiry & auto-reply mails)</h3>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EAF7F0] text-[#168B57] border border-[#D1EEE0]">Configured</span>
+        <div className="bg-gray-50/70 border border-gray-200/80 rounded-3xl p-5 sm:p-6 space-y-4 shadow-2xs">
+          <div className="flex items-center justify-between pb-2 border-b border-gray-200/70">
+            <h3 className="text-xs font-black text-gray-900 uppercase tracking-wider flex items-center gap-2">
+              <Mail className="w-4 h-4 text-[#168B57]" /> Email / SMTP (enquiry &amp; auto-reply)
+            </h3>
+            <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100/70 text-[#0B6B43] border border-emerald-200 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 text-[#168B57]" /> Configured
+            </span>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div><label className="text-xs font-bold">SMTP Host</label><input value={form.smtp_host} onChange={e=>setForm({...form, smtp_host:e.target.value})} placeholder="smtp.gmail.com" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white" /></div>
-            <div><label className="text-xs font-bold">Port</label><input type="number" value={form.smtp_port} onChange={e=>setForm({...form, smtp_port:e.target.value})} placeholder="587" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white" /></div>
-            <div><label className="text-xs font-bold">Encryption</label>
-              <select value={form.smtp_encryption} onChange={e=>setForm({...form, smtp_encryption:e.target.value})} className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+            <div><label className="text-xs font-bold text-gray-700">SMTP Host</label><input value={form.smtp_host} onChange={e=>setForm({...form, smtp_host:e.target.value})} placeholder="smtp.gmail.com" className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
+            <div><label className="text-xs font-bold text-gray-700">Port</label><input type="number" value={form.smtp_port} onChange={e=>setForm({...form, smtp_port:e.target.value})} placeholder="587" className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
+            <div><label className="text-xs font-bold text-gray-700">Encryption</label>
+              <select value={form.smtp_encryption} onChange={e=>setForm({...form, smtp_encryption:e.target.value})} className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs cursor-pointer">
                 <option value="">— default (587=tls, 465=ssl) —</option>
                 <option value="tls">TLS</option>
                 <option value="ssl">SSL</option>
                 <option value="none">None</option>
               </select>
             </div>
-            <div><label className="text-xs font-bold">SMTP Username</label><input value={form.smtp_username} onChange={e=>setForm({...form, smtp_username:e.target.value})} autoComplete="off" placeholder="yourlab@gmail.com" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white" /></div>
-            <div><label className="text-xs font-bold">SMTP Password / App Password</label><input type="password" value={form.smtp_password} onChange={e=>setForm({...form, smtp_password:e.target.value})} placeholder="•••••••• (blank = keep saved)" autoComplete="new-password" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white" /></div>
-            <div><label className="text-xs font-bold">From Name</label><input value={form.mail_from_name} onChange={e=>setForm({...form, mail_from_name:e.target.value})} placeholder="defaults to Lab Name" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white" /></div>
-            <div className="sm:col-span-3"><label className="text-xs font-bold">From Email</label><input type="email" value={form.mail_from_address} onChange={e=>setForm({...form, mail_from_address:e.target.value})} placeholder="defaults to lab Email above" className="mt-1 w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white" /></div>
+            <div><label className="text-xs font-bold text-gray-700">SMTP Username</label><input value={form.smtp_username} onChange={e=>setForm({...form, smtp_username:e.target.value})} autoComplete="off" placeholder="yourlab@gmail.com" className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
+            <div><label className="text-xs font-bold text-gray-700">SMTP Password</label><input type="password" value={form.smtp_password} onChange={e=>setForm({...form, smtp_password:e.target.value})} placeholder="•••••••• (blank = keep saved)" autoComplete="new-password" className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
+            <div><label className="text-xs font-bold text-gray-700">From Name</label><input value={form.mail_from_name} onChange={e=>setForm({...form, mail_from_name:e.target.value})} placeholder="defaults to Lab Name" className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
+            <div className="sm:col-span-3"><label className="text-xs font-bold text-gray-700">From Email</label><input type="email" value={form.mail_from_address} onChange={e=>setForm({...form, mail_from_address:e.target.value})} placeholder="defaults to lab Email above" className="mt-1.5 w-full px-3.5 py-2.5 bg-white border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] transition-all shadow-2xs" /></div>
           </div>
           
           {/* Test Email Section */}
-          <div className="pt-3 border-t border-[#D1D5DB]/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-3 rounded-xl border">
+          <div className="pt-3 border-t border-gray-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs">
             <div>
-              <p className="text-xs font-bold text-[#1F2937]">Send Test Email</p>
-              <p className="text-[11px] text-[#6B7280]">Verify your SMTP connection by sending a real test email.</p>
+              <p className="text-xs font-bold text-gray-900 flex items-center gap-1.5">
+                <Send className="w-3.5 h-3.5 text-[#168B57]" /> Send Test Email
+              </p>
+              <p className="text-[11px] text-gray-500 mt-0.5">Verify your SMTP connection by sending a real test email.</p>
             </div>
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <input 
@@ -140,13 +159,13 @@ export const Settings = () => {
                 value={testEmail} 
                 onChange={e=>setTestEmail(e.target.value)} 
                 placeholder="recipient@gmail.com" 
-                className="px-3 py-1.5 border border-[#D1D5DB] rounded-xl text-xs flex-1 sm:w-64"
+                className="px-3.5 py-2 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] flex-1 sm:w-64"
               />
               <button 
                 type="button" 
                 onClick={sendTestMail} 
                 disabled={sendingTest} 
-                className="px-4 py-1.5 rounded-xl bg-[#0B6B43] hover:bg-[#168B57] text-white text-xs font-bold transition-all disabled:opacity-50 whitespace-nowrap shadow-sm"
+                className="px-5 py-2 rounded-2xl bg-[#0B6B43] hover:bg-[#168B57] text-white text-xs font-bold transition-all disabled:opacity-50 whitespace-nowrap shadow-sm hover:scale-[1.01] active:scale-[0.99]"
               >
                 {sendingTest ? 'Sending...' : 'Send Test Mail'}
               </button>
@@ -156,15 +175,24 @@ export const Settings = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {['logo','seal','signature'].map(key=>(
-            <div key={key} className="border border-[#D1D5DB] rounded-xl p-3 text-center space-y-2">
-              <p className="text-xs font-bold capitalize">{key}</p>
-              {preview[key] ? <img src={preview[key]} alt={key} className="h-16 w-auto mx-auto border border-[#D1D5DB] rounded bg-white p-1" /> : <div className="h-16 flex items-center justify-center text-[11px] text-[#6B7280]">No file</div>}
-              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>onFile(key, e)} className="w-full text-xs" />
+            <div key={key} className="border border-gray-200/80 rounded-3xl p-4 text-center space-y-3 bg-gray-50/40 hover:bg-gray-50/80 transition-colors shadow-2xs">
+              <p className="text-xs font-bold capitalize text-gray-800">{key}</p>
+              {preview[key] ? (
+                <img src={preview[key]} alt={key} className="h-16 w-auto mx-auto border border-gray-200 rounded-xl bg-white p-1.5 shadow-2xs" />
+              ) : (
+                <div className="h-16 flex items-center justify-center text-[11px] text-gray-400 font-medium">No file</div>
+              )}
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>onFile(key, e)} className="w-full text-xs text-gray-600 file:mr-2 file:py-1 file:px-2.5 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-[#0B6B43] hover:file:bg-emerald-100" />
             </div>
           ))}
         </div>
 
-        <button disabled={saving} className="px-6 py-2.5 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs disabled:opacity-60">{saving?'Saving...':'Save Settings'}</button>
+        <div className="pt-2">
+          <button disabled={saving} className="px-7 py-3 rounded-2xl bg-gradient-to-r from-[#168B57] to-[#0B6B43] hover:from-[#0B6B43] hover:to-[#168B57] transition-all text-white font-bold text-xs shadow-[0_4px_14px_rgba(22,139,87,0.25)] hover:scale-[1.01] active:scale-[0.99] disabled:opacity-60 flex items-center gap-2">
+            <Save className="w-4 h-4" />
+            {saving ? 'Saving...' : 'Save Settings'}
+          </button>
+        </div>
       </form>
     </div>
   );

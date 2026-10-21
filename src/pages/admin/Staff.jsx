@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useToast } from '../../components/common/Toast';
+import { UserPlus, Shield, X, KeyRound } from 'lucide-react';
 
 export const Staff = () => {
   const { addToast } = useToast();
@@ -118,27 +119,70 @@ export const Staff = () => {
       )}
 
       {show && (
-        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-4">
-          <form onSubmit={submit} className="bg-white rounded-2xl border border-[#D1D5DB] p-6 w-full max-w-lg space-y-3">
-            <h3 className="text-sm font-bold text-[#1F2937]">{editId ? 'Edit User' : 'Create Staff'}</h3>
-            <input required placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input required type="email" placeholder="Email" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input type="password" required={!editId} autoComplete="new-password" placeholder={editId ? 'New password (leave blank to keep current)' : 'Password'} value={form.password} onChange={e=>setForm({...form, password:e.target.value})} className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <input type="password" required={!editId} autoComplete="new-password" placeholder={editId ? 'Confirm new password' : 'Confirm Password'} value={form.password_confirmation} onChange={e=>setForm({...form, password_confirmation:e.target.value})} className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-            <select value={form.role} onChange={e=>setForm({...form, role:e.target.value})} className="w-full px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white">
-              <option value="staff">Staff</option><option value="admin">Admin</option>
-            </select>
-            <div>
-              <p className="text-xs font-bold text-[#1F2937] mb-1">Permissions</p>
-              <div className="grid grid-cols-2 gap-1">
-                {perms.map(p=>(
-                  <label key={p} className="flex items-center gap-1 text-xs"><input type="checkbox" checked={form.permissions.includes(p)} onChange={()=>togglePerm(p)} /> {p}</label>
-                ))}
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4">
+          <form onSubmit={submit} className="bg-white rounded-3xl border border-white/80 p-6 sm:p-8 w-full max-w-lg space-y-4 shadow-[0_25px_60px_rgba(0,0,0,0.2)]">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <h3 className="text-sm font-black text-gray-900 flex items-center gap-2">
+                <UserPlus className="w-4 h-4 text-[#168B57]" />
+                {editId ? 'Edit User' : 'Create Staff Member'}
+              </h3>
+              <button type="button" onClick={closeModal} className="p-1 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1">Full Name *</label>
+                <input required placeholder="Staff name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} className="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1">Email Address *</label>
+                <input required type="email" placeholder="staff@example.com" value={form.email} onChange={e=>setForm({...form, email:e.target.value})} className="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">{editId ? 'New Password' : 'Password *'}</label>
+                  <input type="password" required={!editId} autoComplete="new-password" placeholder={editId ? 'Leave blank to keep' : '••••••••'} value={form.password} onChange={e=>setForm({...form, password:e.target.value})} className="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-700 block mb-1">Confirm Password</label>
+                  <input type="password" required={!editId} autoComplete="new-password" placeholder={editId ? 'Confirm password' : '••••••••'} value={form.password_confirmation} onChange={e=>setForm({...form, password_confirmation:e.target.value})} className="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-gray-700 block mb-1">System Role</label>
+                <select value={form.role} onChange={e=>setForm({...form, role:e.target.value})} className="w-full px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs cursor-pointer">
+                  <option value="staff">Staff</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+
+              <div className="bg-gray-50/70 p-3.5 rounded-2xl border border-gray-100 space-y-2">
+                <p className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-[#168B57]" /> Assigned Permissions
+                </p>
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {perms.map(p=>(
+                    <label key={p} className="flex items-center gap-2 text-xs font-semibold text-gray-700 cursor-pointer select-none">
+                      <input type="checkbox" checked={form.permissions.includes(p)} onChange={()=>togglePerm(p)} className="w-4 h-4 rounded text-[#168B57] focus:ring-[#168B57] accent-[#168B57]" />
+                      <span className="capitalize">{p.replace('_', ' ')}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <button type="button" onClick={closeModal} className="px-4 py-2 rounded-xl border border-[#D1D5DB] text-xs font-bold">Cancel</button>
-              <button type="submit" className="px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs">{editId ? 'Save Changes' : 'Create'}</button>
+
+            <div className="flex justify-end gap-2.5 pt-2 border-t border-gray-100">
+              <button type="button" onClick={closeModal} className="px-5 py-2.5 rounded-2xl border border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-50 transition-colors shadow-2xs">
+                Cancel
+              </button>
+              <button type="submit" className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#168B57] to-[#0B6B43] hover:from-[#0B6B43] hover:to-[#168B57] text-white font-bold text-xs shadow-[0_4px_14px_rgba(22,139,87,0.25)] hover:scale-[1.01] active:scale-[0.99] transition-all">
+                {editId ? 'Save Changes' : 'Create Staff'}
+              </button>
             </div>
           </form>
         </div>

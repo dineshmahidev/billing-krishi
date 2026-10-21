@@ -3,7 +3,7 @@ import api, { openInvoiceWord, downloadInvoiceWord } from '../../services/api';
 import { useToast } from '../../components/common/Toast';
 import { useAuth } from '../../context/AuthContext';
 import { WhatsAppModal } from '../../components/common/WhatsAppModal';
-import { Receipt, Search, Filter, DollarSign, TrendingUp, Clock, FileType, FileDown, Pencil, X, Layers, Calculator, MessageCircle } from 'lucide-react';
+import { Receipt, Search, Filter, DollarSign, TrendingUp, Clock, FileType, FileDown, Pencil, X, Layers, Calculator, MessageCircle, ArrowUpRight, Users } from 'lucide-react';
 
 export const openWhatsappMessage = (phone, text) => {
   let cleanPhone = (phone || '').toString().replace(/[^0-9]/g, '');
@@ -173,96 +173,188 @@ export const Invoices = () => {
 
       {tab==='invoices' && (<>
 
-      {/* Revenue */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <div className="bg-[#168B57] border border-[#168B57] rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(22,139,87,0.25)]">
-          <p className="text-[11px] font-bold text-white/80 flex items-center gap-1"><DollarSign className="w-3 h-3"/> Total Revenue</p>
-          <p className="text-lg font-bold text-white">₹{Number(stats.total_revenue||0).toFixed(2)}</p>
-          <p className="text-[11px] text-white/70">{stats.total_invoices||0} invoices</p>
+      {/* Revenue Stats (matching Dashboard container UI) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white rounded-3xl p-6 border border-emerald-100/70 shadow-[0_4px_25px_rgba(22,139,87,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+          <div className="flex items-start justify-between">
+            <span className="text-[#168B57] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+              TOTAL REVENUE <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-[#EAF7F0] flex items-center justify-center text-[#168B57] shrink-0">
+              <DollarSign className="w-5 h-5 stroke-[2.2]" />
+            </div>
+          </div>
+          <p className="text-3xl font-black text-gray-900 tracking-tight leading-none my-3">
+            ₹{Number(stats.total_revenue||0).toFixed(2)}
+          </p>
+          <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+            <span className="text-xs font-medium text-gray-400">
+              {stats.total_invoices||0} invoices
+            </span>
+          </div>
         </div>
-        <div className="bg-emerald-500 border border-emerald-600 rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(16,185,129,0.25)]">
-          <p className="text-[11px] font-bold text-white/80 flex items-center gap-1"><TrendingUp className="w-3 h-3"/> Paid</p>
-          <p className="text-lg font-bold text-white">₹{Number(stats.paid_revenue||0).toFixed(2)}</p>
-          <p className="text-[11px] text-white/70">{stats.paid_count||0} paid</p>
+
+        <div className="bg-white rounded-3xl p-6 border border-emerald-100/70 shadow-[0_4px_25px_rgba(16,185,129,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+          <div className="flex items-start justify-between">
+            <span className="text-emerald-600 text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+              PAID REVENUE <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+              <TrendingUp className="w-5 h-5 stroke-[2.2]" />
+            </div>
+          </div>
+          <p className="text-3xl font-black text-gray-900 tracking-tight leading-none my-3">
+            ₹{Number(stats.paid_revenue||0).toFixed(2)}
+          </p>
+          <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+            <span className="text-xs font-medium text-gray-400">
+              {stats.paid_count||0} paid invoices
+            </span>
+          </div>
         </div>
-        <div className="bg-amber-500 border border-amber-600 rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(245,158,11,0.25)]">
-          <p className="text-[11px] font-bold text-white/80 flex items-center gap-1"><Clock className="w-3 h-3"/> Unpaid</p>
-          <p className="text-lg font-bold text-white">₹{Number(stats.unpaid_revenue||0).toFixed(2)}</p>
-          <p className="text-[11px] text-white/70">{stats.unpaid_count||0} unpaid</p>
+
+        <div className="bg-white rounded-3xl p-6 border border-amber-100/70 shadow-[0_4px_25px_rgba(245,158,11,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+          <div className="flex items-start justify-between">
+            <span className="text-[#D97706] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+              UNPAID REVENUE <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-[#FEF3C7] flex items-center justify-center text-[#D97706] shrink-0">
+              <Clock className="w-5 h-5 stroke-[2.2]" />
+            </div>
+          </div>
+          <p className="text-3xl font-black text-gray-900 tracking-tight leading-none my-3">
+            ₹{Number(stats.unpaid_revenue||0).toFixed(2)}
+          </p>
+          <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+            <span className="text-xs font-medium text-gray-400">
+              {stats.unpaid_count||0} pending invoices
+            </span>
+          </div>
         </div>
-        <div className="bg-[#1F2937] border border-[#1F2937] rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(31,41,55,0.25)]">
-          <p className="text-[11px] font-bold text-white/80">Calculation</p>
-          <p className="text-xs text-white">Subtotal + GST ({stats.total_revenue ? 'auto' : '18%'}) = Total</p>
-          <p className="text-[11px] text-white/70">Per parameter price sum</p>
+
+        <div className="bg-white rounded-3xl p-6 border border-purple-100/70 shadow-[0_4px_25px_rgba(139,92,246,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+          <div className="flex items-start justify-between">
+            <span className="text-[#8B5CF6] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+              CALCULATION <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+            </span>
+            <div className="w-10 h-10 rounded-2xl bg-[#F3E8FF] flex items-center justify-center text-[#8B5CF6] shrink-0">
+              <Calculator className="w-5 h-5 stroke-[2.2]" />
+            </div>
+          </div>
+          <p className="text-sm font-bold text-gray-800 tracking-tight my-3">
+            Subtotal + GST ({stats.total_revenue ? 'auto' : '18%'}) = Total
+          </p>
+          <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+            <span className="text-xs font-medium text-gray-400">
+              Per parameter price sum
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="bg-white border border-[#D1D5DB] rounded-2xl p-4 flex flex-col lg:flex-row gap-3">
+      <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 flex flex-col lg:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Invoice No, Company..." className="w-full pl-9 pr-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+          <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <input
+            value={search}
+            onChange={e=>setSearch(e.target.value)}
+            placeholder="Invoice No, Company..."
+            className="w-full pl-10 pr-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+          />
         </div>
-        <input value={company} onChange={e=>setCompany(e.target.value)} placeholder="Filter by Company" className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-        <select value={typeFilter} onChange={e=>setTypeFilter(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white">
+        <input
+          value={company}
+          onChange={e=>setCompany(e.target.value)}
+          placeholder="Filter by Company"
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+        />
+        <select
+          value={typeFilter}
+          onChange={e=>setTypeFilter(e.target.value)}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+        >
           <option value="">All Types</option>
           {types.map(t=> <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
-        <select value={status} onChange={e=>setStatus(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white">
+        <select
+          value={status}
+          onChange={e=>setStatus(e.target.value)}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+        >
           <option value="">All Status</option>
           <option value="paid">Paid</option>
           <option value="unpaid">Unpaid</option>
           <option value="partial">Partial</option>
         </select>
-        <input type="date" value={from} onChange={e=>setFrom(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" title="From date" />
-        <input type="date" value={to} onChange={e=>setTo(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" title="To date" />
-        <button onClick={()=>{ setFrom(''); setTo(''); }} className={`px-3 py-1.5 rounded-lg text-[11px] font-bold ${(from||to) ? 'bg-[#EAF7F0] text-[#0B6B43]' : 'text-[#D1D5DB]'}`}>All Time</button>
+        <input
+          type="date"
+          value={from}
+          onChange={e=>setFrom(e.target.value)}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+          title="From date"
+        />
+        <input
+          type="date"
+          value={to}
+          onChange={e=>setTo(e.target.value)}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+          title="To date"
+        />
+        <button
+          onClick={()=>{ setFrom(''); setTo(''); }}
+          className={`px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all shadow-2xs ${(from||to) ? 'bg-[#EAF7F0] text-[#0B6B43]' : 'bg-gray-100 text-gray-400'}`}
+        >
+          All Time
+        </button>
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden overflow-x-auto">
-        {loading ? <div className="p-8 text-center text-xs text-[#6B7280]">Loading...</div> : (data.data||[]).length===0 ? <div className="p-8 text-center text-xs text-[#6B7280]">No invoices — create a report first (auto generates invoice)</div> : (
-          <table className="w-full text-left text-xs">
-            <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-              <th className="py-2 px-3">Invoice No</th><th className="py-2 px-3">Report</th><th className="py-2 px-3">Company</th><th className="py-2 px-3">Type</th><th className="py-2 px-3">Date</th><th className="py-2 px-3 text-right">Subtotal</th><th className="py-2 px-3 text-right">GST</th><th className="py-2 px-3 text-right">Total</th><th className="py-2 px-3">Status</th><th className="py-2 px-3 text-right">Actions</th>
-            </tr></thead>
-            <tbody className="divide-y divide-[#D1D5DB]/60">
-              {(data.data||[]).map(inv=>(
-                <tr key={inv.id} className="hover:bg-[#EAF7F0]/30">
-                  <td className="py-2 px-3 font-mono font-bold text-[#0B6B43]">{inv.invoice_no}</td>
-                  <td className="py-2 px-3 font-mono">{inv.report?.report_no || '-'}</td>
-                  <td className="py-2 px-3 font-bold">{inv.party_name || inv.customer_name || '-'}</td>
-                  <td className="py-2 px-3">{inv.report?.report_type?.name || '-'}</td>
-                  <td className="py-2 px-3">{inv.created_at?.split('T')[0]}</td>
-                  <td className="py-2 px-3 text-right">₹{Number(inv.subtotal).toFixed(2)}</td>
-                  <td className="py-2 px-3 text-right">{inv.gst_enabled ? <>₹{Number(inv.gst_amount).toFixed(2)} ({inv.gst_percent}%)</> : '—'}</td>
-                  <td className="py-2 px-3 text-right font-bold">₹{Number(inv.total_amount).toFixed(2)}</td>
-                  <td className="py-2 px-3">
-                      <button disabled={isDemo} onClick={()=>toggleStatus(inv)} className={`px-2 py-1 rounded-full text-[11px] font-bold text-white ${inv.status==='paid' ? 'bg-emerald-500' : inv.status==='partial' ? 'bg-sky-500' : 'bg-amber-500'} ${isDemo ? 'opacity-70 cursor-not-allowed' : ''}`}>
-                      {inv.status}
-                    </button>
-                  </td>
-                  <td className="py-2 px-3 text-right">
-                    <div className="flex gap-1 justify-end">
-                      {!isDemo && (
-                        <button onClick={()=>openEdit(inv)} title="Edit rates & quantity" className="px-2 py-1 rounded-lg bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white text-[11px] font-bold flex items-center gap-1"><Pencil className="w-3 h-3"/></button>
-                      )}
-                      <button onClick={()=>openInvoice(inv.report_id)} title="View Invoice PDF" className="px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold flex items-center gap-1">PDF</button>
-                      <button onClick={()=>shareInvoiceWhatsapp(inv)} title="Share via WhatsApp" className="px-2 py-1 rounded-lg bg-[#25D366] hover:bg-[#1EBE5D] text-white text-[11px] font-bold flex items-center gap-1 shadow-sm"><MessageCircle className="w-3 h-3"/></button>
-                      <button onClick={()=>openInvoiceDoc(inv.report_id)} title="Open invoice Word" className="px-2 py-1 rounded-lg bg-sky-600 text-white text-[11px] font-bold flex items-center gap-1"><FileType className="w-3 h-3"/></button>
-                      <button onClick={()=>downloadInvoiceDoc(inv)} title="Download invoice Word" className="px-2 py-1 rounded-lg bg-white border border-sky-300 text-sky-700 text-[11px] font-bold flex items-center gap-1"><FileDown className="w-3 h-3"/></button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      <div className="bg-white rounded-3xl p-6 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 overflow-hidden">
+        {loading ? <div className="p-8 text-center text-xs text-gray-400 font-medium">Loading...</div> : (data.data||[]).length===0 ? <div className="p-8 text-center text-xs text-gray-400 font-medium">No invoices — create a report first (auto generates invoice)</div> : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead><tr className="bg-[#EFEAFD] text-[11px] uppercase font-bold text-[#7A709E] border-b border-purple-100/60">
+                <th className="py-3 px-3 rounded-l-2xl">Invoice No</th><th className="py-3 px-3">Report</th><th className="py-3 px-3">Company</th><th className="py-3 px-3">Type</th><th className="py-3 px-3">Date</th><th className="py-3 px-3 text-right">Subtotal</th><th className="py-3 px-3 text-right">GST</th><th className="py-3 px-3 text-right">Total</th><th className="py-3 px-3">Status</th><th className="py-3 px-3 text-right rounded-r-2xl">Actions</th>
+              </tr></thead>
+              <tbody className="divide-y divide-gray-100">
+                {(data.data||[]).map(inv=>(
+                  <tr key={inv.id} className="hover:bg-purple-50/30 transition-colors">
+                    <td className="py-3 px-3 font-mono font-bold text-[#0B6B43]">{inv.invoice_no}</td>
+                    <td className="py-3 px-3 font-mono text-gray-600">{inv.report?.report_no || '-'}</td>
+                    <td className="py-3 px-3 font-bold text-gray-900">{inv.party_name || inv.customer_name || '-'}</td>
+                    <td className="py-3 px-3 text-gray-600">{inv.report?.report_type?.name || '-'}</td>
+                    <td className="py-3 px-3 text-gray-500">{inv.created_at?.split('T')[0]}</td>
+                    <td className="py-3 px-3 text-right text-gray-700">₹{Number(inv.subtotal).toFixed(2)}</td>
+                    <td className="py-3 px-3 text-right text-gray-700">{inv.gst_enabled ? <>₹{Number(inv.gst_amount).toFixed(2)} ({inv.gst_percent}%)</> : '—'}</td>
+                    <td className="py-3 px-3 text-right font-bold text-gray-900">₹{Number(inv.total_amount).toFixed(2)}</td>
+                    <td className="py-3 px-3">
+                        <button disabled={isDemo} onClick={()=>toggleStatus(inv)} className={`px-2.5 py-1 rounded-full text-[11px] font-bold text-white shadow-2xs ${inv.status==='paid' ? 'bg-emerald-500' : inv.status==='partial' ? 'bg-sky-500' : 'bg-amber-500'} ${isDemo ? 'opacity-70 cursor-not-allowed' : ''}`}>
+                        {inv.status}
+                      </button>
+                    </td>
+                    <td className="py-3 px-3 text-right">
+                      <div className="flex gap-1 justify-end">
+                        {!isDemo && (
+                          <button onClick={()=>openEdit(inv)} title="Edit rates & quantity" className="px-2.5 py-1.5 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs"><Pencil className="w-3 h-3"/></button>
+                        )}
+                        <button onClick={()=>openInvoice(inv.report_id)} title="View Invoice PDF" className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs">PDF</button>
+                        <button onClick={()=>shareInvoiceWhatsapp(inv)} title="Share via WhatsApp" className="px-2.5 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs"><MessageCircle className="w-3 h-3"/></button>
+                        <button onClick={()=>openInvoiceDoc(inv.report_id)} title="Open invoice Word" className="px-2.5 py-1.5 rounded-xl bg-sky-600 text-white text-[11px] font-bold flex items-center gap-1 shadow-2xs"><FileType className="w-3 h-3"/></button>
+                        <button onClick={()=>downloadInvoiceDoc(inv)} title="Download invoice Word" className="px-2.5 py-1.5 rounded-xl bg-white border border-sky-300 text-sky-700 text-[11px] font-bold flex items-center gap-1 shadow-2xs"><FileDown className="w-3 h-3"/></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-        <div className="p-3 border-t border-[#D1D5DB] flex justify-between text-xs">
-          <span className="text-[#6B7280]">Page {data.current_page || 1} of {data.last_page || 1}</span>
+        <div className="p-3 border-t border-gray-100 flex justify-between text-xs">
+          <span className="text-gray-400 font-medium">Page {data.current_page || 1} of {data.last_page || 1}</span>
           <div className="flex gap-1">
-            <button disabled={(data.current_page||1)<=1} onClick={()=>loadInvoices((data.current_page||1)-1)} className="px-3 py-1 rounded-lg border border-[#D1D5DB] disabled:opacity-50">Prev</button>
-            <button disabled={(data.current_page||1) >= (data.last_page||1)} onClick={()=>loadInvoices((data.current_page||1)+1)} className="px-3 py-1 rounded-lg border border-[#D1D5DB] disabled:opacity-50">Next</button>
+            <button disabled={(data.current_page||1)<=1} onClick={()=>loadInvoices((data.current_page||1)-1)} className="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-bold disabled:opacity-40 hover:bg-gray-50 transition-colors">Prev</button>
+            <button disabled={(data.current_page||1) >= (data.last_page||1)} onClick={()=>loadInvoices((data.current_page||1)+1)} className="px-3.5 py-1.5 rounded-xl border border-gray-200 text-xs font-bold disabled:opacity-40 hover:bg-gray-50 transition-colors">Next</button>
           </div>
         </div>
       </div>
@@ -272,36 +364,50 @@ export const Invoices = () => {
       {tab==='settlement' && <BulkSettlement />}
 
       {editInv && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4" onClick={closeEdit}>
-          <div onClick={e=>e.stopPropagation()} className="bg-white rounded-2xl border border-[#D1D5DB] p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto space-y-4 shadow-[0_20px_60px_rgba(0,0,0,0.25)]">
-            <div className="flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs flex items-center justify-center p-4" onClick={closeEdit}>
+          <div onClick={e=>e.stopPropagation()} className="bg-white rounded-3xl border border-white/80 p-6 sm:p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto space-y-5 shadow-[0_25px_60px_rgba(0,0,0,0.2)]">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
               <div>
-                <h3 className="text-sm font-bold text-[#1F2937] flex items-center gap-2"><Pencil className="w-4 h-4 text-[#168B57]"/> Edit Invoice — {editInv.invoice_no}</h3>
-                <p className="text-[11px] text-[#6B7280]">Parameter rows are fixed (from report) — only <b>Rate</b> and <b>Qty</b> can be changed</p>
+                <h3 className="text-base font-bold text-gray-900 flex items-center gap-2"><Pencil className="w-4 h-4 text-[#168B57]"/> Edit Invoice — {editInv.invoice_no}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Parameter rows are fixed (from report) — only <b>Rate</b> and <b>Qty</b> can be changed</p>
               </div>
-              <button onClick={closeEdit} className="p-1.5 rounded-lg hover:bg-[#EAF7F0] text-[#6B7280]"><X className="w-4 h-4"/></button>
+              <button onClick={closeEdit} className="p-2 rounded-2xl hover:bg-gray-100 text-gray-500 transition-colors"><X className="w-5 h-5"/></button>
             </div>
 
-            {loadingInv ? <div className="p-6 text-center text-xs text-[#6B7280]">Loading invoice...</div> : (
+            {loadingInv ? <div className="p-8 text-center text-xs text-gray-400 font-medium">Loading invoice...</div> : (
               <>
-                <div className="border border-[#D1D5DB] rounded-xl overflow-hidden overflow-x-auto">
+                <div className="border border-gray-200 rounded-2xl overflow-hidden overflow-x-auto shadow-2xs">
                   <table className="w-full text-left text-xs">
-                    <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                      <th className="py-2 px-3">S.No</th><th className="py-2 px-3">Parameter</th>
-                      <th className="py-2 px-3 text-right">Rate (₹)</th><th className="py-2 px-3 text-right">Qty</th><th className="py-2 px-3 text-right">Amount (₹)</th>
+                    <thead><tr className="bg-[#EFEAFD] text-[11px] uppercase font-bold text-[#7A709E] border-b border-purple-100/60">
+                      <th className="py-3 px-3.5">S.No</th><th className="py-3 px-3.5">Parameter</th>
+                      <th className="py-3 px-3.5 text-right">Rate (₹)</th><th className="py-3 px-3.5 text-right">Qty</th><th className="py-3 px-3.5 text-right">Amount (₹)</th>
                     </tr></thead>
-                    <tbody className="divide-y divide-[#D1D5DB]/60">
+                    <tbody className="divide-y divide-gray-100">
                       {editItems.map((it, idx)=>(
-                        <tr key={it.parameter_id ?? idx} className="hover:bg-[#EAF7F0]/30">
-                          <td className="py-2 px-3 text-[#6B7280]">{idx+1}</td>
-                          <td className="py-2 px-3 font-bold">{it.name}</td>
-                          <td className="py-2 px-3 text-right">
-                            <input type="number" min="0" step="0.01" value={it.rate} onChange={e=>setItem(idx,'rate',e.target.value)} className="w-24 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
+                        <tr key={it.parameter_id ?? idx} className="hover:bg-purple-50/20 transition-colors">
+                          <td className="py-2.5 px-3.5 text-gray-400 font-medium">{idx+1}</td>
+                          <td className="py-2.5 px-3.5 font-bold text-gray-900">{it.name}</td>
+                          <td className="py-2.5 px-3.5 text-right">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={it.rate}
+                              onChange={e=>setItem(idx,'rate',e.target.value)}
+                              className="w-24 px-3 py-1.5 border border-gray-200/90 rounded-xl text-right text-xs bg-gray-50/70 focus:bg-white focus:border-[#168B57] focus:ring-2 focus:ring-[#168B57]/20 outline-none transition-all shadow-2xs font-semibold"
+                            />
                           </td>
-                          <td className="py-2 px-3 text-right">
-                            <input type="number" min="0" step="1" value={it.qty} onChange={e=>setItem(idx,'qty',e.target.value)} className="w-16 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
+                          <td className="py-2.5 px-3.5 text-right">
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={it.qty}
+                              onChange={e=>setItem(idx,'qty',e.target.value)}
+                              className="w-16 px-3 py-1.5 border border-gray-200/90 rounded-xl text-right text-xs bg-gray-50/70 focus:bg-white focus:border-[#168B57] focus:ring-2 focus:ring-[#168B57]/20 outline-none transition-all shadow-2xs font-semibold"
+                            />
                           </td>
-                          <td className="py-2 px-3 text-right font-bold">₹{((Number(it.rate)||0)*(Number(it.qty)||0)).toFixed(2)}</td>
+                          <td className="py-2.5 px-3.5 text-right font-bold text-gray-900">₹{((Number(it.rate)||0)*(Number(it.qty)||0)).toFixed(2)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -309,20 +415,20 @@ export const Invoices = () => {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-end">
-                  <div className="text-[11px] text-[#6B7280]">
-                    <p>Report No: <span className="font-mono font-bold text-[#1F2937]">{editInv.report?.report_no || '-'}</span></p>
-                    <p>Customer: <span className="font-bold text-[#1F2937]">{editInv.party_name || editInv.customer_name || '-'}</span></p>
+                  <div className="text-xs text-gray-500 space-y-1">
+                    <p>Report No: <span className="font-mono font-bold text-gray-900">{editInv.report?.report_no || '-'}</span></p>
+                    <p>Customer: <span className="font-bold text-gray-900">{editInv.party_name || editInv.customer_name || '-'}</span></p>
                   </div>
-                  <div className="w-full sm:w-72 border border-[#D1D5DB] rounded-xl overflow-hidden text-xs">
-                    <div className="flex justify-between px-3 py-2 border-b border-[#D1D5DB]"><span className="text-[#6B7280] font-bold">Subtotal</span><span className="font-bold">₹{liveSub.toFixed(2)}</span></div>
-                    {editInv.gst_enabled && <div className="flex justify-between px-3 py-2 border-b border-[#D1D5DB]"><span className="text-[#6B7280] font-bold">GST ({editInv.gst_percent}%)</span><span className="font-bold">₹{liveGst.toFixed(2)}</span></div>}
-                    <div className="flex justify-between px-3 py-2 bg-[#0B6B43] text-white font-bold"><span>Total</span><span>₹{(liveSub+liveGst).toFixed(2)}</span></div>
+                  <div className="w-full sm:w-72 border border-gray-200 rounded-2xl overflow-hidden text-xs shadow-2xs">
+                    <div className="flex justify-between px-3.5 py-2.5 border-b border-gray-100 bg-gray-50/50"><span className="text-gray-500 font-bold">Subtotal</span><span className="font-bold text-gray-900">₹{liveSub.toFixed(2)}</span></div>
+                    {editInv.gst_enabled && <div className="flex justify-between px-3.5 py-2.5 border-b border-gray-100 bg-gray-50/50"><span className="text-gray-500 font-bold">GST ({editInv.gst_percent}%)</span><span className="font-bold text-gray-900">₹{liveGst.toFixed(2)}</span></div>}
+                    <div className="flex justify-between px-3.5 py-2.5 bg-gradient-to-r from-[#168B57] to-[#0B6B43] text-white font-bold"><span>Total</span><span>₹{(liveSub+liveGst).toFixed(2)}</span></div>
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-2">
-                  <button onClick={closeEdit} className="px-4 py-2.5 rounded-xl border border-[#D1D5DB] text-xs font-bold">Cancel</button>
-                  <button onClick={saveItems} disabled={saving} className="px-5 py-2.5 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs disabled:opacity-60">{saving?'Saving...':'Save Invoice'}</button>
+                <div className="flex justify-end gap-2.5 pt-2">
+                  <button onClick={closeEdit} className="px-5 py-2.5 rounded-2xl border border-gray-200 text-xs font-semibold text-gray-700 bg-white hover:bg-gray-50 shadow-2xs transition-all">Cancel</button>
+                  <button onClick={saveItems} disabled={saving} className="px-6 py-2.5 rounded-2xl bg-gradient-to-r from-[#168B57] to-[#0B6B43] hover:from-[#0B6B43] hover:to-[#168B57] text-white font-bold text-xs shadow-[0_4px_14px_rgba(22,139,87,0.25)] hover:scale-[1.01] transition-all disabled:opacity-60">{saving?'Saving...':'Save Invoice'}</button>
                 </div>
               </>
             )}
@@ -410,82 +516,155 @@ const GroupSummary = () => {
   const billed = rows.filter(r=>r.invoices>0);
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white border border-[#D1D5DB] rounded-2xl p-4 flex flex-col lg:flex-row gap-3 items-start lg:items-center">
-        <select value={groupId} onChange={e=>setGroupId(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white min-w-[200px]">
+    <div className="space-y-5">
+      <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 flex flex-col lg:flex-row gap-3 items-start lg:items-center">
+        <select
+          value={groupId}
+          onChange={e=>setGroupId(e.target.value)}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs min-w-[200px]"
+        >
           <option value="">Select group...</option>
           {groups.map(g=> <option key={g.id} value={g.id}>{g.name} ({g.customers_count})</option>)}
         </select>
-        <input type="date" value={from} onChange={e=>setFrom(e.target.value)} onBlur={()=>groupId && load()} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-        <input type="date" value={to} onChange={e=>setTo(e.target.value)} onBlur={()=>groupId && load()} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+        <input
+          type="date"
+          value={from}
+          onChange={e=>setFrom(e.target.value)}
+          onBlur={()=>groupId && load()}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+        />
+        <input
+          type="date"
+          value={to}
+          onChange={e=>setTo(e.target.value)}
+          onBlur={()=>groupId && load()}
+          className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+        />
         <div className="flex gap-2">
-          <button onClick={()=>setRange('this')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">This Week</button>
-          <button onClick={()=>setRange('last')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">Last Week</button>
-          <button onClick={()=>setRange('month')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">This Month</button>
+          <button onClick={()=>setRange('this')} className="px-3.5 py-2 rounded-2xl bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold shadow-2xs transition-all hover:bg-emerald-100">This Week</button>
+          <button onClick={()=>setRange('last')} className="px-3.5 py-2 rounded-2xl bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold shadow-2xs transition-all hover:bg-emerald-100">Last Week</button>
+          <button onClick={()=>setRange('month')} className="px-3.5 py-2 rounded-2xl bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold shadow-2xs transition-all hover:bg-emerald-100">This Month</button>
         </div>
-        <button onClick={()=>load()} disabled={!groupId || loading} className="ml-auto px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs disabled:opacity-50">Load</button>
-        <button onClick={viewPdf} disabled={!groupId || exporting || loading} className="px-3.5 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-50"><FileType className="w-3.5 h-3.5"/>View PDF</button>
-        <button onClick={exportPdf} disabled={!groupId || exporting || loading} className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 transition-colors text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-50"><FileDown className="w-3.5 h-3.5"/>Download</button>
+        <button onClick={()=>load()} disabled={!groupId || loading} className="ml-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#168B57] to-[#0B6B43] hover:from-[#0B6B43] hover:to-[#168B57] transition-all text-white font-bold text-xs shadow-[0_4px_14px_rgba(22,139,87,0.25)] disabled:opacity-50">Load</button>
+        <button onClick={viewPdf} disabled={!groupId || exporting || loading} className="px-4 py-2.5 rounded-2xl bg-[#168B57] hover:bg-[#0B6B43] transition-all text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs disabled:opacity-50"><FileType className="w-3.5 h-3.5"/>View PDF</button>
+        <button onClick={exportPdf} disabled={!groupId || exporting || loading} className="px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 transition-all text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs disabled:opacity-50"><FileDown className="w-3.5 h-3.5"/>Download</button>
       </div>
 
       {!groupId ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Select a group to see customer-wise totals for the duration</div>
+        <div className="bg-white rounded-3xl border border-white/80 p-12 text-center text-xs text-gray-400 font-medium shadow-[0_4px_25px_rgba(0,0,0,0.03)]">Select a group to see customer-wise totals for the duration</div>
       ) : loading ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Loading...</div>
+        <div className="bg-white rounded-3xl border border-white/80 p-12 text-center text-xs text-gray-400 font-medium shadow-[0_4px_25px_rgba(0,0,0,0.03)]">Loading...</div>
       ) : !data ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">No data</div>
+        <div className="bg-white rounded-3xl border border-white/80 p-12 text-center text-xs text-gray-400 font-medium shadow-[0_4px_25px_rgba(0,0,0,0.03)]">No data</div>
       ) : (
         <>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="bg-[#168B57] border border-[#168B57] rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(22,139,87,0.25)]">
-              <p className="text-[11px] font-bold text-white/80">Group</p>
-              <p className="text-lg font-bold text-white">{data.group?.name || 'Customer'}</p>
-              <p className="text-[11px] text-white/70">{data.range.from} → {data.range.to}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <div className="bg-white rounded-3xl p-6 border border-emerald-100/70 shadow-[0_4px_25px_rgba(22,139,87,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+              <div className="flex items-start justify-between">
+                <span className="text-[#168B57] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+                  GROUP <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+                </span>
+                <div className="w-10 h-10 rounded-2xl bg-[#EAF7F0] flex items-center justify-center text-[#168B57] shrink-0">
+                  <Receipt className="w-5 h-5 stroke-[2.2]" />
+                </div>
+              </div>
+              <p className="text-2xl font-black text-gray-900 tracking-tight leading-none my-3 truncate">
+                {data.group?.name || 'Customer'}
+              </p>
+              <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+                <span className="text-xs font-medium text-gray-400">
+                  {data.range.from} → {data.range.to}
+                </span>
+              </div>
             </div>
-            <div className="bg-sky-500 border border-sky-600 rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(14,165,233,0.25)]">
-              <p className="text-[11px] font-bold text-white/80">Customers billed</p>
-              <p className="text-lg font-bold text-white">{billed.length} / {rows.length}</p>
-              <p className="text-[11px] text-white/70">members with invoices</p>
+
+            <div className="bg-white rounded-3xl p-6 border border-sky-100/70 shadow-[0_4px_25px_rgba(14,165,233,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+              <div className="flex items-start justify-between">
+                <span className="text-[#0284C7] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+                  BILLED CUSTOMERS <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+                </span>
+                <div className="w-10 h-10 rounded-2xl bg-[#E0F2FE] flex items-center justify-center text-[#0284C7] shrink-0">
+                  <Users className="w-5 h-5 stroke-[2.2]" />
+                </div>
+              </div>
+              <p className="text-4xl font-black text-gray-900 tracking-tight leading-none my-3">
+                {billed.length} <span className="text-base text-gray-400">/ {rows.length}</span>
+              </p>
+              <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+                <span className="text-xs font-medium text-gray-400">
+                  Members with invoices
+                </span>
+              </div>
             </div>
-            <div className="bg-amber-500 border border-amber-600 rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(245,158,11,0.25)]">
-              <p className="text-[11px] font-bold text-white/80">Invoices</p>
-              <p className="text-lg font-bold text-white">{totals.invoices||0}</p>
-              <p className="text-[11px] text-white/70">in selected duration</p>
+
+            <div className="bg-white rounded-3xl p-6 border border-amber-100/70 shadow-[0_4px_25px_rgba(245,158,11,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+              <div className="flex items-start justify-between">
+                <span className="text-[#D97706] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+                  INVOICES <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+                </span>
+                <div className="w-10 h-10 rounded-2xl bg-[#FEF3C7] flex items-center justify-center text-[#D97706] shrink-0">
+                  <Clock className="w-5 h-5 stroke-[2.2]" />
+                </div>
+              </div>
+              <p className="text-4xl font-black text-gray-900 tracking-tight leading-none my-3">
+                {totals.invoices||0}
+              </p>
+              <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+                <span className="text-xs font-medium text-gray-400">
+                  In selected duration
+                </span>
+              </div>
             </div>
-            <div className="bg-[#1F2937] border border-[#1F2937] rounded-2xl p-4 text-white shadow-[0_8px_20px_rgba(31,41,55,0.25)]">
-              <p className="text-[11px] font-bold text-white/80">Total Amount</p>
-              <p className="text-lg font-bold text-white">₹{Number(totals.amount||0).toFixed(2)}</p>
-              <p className="text-[11px] text-white/70">paid ₹{Number(totals.paid_amount||0).toFixed(2)}</p>
+
+            <div className="bg-white rounded-3xl p-6 border border-purple-100/70 shadow-[0_4px_25px_rgba(139,92,246,0.03)] flex flex-col justify-between hover:shadow-md transition-all min-h-[168px]">
+              <div className="flex items-start justify-between">
+                <span className="text-[#8B5CF6] text-xs font-black tracking-wider flex items-center gap-1.5 uppercase">
+                  TOTAL AMOUNT <ArrowUpRight className="w-3.5 h-3.5 opacity-60" />
+                </span>
+                <div className="w-10 h-10 rounded-2xl bg-[#F3E8FF] flex items-center justify-center text-[#8B5CF6] shrink-0">
+                  <DollarSign className="w-5 h-5 stroke-[2.2]" />
+                </div>
+              </div>
+              <p className="text-3xl font-black text-gray-900 tracking-tight leading-none my-3">
+                ₹{Number(totals.amount||0).toFixed(2)}
+              </p>
+              <div className="flex items-center justify-between pt-1 border-t border-gray-50">
+                <span className="text-xs font-medium text-gray-400">
+                  Paid ₹{Number(totals.paid_amount||0).toFixed(2)}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
-            <div className="px-4 py-3 border-b border-[#D1D5DB] text-xs font-bold text-[#0B6B43]">Customer-wise amount (duration: {data.range.from} → {data.range.to})</div>
-            <table className="w-full text-left text-xs">
-              <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                <th className="py-2 px-3">Customer</th><th className="py-2 px-3 text-right">Invoices</th>
-                <th className="py-2 px-3 text-right">Paid</th><th className="py-2 px-3 text-right">Unpaid</th>
-                <th className="py-2 px-3 text-right">Partial</th><th className="py-2 px-3 text-right">Amount (₹)</th>
-              </tr></thead>
-              <tbody className="divide-y divide-[#D1D5DB]/60">
-                {rows.map((r,i)=>(
-                  <tr key={r.customer_id ?? i} className="hover:bg-[#EAF7F0]/30">
-                    <td className="py-2.5 px-3 font-bold">{r.party}</td>
-                    <td className="py-2.5 px-3 text-right">{r.invoices}</td>
-                    <td className="py-2.5 px-3 text-right">{r.paid}</td>
-                    <td className="py-2.5 px-3 text-right">{r.unpaid}</td>
-                    <td className="py-2.5 px-3 text-right">{r.partial}</td>
-                    <td className="py-2.5 px-3 text-right font-bold">₹{Number(r.amount||0).toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot><tr className="bg-[#0B6B43] text-white text-xs font-bold">
-                <td className="py-2.5 px-3">Total ({billed.length} customers)</td>
-                <td className="py-2.5 px-3 text-right">{totals.invoices||0}</td>
-                <td className="py-2.5 px-3" colSpan={3}></td>
-                <td className="py-2.5 px-3 text-right">₹{Number(totals.amount||0).toFixed(2)}</td>
-              </tr></tfoot>
-            </table>
+          <div className="bg-white rounded-3xl p-6 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 overflow-hidden">
+            <div className="pb-3 text-xs font-bold text-[#0B6B43]">Customer-wise amount (duration: {data.range.from} → {data.range.to})</div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead><tr className="bg-[#EFEAFD] text-[11px] uppercase font-bold text-[#7A709E] border-b border-purple-100/60">
+                  <th className="py-3 px-3.5 rounded-l-2xl">Customer</th><th className="py-3 px-3.5 text-right">Invoices</th>
+                  <th className="py-3 px-3.5 text-right">Paid</th><th className="py-3 px-3.5 text-right">Unpaid</th>
+                  <th className="py-3 px-3.5 text-right">Partial</th><th className="py-3 px-3.5 text-right rounded-r-2xl">Amount (₹)</th>
+                </tr></thead>
+                <tbody className="divide-y divide-gray-100">
+                  {rows.map((r,i)=>(
+                    <tr key={r.customer_id ?? i} className="hover:bg-purple-50/20 transition-colors">
+                      <td className="py-3 px-3.5 font-bold text-gray-900">{r.party}</td>
+                      <td className="py-3 px-3.5 text-right text-gray-600">{r.invoices}</td>
+                      <td className="py-3 px-3.5 text-right text-gray-600">{r.paid}</td>
+                      <td className="py-3 px-3.5 text-right text-gray-600">{r.unpaid}</td>
+                      <td className="py-3 px-3.5 text-right text-gray-600">{r.partial}</td>
+                      <td className="py-3 px-3.5 text-right font-bold text-gray-900">₹{Number(r.amount||0).toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot><tr className="bg-gradient-to-r from-[#168B57] to-[#0B6B43] text-white text-xs font-bold">
+                  <td className="py-3 px-3.5 rounded-l-2xl">Total ({billed.length} customers)</td>
+                  <td className="py-3 px-3.5 text-right">{totals.invoices||0}</td>
+                  <td className="py-3 px-3.5" colSpan={3}></td>
+                  <td className="py-3 px-3.5 text-right rounded-r-2xl">₹{Number(totals.amount||0).toFixed(2)}</td>
+                </tr></tfoot>
+              </table>
+            </div>
           </div>
         </>
       )}
@@ -681,55 +860,79 @@ const BulkSettlement = () => {
   const ready = mode==='group' ? groupId : customerId;
 
   return (
-    <div className="space-y-4">
-      <div className="bg-white border border-[#D1D5DB] rounded-2xl p-4 space-y-3">
+    <div className="space-y-5">
+      <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 space-y-3">
         <div className="flex flex-col lg:flex-row gap-3 items-start lg:items-center">
-          <div className="flex gap-1 bg-[#F3F4F6] p-1 rounded-xl">
+          <div className="flex gap-1 bg-gray-100 p-1 rounded-2xl">
             {[{v:'group',l:'By Group'},{v:'party',l:'By Customer'}].map(o=>(
-              <button key={o.v} onClick={()=>{ setMode(o.v); setData(null); setSelectedTypeIds(null); }} className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${mode===o.v?'bg-[#168B57] text-white':'text-[#6B7280]'}`}>{o.l}</button>
+              <button key={o.v} onClick={()=>{ setMode(o.v); setData(null); setSelectedTypeIds(null); }} className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all ${mode===o.v?'bg-[#168B57] text-white shadow-2xs':'text-gray-600 hover:text-gray-900'}`}>{o.l}</button>
             ))}
           </div>
           {mode==='group' ? (
-            <select value={groupId} onChange={e=>{ setGroupId(e.target.value); setSelectedTypeIds(null); }} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white min-w-[200px]">
+            <select
+              value={groupId}
+              onChange={e=>{ setGroupId(e.target.value); setSelectedTypeIds(null); }}
+              className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs min-w-[200px]"
+            >
               <option value="">Select group...</option>
               {groups.map(g=> <option key={g.id} value={g.id}>{g.name} ({g.customers_count})</option>)}
             </select>
           ) : (
-            <select value={customerId} onChange={e=>{ setCustomerId(e.target.value); setSelectedTypeIds(null); }} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs bg-white min-w-[200px]">
+            <select
+              value={customerId}
+              onChange={e=>{ setCustomerId(e.target.value); setSelectedTypeIds(null); }}
+              className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs min-w-[200px]"
+            >
               <option value="">Select customer...</option>
               {customers.map(c=> <option key={c.id} value={c.id}>{c.company_name || c.name}</option>)}
             </select>
           )}
-          <input type="date" value={from} onChange={e=>setFrom(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
-          <input type="date" value={to} onChange={e=>setTo(e.target.value)} className="px-3 py-2 border border-[#D1D5DB] rounded-xl text-xs" />
+          <input
+            type="date"
+            value={from}
+            onChange={e=>setFrom(e.target.value)}
+            className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+          />
+          <input
+            type="date"
+            value={to}
+            onChange={e=>setTo(e.target.value)}
+            className="px-3.5 py-2.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-medium text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/20 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs"
+          />
           <div className="flex gap-2">
-            <button onClick={()=>quick('this')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">This Week</button>
-            <button onClick={()=>quick('last')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">Last Week</button>
-            <button onClick={()=>quick('month')} className="px-3 py-1.5 rounded-lg bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold">This Month</button>
+            <button onClick={()=>quick('this')} className="px-3.5 py-2 rounded-2xl bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold shadow-2xs transition-all hover:bg-emerald-100">This Week</button>
+            <button onClick={()=>quick('last')} className="px-3.5 py-2 rounded-2xl bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold shadow-2xs transition-all hover:bg-emerald-100">Last Week</button>
+            <button onClick={()=>quick('month')} className="px-3.5 py-2 rounded-2xl bg-[#EAF7F0] text-[#0B6B43] text-[11px] font-bold shadow-2xs transition-all hover:bg-emerald-100">This Month</button>
           </div>
-          <button onClick={()=>load(mode, from, to, selectedTypeIds)} disabled={!ready || loading} className="ml-auto px-4 py-2 rounded-xl bg-[#168B57] hover:bg-[#0B6B43] transition-colors text-white font-bold text-xs disabled:opacity-50">{loading?'Loading...':'Calculate'}</button>
+          <button
+            onClick={()=>load(mode, from, to, selectedTypeIds)}
+            disabled={!ready || loading}
+            className="ml-auto px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#168B57] to-[#0B6B43] hover:from-[#0B6B43] hover:to-[#168B57] text-white font-bold text-xs shadow-[0_4px_14px_rgba(22,139,87,0.25)] hover:scale-[1.01] transition-all disabled:opacity-50"
+          >
+            {loading?'Loading...':'Calculate'}
+          </button>
         </div>
-        <p className="text-[11px] text-[#6B7280]">Customer Account Statement &amp; Type-wise bill for the duration with chronological test parameters, debits, credits, and balance.</p>
+        <p className="text-[11px] text-gray-500">Customer Account Statement &amp; Type-wise bill for the duration with chronological test parameters, debits, credits, and balance.</p>
       </div>
 
       {data && (data.available_types || []).length > 0 && (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-3.5 shadow-sm space-y-2">
+        <div className="bg-white rounded-3xl p-5 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-[#EAF7F0] text-[#0B6B43]"><Filter className="w-3.5 h-3.5" /></span>
-              <span className="text-xs font-bold text-[#1F2937]">Filter Report Types:</span>
-              <span className="text-[11px] text-[#6B7280]">Click to toggle specific report types ON or OFF</span>
+              <span className="p-1.5 rounded-xl bg-[#EAF7F0] text-[#0B6B43]"><Filter className="w-4 h-4" /></span>
+              <span className="text-xs font-bold text-gray-900">Filter Report Types:</span>
+              <span className="text-[11px] text-gray-500">Click to toggle specific report types ON or OFF</span>
             </div>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={selectAllTypes}
-                className="px-2.5 py-1 rounded-lg bg-[#F3F4F6] hover:bg-gray-200 text-[#374151] font-bold text-[11px] transition-colors"
+                className="px-3 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-[11px] transition-colors"
               >
                 All Types
               </button>
               {selectedTypeIds !== null && (
-                <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">
+                <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-100 text-amber-800">
                   {selectedTypeIds.length} of {data.available_types.length} selected
                 </span>
               )}
@@ -744,10 +947,10 @@ const BulkSettlement = () => {
                   type="button"
                   onClick={() => toggleType(t.id)}
                   title={isSelected ? 'Click to exclude this type' : 'Click to include this type'}
-                  className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                  className={`inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-bold transition-all border ${
                     isSelected
-                      ? 'bg-[#EAF7F0] border-[#168B57] text-[#0B6B43] shadow-sm'
-                      : 'bg-[#F9FAFB] border-[#E5E7EB] text-[#9CA3AF] line-through opacity-70 hover:opacity-100'
+                      ? 'bg-[#EAF7F0] border-emerald-300 text-[#0B6B43] shadow-2xs'
+                      : 'bg-gray-50 border-gray-200 text-gray-400 line-through opacity-70 hover:opacity-100'
                   }`}
                 >
                   <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black ${
@@ -756,8 +959,8 @@ const BulkSettlement = () => {
                     {isSelected ? '✓' : '×'}
                   </span>
                   <span>{t.name}</span>
-                  <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono font-normal ${
-                    isSelected ? 'bg-[#168B57]/15 text-[#0B6B43]' : 'bg-gray-200 text-gray-500'
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-mono font-bold ${
+                    isSelected ? 'bg-emerald-100 text-[#0B6B43]' : 'bg-gray-200 text-gray-500'
                   }`}>
                     {t.report_count}
                   </span>
@@ -769,98 +972,98 @@ const BulkSettlement = () => {
       )}
 
       {!ready ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Select {mode==='group'?'a group':'a party'} above</div>
+        <div className="bg-white rounded-3xl border border-white/80 p-12 text-center text-xs text-gray-400 font-medium shadow-[0_4px_25px_rgba(0,0,0,0.03)]">Select {mode==='group'?'a group':'a party'} above</div>
       ) : loading ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Calculating...</div>
+        <div className="bg-white rounded-3xl border border-white/80 p-12 text-center text-xs text-gray-400 font-medium shadow-[0_4px_25px_rgba(0,0,0,0.03)]">Calculating...</div>
       ) : !data ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">Press Calculate</div>
+        <div className="bg-white rounded-3xl border border-white/80 p-12 text-center text-xs text-gray-400 font-medium shadow-[0_4px_25px_rgba(0,0,0,0.03)]">Press Calculate</div>
       ) : (data.statement_rows||[]).length===0 && (data.types||[]).length===0 ? (
-        <div className="bg-white border border-[#D1D5DB] rounded-2xl p-8 text-center text-xs text-[#6B7280]">No reports in {data.range?.from} → {data.range?.to}</div>
+        <div className="bg-white rounded-3xl border border-white/80 p-12 text-center text-xs text-gray-400 font-medium shadow-[0_4px_25px_rgba(0,0,0,0.03)]">No reports in {data.range?.from} → {data.range?.to}</div>
       ) : (
         <>
-          <div className="bg-[#1F2937] border border-[#1F2937] rounded-2xl p-4 text-white flex flex-wrap gap-6 items-center">
-            <div><p className="text-[11px] text-white/70 font-bold">{data.scope==='group' ? 'Group' : 'Party'}</p><p className="text-sm font-bold">{data.customer_name || data.group?.name || data.customer?.name}</p></div>
-            <div><p className="text-[11px] text-white/70 font-bold">Duration</p><p className="text-sm font-bold">{data.range?.from} → {data.range?.to}</p></div>
-            <div><p className="text-[11px] text-white/70 font-bold">Reports</p><p className="text-sm font-bold">{data.report_count}</p></div>
+          <div className="bg-[#1F2937] rounded-3xl p-5 text-white flex flex-wrap gap-6 items-center shadow-md">
+            <div><p className="text-[11px] text-white/70 font-bold uppercase tracking-wider">{data.scope==='group' ? 'Group' : 'Party'}</p><p className="text-sm font-bold">{data.customer_name || data.group?.name || data.customer?.name}</p></div>
+            <div><p className="text-[11px] text-white/70 font-bold uppercase tracking-wider">Duration</p><p className="text-sm font-bold">{data.range?.from} → {data.range?.to}</p></div>
+            <div><p className="text-[11px] text-white/70 font-bold uppercase tracking-wider">Reports</p><p className="text-sm font-bold">{data.report_count}</p></div>
             <div className="ml-auto flex items-center gap-3">
-              <div className="flex gap-1 bg-white/10 p-1 rounded-xl">
-                <button onClick={()=>setSubView('statement')} className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${subView==='statement'?'bg-[#168B57] text-white':'text-white/70 hover:text-white'}`}>Statement List</button>
-                <button onClick={()=>setSubView('parameters')} className={`px-3 py-1 rounded-lg text-xs font-bold transition-colors ${subView==='parameters'?'bg-[#168B57] text-white':'text-white/70 hover:text-white'}`}>Parameter Edit</button>
+              <div className="flex gap-1 bg-white/10 p-1 rounded-2xl">
+                <button onClick={()=>setSubView('statement')} className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors ${subView==='statement'?'bg-[#168B57] text-white':'text-white/70 hover:text-white'}`}>Statement List</button>
+                <button onClick={()=>setSubView('parameters')} className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-colors ${subView==='parameters'?'bg-[#168B57] text-white':'text-white/70 hover:text-white'}`}>Parameter Edit</button>
               </div>
-              {dirtyCount>0 && <button onClick={()=>setEdits({})} className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors text-white text-[11px] font-bold border border-white/30">Reset {dirtyCount}</button>}
-              <button onClick={exportPdf} disabled={exporting} className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 transition-colors text-white font-bold text-xs flex items-center gap-1.5 disabled:opacity-60"><FileType className="w-3.5 h-3.5"/>{exporting?'Exporting...':'Export Statement PDF'}</button>
-              <button onClick={shareWhatsapp} title="Share statement via WhatsApp" className="px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#1EBE5D] transition-colors text-white font-bold text-xs flex items-center gap-1.5 shadow-sm"><MessageCircle className="w-3.5 h-3.5"/> WhatsApp</button>
-              <div className="text-right"><p className="text-[11px] text-white/70 font-bold">Balance</p><p className="text-xl font-black text-emerald-400">₹{(data.totals?.balance ?? data.balance ?? grand).toFixed(2)}</p></div>
+              {dirtyCount>0 && <button onClick={()=>setEdits({})} className="px-3.5 py-2 rounded-2xl bg-white/10 hover:bg-white/20 transition-colors text-white text-[11px] font-bold border border-white/30">Reset {dirtyCount}</button>}
+              <button onClick={exportPdf} disabled={exporting} className="px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 transition-colors text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs disabled:opacity-60"><FileType className="w-3.5 h-3.5"/>{exporting?'Exporting...':'Export Statement PDF'}</button>
+              <button onClick={shareWhatsapp} title="Share statement via WhatsApp" className="px-3.5 py-2.5 rounded-2xl bg-[#25D366] hover:bg-[#1EBE5D] transition-colors text-white font-bold text-xs flex items-center gap-1.5 shadow-2xs"><MessageCircle className="w-3.5 h-3.5"/> WhatsApp</button>
+              <div className="text-right"><p className="text-[11px] text-white/70 font-bold uppercase tracking-wider">Balance</p><p className="text-xl font-black text-emerald-400">₹{(data.totals?.balance ?? data.balance ?? grand).toFixed(2)}</p></div>
             </div>
           </div>
 
           {subView === 'statement' ? (
-            <div className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
-              <div className="px-4 py-3 bg-[#F9FAFB] border-b border-[#D1D5DB] flex flex-wrap items-center justify-between gap-3">
+            <div className="bg-white rounded-3xl p-6 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 overflow-hidden">
+              <div className="pb-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h3 className="text-xs font-bold text-[#1E40AF] uppercase tracking-wider">Customer - Account Statement</h3>
-                  <p className="text-[11px] text-[#6B7280]">{data.customer_name} {data.customer_address ? `• ${data.customer_address}` : ''}</p>
+                  <p className="text-[11px] text-gray-500">{data.customer_name} {data.customer_address ? `• ${data.customer_address}` : ''}</p>
                 </div>
                 <div className="flex items-center gap-4 text-xs font-bold">
-                  <span className="text-[#6B7280]">Total Debit: <b className="text-[#1F2937]">₹{(data.totals?.total_debit || 0).toFixed(2)}</b></span>
-                  <span className="text-[#6B7280]">Total Credit: <b className="text-[#168B57]">₹{(data.totals?.total_credit || 0).toFixed(2)}</b></span>
-                  <span className="px-3 py-1 bg-fuchsia-50 border border-fuchsia-300 text-fuchsia-700 rounded-lg font-black text-xs">
+                  <span className="text-gray-500">Total Debit: <b className="text-gray-900">₹{(data.totals?.total_debit || 0).toFixed(2)}</b></span>
+                  <span className="text-gray-500">Total Credit: <b className="text-[#168B57]">₹{(data.totals?.total_credit || 0).toFixed(2)}</b></span>
+                  <span className="px-3 py-1 bg-fuchsia-50 border border-fuchsia-300 text-fuchsia-700 rounded-xl font-black text-xs shadow-2xs">
                     Balance Rs: ₹{(data.totals?.balance || 0).toFixed(2)}/-
                   </span>
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto pt-3">
                 <table className="w-full text-left text-xs">
                   <thead>
-                    <tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                      <th className="py-2.5 px-3 w-12">S.No</th>
-                      <th className="py-2.5 px-3">Date &amp; Test Parameters / Description</th>
-                      <th className="py-2.5 px-3">Report / Vehicle</th>
-                      <th className="py-2.5 px-3 text-right">Debit (Charges ₹)</th>
-                      <th className="py-2.5 px-3 text-right">Credit (Paid ₹)</th>
+                    <tr className="bg-[#EFEAFD] text-[11px] uppercase font-bold text-[#7A709E] border-b border-purple-100/60">
+                      <th className="py-3 px-3.5 w-12 rounded-l-2xl">S.No</th>
+                      <th className="py-3 px-3.5">Date &amp; Test Parameters / Description</th>
+                      <th className="py-3 px-3.5">Report / Vehicle</th>
+                      <th className="py-3 px-3.5 text-right">Debit (Charges ₹)</th>
+                      <th className="py-3 px-3.5 text-right rounded-r-2xl">Credit (Paid ₹)</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#D1D5DB]/60">
+                  <tbody className="divide-y divide-gray-100">
                     {(data.statement_rows || []).map((row, idx) => (
-                      <tr key={idx} className={`hover:bg-[#EAF7F0]/30 ${row.type === 'ob' ? 'bg-[#F9FAFB] font-bold text-[#4B5563]' : ''}`}>
-                        <td className="py-2 px-3 text-[#6B7280]">{row.sno}.</td>
-                        <td className="py-2 px-3">
+                      <tr key={idx} className={`hover:bg-purple-50/20 transition-colors ${row.type === 'ob' ? 'bg-gray-50/60 font-bold text-gray-700' : ''}`}>
+                        <td className="py-3 px-3.5 text-gray-400 font-medium">{row.sno}.</td>
+                        <td className="py-3 px-3.5">
                           {row.type === 'ob' ? (
-                            <span className="font-bold text-[#1F2937]">Opening Balance (O/B)</span>
+                            <span className="font-bold text-gray-900">Opening Balance (O/B)</span>
                           ) : (
-                            <div className="font-mono text-[11.5px] text-[#1F2937]">
+                            <div className="font-mono text-[11.5px] text-gray-900">
                               <span className="font-bold text-[#0B6B43] mr-2">{row.date}</span>
                               <span>{row.params_text || '—'}</span>
                             </div>
                           )}
                         </td>
-                        <td className="py-2 px-3 text-[#6B7280]">
+                        <td className="py-3 px-3.5 text-gray-500">
                           {row.report_no ? (
                             <div>
-                              <span className="font-bold text-[#1F2937]">{row.report_no}</span>
-                              {row.vehicle_no && <span className="ml-1.5 text-[11px]">({row.vehicle_no})</span>}
+                              <span className="font-bold text-gray-900">{row.report_no}</span>
+                              {row.vehicle_no && <span className="ml-1.5 text-[11px] font-medium">({row.vehicle_no})</span>}
                             </div>
                           ) : '—'}
                         </td>
-                        <td className="py-2 px-3 text-right font-bold text-[#1F2937]">
+                        <td className="py-3 px-3.5 text-right font-bold text-gray-900">
                           ₹{Number(row.debit || 0).toFixed(2)}
                         </td>
-                        <td className="py-2 px-3 text-right font-bold text-[#168B57]">
+                        <td className="py-3 px-3.5 text-right font-bold text-[#168B57]">
                           ₹{Number(row.credit || 0).toFixed(2)}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                   <tfoot>
-                    <tr className="bg-[#F3F4F6] font-bold border-t-2 border-[#1F2937] text-xs">
-                      <td colSpan={3} className="py-3 px-3 text-right text-[#1F2937]">Net Total</td>
-                      <td className="py-3 px-3 text-right font-black text-[#1F2937]">₹{(data.totals?.total_debit || 0).toFixed(2)}</td>
-                      <td className="py-3 px-3 text-right font-black text-[#168B57]">₹{(data.totals?.total_credit || 0).toFixed(2)}</td>
+                    <tr className="bg-gray-100 font-bold border-t-2 border-gray-900 text-xs">
+                      <td colSpan={3} className="py-3 px-3.5 text-right text-gray-900">Net Total</td>
+                      <td className="py-3 px-3.5 text-right font-black text-gray-900">₹{(data.totals?.total_debit || 0).toFixed(2)}</td>
+                      <td className="py-3 px-3.5 text-right font-black text-[#168B57]">₹{(data.totals?.total_credit || 0).toFixed(2)}</td>
                     </tr>
                     <tr className="bg-[#EAF7F0] font-bold text-xs text-[#0B6B43]">
-                      <td colSpan={3} className="py-2.5 px-3 text-right">Balance Outstanding</td>
-                      <td className="py-2.5 px-3 text-right font-black text-sm text-[#0B6B43]" colSpan={2}>
+                      <td colSpan={3} className="py-3 px-3.5 text-right rounded-bl-2xl">Balance Outstanding</td>
+                      <td className="py-3 px-3.5 text-right font-black text-sm text-[#0B6B43] rounded-br-2xl" colSpan={2}>
                         ₹{(data.totals?.balance || 0).toFixed(2)}
                       </td>
                     </tr>
@@ -870,34 +1073,50 @@ const BulkSettlement = () => {
             </div>
           ) : (
             data.types.map((ty,ti)=>(
-              <div key={ty.report_type_id} className="bg-white border border-[#D1D5DB] rounded-2xl overflow-hidden">
-                <div className="px-4 py-3 border-b border-[#D1D5DB] flex items-center justify-between">
-                  <p className="text-xs font-bold text-[#0B6B43]">{ty.name} <span className="text-[#6B7280] font-normal">({ty.reports} report{ty.reports===1?'':'s'})</span></p>
-                  <p className="text-xs font-bold">Subtotal ₹{typeTotal(ty, ti).toFixed(2)}</p>
+              <div key={ty.report_type_id} className="bg-white rounded-3xl p-6 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 overflow-hidden">
+                <div className="pb-3 border-b border-gray-100 flex items-center justify-between">
+                  <p className="text-xs font-bold text-[#0B6B43]">{ty.name} <span className="text-gray-400 font-normal">({ty.reports} report{ty.reports===1?'':'s'})</span></p>
+                  <p className="text-xs font-bold text-gray-900">Subtotal ₹{typeTotal(ty, ti).toFixed(2)}</p>
                 </div>
-                <table className="w-full text-left text-xs">
-                  <thead><tr className="bg-[#EAF7F0] text-[11px] uppercase font-bold text-[#6B7280] border-b border-[#D1D5DB]">
-                    <th className="py-2 px-3">Parameter</th><th className="py-2 px-3">Unit</th>
-                    <th className="py-2 px-3 text-right">Times</th><th className="py-2 px-3 text-right">Rate ₹</th>
-                    <th className="py-2 px-3 text-right">Qty</th><th className="py-2 px-3 text-right">Amount ₹</th>
-                  </tr></thead>
-                  <tbody className="divide-y divide-[#D1D5DB]/60">
-                    {ty.rows.map((row,ri)=>(
-                      <tr key={row.parameter_id} className="hover:bg-[#EAF7F0]/30">
-                        <td className="py-2 px-3 font-bold">{row.name}</td>
-                        <td className="py-2 px-3 text-[#6B7280]">{row.unit||'-'}</td>
-                        <td className="py-2 px-3 text-right"><span className="px-2 py-0.5 rounded-full bg-sky-500 text-white text-[11px] font-bold">×{row.times}</span></td>
-                        <td className="py-2 px-3 text-right">
-                          <input type="number" min="0" step="0.01" value={val(ti,ri,row,'rate')} onChange={e=>setVal(ti, ri, row, 'rate', e.target.value)} className="w-24 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
-                        </td>
-                        <td className="py-2 px-3 text-right">
-                          <input type="number" min="0" step="1" value={val(ti,ri,row,'qty')} onChange={e=>setVal(ti, ri, row, 'qty', e.target.value)} className="w-20 px-2 py-1 border border-[#D1D5DB] rounded-lg text-right text-xs focus:border-[#168B57] outline-none" />
-                        </td>
-                        <td className="py-2 px-3 text-right font-bold">₹{rowAmount(ti, ri, row).toFixed(2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div className="overflow-x-auto pt-2">
+                  <table className="w-full text-left text-xs">
+                    <thead><tr className="bg-[#EFEAFD] text-[11px] uppercase font-bold text-[#7A709E] border-b border-purple-100/60">
+                      <th className="py-3 px-3.5 rounded-l-2xl">Parameter</th><th className="py-3 px-3.5">Unit</th>
+                      <th className="py-3 px-3.5 text-right">Times</th><th className="py-3 px-3.5 text-right">Rate ₹</th>
+                      <th className="py-3 px-3.5 text-right">Qty</th><th className="py-3 px-3.5 text-right rounded-r-2xl">Amount ₹</th>
+                    </tr></thead>
+                    <tbody className="divide-y divide-gray-100">
+                      {ty.rows.map((row,ri)=>(
+                        <tr key={row.parameter_id} className="hover:bg-purple-50/20 transition-colors">
+                          <td className="py-3 px-3.5 font-bold text-gray-900">{row.name}</td>
+                          <td className="py-3 px-3.5 text-gray-500">{row.unit||'-'}</td>
+                          <td className="py-3 px-3.5 text-right"><span className="px-2.5 py-1 rounded-full bg-sky-500 text-white text-[11px] font-bold shadow-2xs">×{row.times}</span></td>
+                          <td className="py-3 px-3.5 text-right">
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={val(ti,ri,row,'rate')}
+                              onChange={e=>setVal(ti, ri, row, 'rate', e.target.value)}
+                              className="w-24 px-3 py-1.5 border border-gray-200/90 rounded-xl text-right text-xs bg-gray-50/70 focus:bg-white focus:border-[#168B57] focus:ring-2 focus:ring-[#168B57]/20 outline-none transition-all shadow-2xs font-semibold"
+                            />
+                          </td>
+                          <td className="py-3 px-3.5 text-right">
+                            <input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={val(ti,ri,row,'qty')}
+                              onChange={e=>setVal(ti, ri, row, 'qty', e.target.value)}
+                              className="w-20 px-3 py-1.5 border border-gray-200/90 rounded-xl text-right text-xs bg-gray-50/70 focus:bg-white focus:border-[#168B57] focus:ring-2 focus:ring-[#168B57]/20 outline-none transition-all shadow-2xs font-semibold"
+                            />
+                          </td>
+                          <td className="py-3 px-3.5 text-right font-bold text-gray-900">₹{rowAmount(ti, ri, row).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ))
           )}

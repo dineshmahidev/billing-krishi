@@ -56,19 +56,19 @@ export const Login = () => {
             <div className="absolute -top-24 -right-24 w-72 h-72 bg-[#168B57]/5 rounded-full blur-2xl pointer-events-none" />
             <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-emerald-500/5 rounded-full blur-2xl pointer-events-none" />
 
-            {/* Top Brand Logo with White Container */}
+            {/* Top Brand Logo with White Container (Matching Mobile Exact Style) */}
             <div className="relative">
-              <div className="bg-white rounded-3xl p-4 shadow-[0_10px_30px_rgba(0,0,0,0.06)] border border-emerald-100/80 inline-flex items-center justify-center">
+              <div className="bg-white rounded-3xl p-3.5 sm:p-4 shadow-[0_8px_25px_rgba(0,0,0,0.05)] border border-emerald-100 inline-flex items-center justify-center mb-2.5">
                 <img
                   src="/krishi-transparent.png"
                   alt="Krishi Analytical Laboratory"
-                  className="h-16 w-auto object-contain"
+                  className="h-16 sm:h-20 w-auto object-contain"
                 />
               </div>
-              <div className="mt-4">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAF7F0] border border-[#D1EEE0] text-[11px] font-black uppercase tracking-wider text-[#0B6B43]">
-                  <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Laboratory Report OS
-                </div>
+              <div>
+                <span className="text-[11px] font-black uppercase tracking-wider text-[#168B57] bg-[#EAF7F0] px-3.5 py-1 rounded-full border border-[#D1EEE0] inline-flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Control Panel Access
+                </span>
               </div>
             </div>
 

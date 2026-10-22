@@ -230,7 +230,7 @@ export const Login = () => {
               <span className="flex items-center gap-1.5 font-medium">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#168B57]" /> Encrypted Session
               </span>
-              <span>182-B, Kangeyam • +91 63793 12357</span>
+              <span>182-B, Kangeyam • +91 63793 12357 / +91 88838 64756</span>
             </div>
 
           </div>

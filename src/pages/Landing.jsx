@@ -150,6 +150,18 @@ export const Landing = () => {
     api.get('/cms/landing').then(r => setCms(r.data)).catch(() => {});
     api.get('/testimonials').then(r => setTestimonials(Array.isArray(r.data) ? r.data : [])).catch(() => {});
     api.post('/traffic/visit', { page_url: window.location.pathname }).catch(() => {});
+
+    // Preload service images for instantaneous dynamic switching
+    [
+      '/service-chemist-water.jpg',
+      '/service-chemist-oil.jpg',
+      '/service-chemist-ghee.jpg',
+      '/service-chemist-feed.jpg',
+      '/service-chemist-ricebran.jpg'
+    ].forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
   }, []);
 
   const emptySample = { name: '', phone: '', email: '', sample_type: '', message: '' };
@@ -210,6 +222,7 @@ export const Landing = () => {
   };
 
   const contactPhone = cms?.contact_phone || '+91 63793 12357';
+  const contactPhone2 = '+91 88838 64756';
   const contactEmail = cms?.contact_email || 'krishianalyticallab@gmail.com';
   const contactAddress = cms?.contact_address || '182-B, Reliance Trends Near, Tiruppur Road, Kangeyam - 638701';
   const contactHours = cms?.contact_hours || 'Mon - Sat: 9am - 6pm';
@@ -233,26 +246,26 @@ export const Landing = () => {
       num: '01',
       title: 'Water Analysis',
       sub: 'Drinking, Industrial & Effluent Testing',
-      params: ['pH Level', 'TDS', 'Total Hardness (TH)', 'TSS', 'Turbidity', 'Chlorides'],
+      params: ['pH Level', 'TDS', 'Total Hardness (TH)', 'TSS', 'Turbidity'],
       icon: Droplets,
       sampleVal: 'Water',
       badge: 'Certified COA',
-      image: '/krishi-founder-services.jpg',
+      image: '/service-chemist-water.jpg',
       chemist: 'Senior Analytical Chemist • Krishi Lab',
       tech: 'Spectrophotometry, TDS & pH Titration',
       tag: 'POTABLE & EFFLUENT ANALYSIS'
     },
     {
       num: '02',
-      title: 'Oil & Fat Testing',
+      title: 'Oil (Coconut, Groundnut, Sesame, Soya, Rice Bran)',
       sub: 'Edible & Industrial Oils Quality',
-      params: ['Free Fatty Acids (FFA)', 'Moisture Value', 'Iodine Value', 'Specific Gravity', 'Saponification'],
+      params: ['Free Fatty Acids (FFA)', 'Moisture Value', 'Iodine Value', 'RI Value', 'Minerals'],
       icon: FlaskConical,
       sampleVal: 'Oil',
       badge: 'High Accuracy',
-      image: '/krishi-founder-services.jpg',
+      image: '/service-chemist-oil.jpg',
       chemist: 'Senior Analytical Chemist • Krishi Lab',
-      tech: 'Gas Chromatography (GC-MS) & FFA Titration',
+      tech: 'FFA Titration, RI Value & Mineral Analysis',
       tag: 'EDIBLE & INDUSTRIAL OIL STANDARDS'
     },
     {
@@ -263,7 +276,7 @@ export const Landing = () => {
       icon: Beaker,
       sampleVal: 'Ghee',
       badge: 'Adulteration Check',
-      image: '/krishi-founder-services.jpg',
+      image: '/service-chemist-ghee.jpg',
       chemist: 'Senior Analytical Chemist • Krishi Lab',
       tech: 'Digital Refractometry (BR @ 40°C) & RM Value',
       tag: 'PURITY & ADULTERATION TESTING'
@@ -276,7 +289,7 @@ export const Landing = () => {
       icon: Wheat,
       sampleVal: 'Animal Feed',
       badge: 'Nutrition Grade',
-      image: '/krishi-founder-services.jpg',
+      image: '/service-chemist-feed.jpg',
       chemist: 'Senior Analytical Chemist • Krishi Lab',
       tech: 'Crude Protein, Crude Fiber & Ash Digestion',
       tag: 'CATTLE & POULTRY FEED NUTRITION'
@@ -289,7 +302,7 @@ export const Landing = () => {
       icon: Leaf,
       sampleVal: 'Rice Bran',
       badge: 'Mill Standard',
-      image: '/krishi-founder-services.jpg',
+      image: '/service-chemist-ricebran.jpg',
       chemist: 'Senior Analytical Chemist • Krishi Lab',
       tech: 'Solvent Extraction (Soxhlet) & Sand Silica',
       tag: 'RICE BRAN OIL EXTRACTION SPEC'
@@ -337,10 +350,7 @@ export const Landing = () => {
       {/* ---------------------------------------------------- */}
       <div className="bg-white text-gray-900 rounded-b-[36px] sm:rounded-b-[48px] lg:rounded-b-[56px] shadow-[0_20px_50px_-15px_rgba(0,0,0,0.35)] relative overflow-hidden pt-3 sm:pt-5 pb-8 sm:pb-10 border-b border-gray-100">
         
-        {/* SPREAD LAB EQUIPMENT DECORATORS (REPLACING GENERIC GREEN DOODLES) */}
-        <div className="absolute top-6 left-6 sm:left-10 pointer-events-none opacity-40 float">
-          <LabFlaskDecor className="w-10 h-10 sm:w-14 sm:h-14 text-[#168B57]" />
-        </div>
+        {/* SPREAD LAB EQUIPMENT DECORATORS */}
         <div className="absolute top-10 right-6 sm:right-14 pointer-events-none opacity-40 float-delay">
           <LabMoleculeDecor className="w-12 h-12 sm:w-16 sm:h-16 text-[#168B57]" />
         </div>
@@ -359,13 +369,22 @@ export const Landing = () => {
           <header className="relative z-50 pt-1 sm:pt-2 pb-3">
             <div className="flex items-center justify-between w-full max-w-7xl mx-auto px-1 sm:px-3">
               
-              {/* Left Side: Brand Logo */}
-              <a href="#home" className="flex items-center group transition-transform duration-300 hover:scale-105 shrink-0">
+              {/* Left Side: Brand Logo + Divider + Company Name & Tagline (2x Larger Display) */}
+              <a href="#home" className="flex items-center gap-3 sm:gap-4 group transition-transform duration-300 hover:scale-[1.02] shrink-0">
                 <img
-                  src="/krishi-transparent.png"
-                  alt="Krishi Analytical Laboratory"
-                  className="h-10 sm:h-12 md:h-14 w-auto object-contain"
+                  src="/krishi-pdf-logo.png"
+                  alt="Krishi Analytical Lab"
+                  className="h-16 sm:h-20 md:h-24 w-auto object-contain shrink-0 drop-shadow-sm"
                 />
+                <div className="h-12 sm:h-16 md:h-18 w-[3px] bg-[#0B6B43] rounded-full" />
+                <div className="text-left flex flex-col justify-center">
+                  <span className="font-display font-black text-base sm:text-xl md:text-2xl lg:text-3xl text-[#0B6B43] tracking-tight leading-none uppercase">
+                    KRISHI ANALYTICAL LAB
+                  </span>
+                  <span className="text-[10px] sm:text-xs md:text-sm font-semibold italic text-gray-700 tracking-tight leading-tight mt-1 sm:mt-1.5">
+                    “Discovering Solutions, One Test at a Time”
+                  </span>
+                </div>
               </a>
 
               {/* Center Navigation Links */}
@@ -482,7 +501,7 @@ export const Landing = () => {
             {/* Top Compact Brand Headline */}
             <div className="text-center pt-1 px-1">
               <h1 className="font-display font-black text-3xl sm:text-4xl text-gray-900 leading-tight tracking-tight">
-                REPORTS <span className="text-[#0B6B43]">DELIVERED</span>
+                REPORTS <span className="text-[#0B6B43]">ANALYTICAL LAB</span>
               </h1>
               <p className="text-xs text-gray-500 mt-1 font-medium max-w-xs mx-auto">
                 Government-standard food, oil & water testing with 24h turnaround.
@@ -507,7 +526,7 @@ export const Landing = () => {
                   Where Precision Meets Absolute Confidence
                 </h2>
                 <p className="text-xs text-emerald-100/90 mt-1.5 leading-relaxed font-normal max-w-xs mx-auto">
-                  Elevate your agro-commodity quality with tamper-proof laboratory testing trusted by 500+ mills.
+                  Elevate your agro-commodity quality with tamper-proof laboratory testing trusted by 150+ mills.
                 </p>
 
                 {/* Primary Touch-Friendly CTA Buttons */}
@@ -561,8 +580,8 @@ export const Landing = () => {
                     <img src="/krishi-founder-about2.jpg" className="w-6 h-6 rounded-full border border-emerald-400 object-cover" alt="Analyst" />
                   </div>
                   <div className="text-left">
-                    <p className="text-[10px] font-bold text-white leading-none">Trusted by 500+ Mills & Traders</p>
-                    <p className="text-[8px] text-emerald-200 mt-0.5">Kangeyam • Tiruppur • Erode</p>
+                    <p className="text-[10px] font-bold text-white leading-none">Trusted by 150+ Mills & Traders</p>
+                    <p className="text-[8px] text-emerald-200 mt-0.5">Kangeyam • Tiruppur • Erode • Coimbatore • Salem • Dindigul • Trichy</p>
                   </div>
                 </div>
                 <span className="text-rose-400 text-xs font-bold">♥ 4.9/5</span>
@@ -626,10 +645,10 @@ export const Landing = () => {
               {/* Right Headline */}
               <div className="col-span-5 text-right">
                 <span className="font-display font-medium text-gray-800 text-3xl tracking-tight block">
-                  Certified Quality
+                  Analytical
                 </span>
                 <span className="font-display font-black text-7xl text-[#0B6B43] tracking-tighter flex items-center justify-end gap-2 leading-[0.95] mt-1">
-                  DELIVERED
+                  LAB
                   <Sparkle4 className="w-9 h-9 text-[#3af04f] shrink-0" />
                 </span>
               </div>
@@ -694,9 +713,9 @@ export const Landing = () => {
                       </div>
                       <div className="text-left">
                         <p className="text-[11px] font-bold text-white flex items-center gap-1 leading-none">
-                          Trusted by 500+ Mills & Traders <span className="text-rose-400">♥</span>
+                          Trusted by 150+ Mills & Traders <span className="text-rose-400">♥</span>
                         </p>
-                        <p className="text-[9px] text-emerald-200 mt-0.5">Kangeyam • Tiruppur • Erode</p>
+                        <p className="text-[9px] text-emerald-200 mt-0.5">Kangeyam • Tiruppur • Erode • Coimbatore • Salem • Dindigul • Trichy</p>
                       </div>
                     </div>
                   </div>
@@ -777,20 +796,19 @@ export const Landing = () => {
               </div>
             </a>
 
-            <a
-              href="tel:+916379312357"
-              className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-gray-50/90 hover:bg-emerald-50/70 transition-all border border-gray-200/50 hover:border-emerald-300 shadow-sm group"
-            >
+            <div className="flex items-center gap-2.5 p-2.5 rounded-2xl bg-gray-50/90 hover:bg-emerald-50/70 transition-all border border-gray-200/50 hover:border-emerald-300 shadow-sm group">
               <div className="p-2 rounded-xl bg-white shadow-sm text-[#0B6B43] border border-gray-200/40 shrink-0 group-hover:scale-110 transition-transform">
                 <Phone className="w-4 h-4 text-[#0B6B43]" />
               </div>
               <div className="min-w-0">
                 <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400 block leading-tight">Call / WhatsApp</span>
-                <p className="text-xs sm:text-sm font-bold text-gray-900 group-hover:text-[#0B6B43] truncate mt-0.5">
-                  +91 63793 12357
+                <p className="text-[11px] sm:text-xs font-bold text-gray-900 group-hover:text-[#0B6B43] truncate mt-0.5 flex items-center gap-1.5">
+                  <a href="tel:+916379312357" className="hover:underline">{contactPhone}</a>
+                  <span className="text-gray-400 font-normal">/</span>
+                  <a href="tel:+918883864756" className="hover:underline">{contactPhone2}</a>
                 </p>
               </div>
-            </a>
+            </div>
 
             <a
               href="mailto:krishianalyticallab@gmail.com"
@@ -895,16 +913,22 @@ export const Landing = () => {
             <div className="relative rounded-3xl overflow-hidden h-[340px] sm:h-[420px] border border-white/10 group shadow-2xl bg-black">
               <img
                 src="/krishi-founder-about1.jpg"
-                alt="Analytical Testing Chemist"
+                alt="Founder D.Saravanan"
                 className="w-full h-full object-cover contrast-110 group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-transparent pointer-events-none" />
               
-              {/* Neon Green Pill Badge */}
-              <div className="absolute bottom-6 left-6">
-                <span className="bg-[#3af04f] text-black font-black text-[11px] sm:text-xs uppercase px-4 py-2 rounded-xl tracking-wider shadow-lg">
-                  A Certified Analytical Lab
+              {/* Founder Overlay Info */}
+              <div className="absolute bottom-6 left-6 right-6">
+                <span className="inline-block bg-[#3af04f] text-black font-black text-[10px] sm:text-xs uppercase px-3 py-1 rounded-xl tracking-wider shadow-lg mb-2">
+                  Founder
                 </span>
+                <p className="text-white font-display font-black text-lg sm:text-2xl drop-shadow leading-tight">
+                  D.Saravanan
+                </p>
+                <p className="text-emerald-300 font-semibold text-xs sm:text-sm mt-0.5 drop-shadow">
+                  M.Sc (Microbiology), DMLT
+                </p>
               </div>
             </div>
           </Reveal>
@@ -917,25 +941,7 @@ export const Landing = () => {
                 alt="Precision Sample Testing"
                 className="w-full h-full object-cover contrast-110 group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-              
-              {/* Hand-drawn red/coral outline doodle idea bulb over head */}
-              <div className="absolute top-8 right-10 pointer-events-none">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round">
-                  <path d="M24 6C16 6 12 12 12 18C12 23 16 26 18 30L30 30C32 26 36 23 36 18C36 12 32 6 24 6Z" />
-                  <path d="M19 36L29 36" />
-                  <path d="M21 42L27 42" />
-                  <path d="M24 2L24 0" />
-                  <path d="M38 12L41 10" />
-                  <path d="M10 12L7 10" />
-                </svg>
-              </div>
-
-              <div className="absolute bottom-6 left-6 right-6">
-                <p className="text-xs font-black text-[#3af04f] tracking-widest uppercase">Precision Standards</p>
-                <h3 className="text-xl sm:text-2xl font-black text-white mt-1">Science You Can Rely On</h3>
-                <p className="text-xs text-gray-300 mt-1 max-w-md">From sample receipt in Kangeyam to ISO & NABL aligned Certificate of Analysis.</p>
-              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
             </div>
           </Reveal>
 
@@ -1077,23 +1083,14 @@ export const Landing = () => {
                   ))}
                 </div>
 
-                {/* Bottom Overlay & "See sample report" Pill Button */}
-                <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-white font-display font-black text-lg sm:text-xl drop-shadow truncate">
-                      {servicesList[activeService].chemist}
-                    </p>
-                    <p className="text-xs text-gray-300 font-medium truncate mt-0.5">
-                      {servicesList[activeService].tech}
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={() => setReportModalOpen(true)}
-                    className="bg-black/90 hover:bg-black text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-full border border-white/20 hover:border-[#3af04f] transition-all shadow-xl shrink-0 flex items-center gap-2 group-hover:scale-105"
-                  >
-                    <Eye className="w-4 h-4 text-[#3af04f]" /> Sample Report
-                  </button>
+                {/* Bottom Overlay Info */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <p className="text-white font-display font-black text-lg sm:text-xl drop-shadow truncate">
+                    {servicesList[activeService].chemist}
+                  </p>
+                  <p className="text-xs text-gray-300 font-medium truncate mt-0.5">
+                    {servicesList[activeService].tech}
+                  </p>
                 </div>
 
               </div>
@@ -1306,7 +1303,11 @@ export const Landing = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <Phone className="w-4 h-4 text-[#3af04f] shrink-0" />
-                  <span>{contactPhone}</span>
+                  <div className="flex flex-wrap items-center gap-x-2">
+                    <a href="tel:+916379312357" className="hover:text-white transition-colors">{contactPhone}</a>
+                    <span className="text-gray-500">•</span>
+                    <a href="tel:+918883864756" className="hover:text-white transition-colors">{contactPhone2}</a>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="w-4 h-4 text-[#3af04f] shrink-0" />
@@ -1429,12 +1430,21 @@ export const Landing = () => {
           
           <div className="space-y-4 md:col-span-2">
             <div className="inline-flex items-center">
-              <div className="bg-white rounded-2xl px-5 py-3 shadow-xl shadow-black/40 border border-white/80 inline-flex items-center justify-center transition-transform hover:scale-105 duration-300">
+              <div className="bg-white rounded-2xl px-4 py-3 shadow-xl shadow-black/40 border border-white/80 inline-flex items-center gap-2.5 sm:gap-3 transition-transform hover:scale-105 duration-300">
                 <img
-                  src="/krishi-transparent.png"
+                  src="/krishi-pdf-logo.png"
                   alt="Krishi Analytical Lab"
-                  className="h-10 sm:h-12 w-auto object-contain"
+                  className="h-10 sm:h-11 w-auto object-contain shrink-0"
                 />
+                <div className="h-8 sm:h-9 w-[2px] bg-[#0B6B43] rounded-full" />
+                <div className="text-left">
+                  <span className="font-display font-black text-xs sm:text-sm text-[#0B6B43] tracking-tight leading-none block uppercase">
+                    KRISHI ANALYTICAL LAB
+                  </span>
+                  <span className="text-[8px] sm:text-[9.5px] font-semibold italic text-gray-700 tracking-tight block mt-0.5">
+                    “Discovering Solutions, One Test at a Time”
+                  </span>
+                </div>
               </div>
             </div>
             <p className="text-gray-400 leading-relaxed max-w-md">
@@ -1442,6 +1452,12 @@ export const Landing = () => {
             </p>
             <p className="text-[11px] text-gray-500">
               Address: {contactAddress}
+            </p>
+            <p className="text-[11px] text-gray-400 flex items-center gap-1.5 mt-1">
+              <Phone className="w-3.5 h-3.5 text-[#3af04f]" />
+              <a href="tel:+916379312357" className="hover:text-white transition-colors">{contactPhone}</a>
+              <span>•</span>
+              <a href="tel:+918883864756" className="hover:text-white transition-colors">{contactPhone2}</a>
             </p>
           </div>
 

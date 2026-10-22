@@ -66,7 +66,7 @@ export const WhatsAppModal = ({
       }
 
       lines.push('*Krishi Analytical Laboratory*');
-      lines.push('Kangeyam - 638701 | Ph: +91 63793 12357');
+      lines.push('Kangeyam - 638701 | Ph: +91 63793 12357, +91 88838 64756');
 
       return lines.join('\n');
     } catch (e) {

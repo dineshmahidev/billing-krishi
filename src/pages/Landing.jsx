@@ -472,16 +472,10 @@ export const Landing = () => {
                 >
                   <Phone className="w-4 h-4 text-[#168B57]" /> Contact
                 </a>
-                <div className="pt-2 border-t border-gray-100 flex items-center justify-between">
-                  <a
-                    href="/panel"
-                    className="text-xs font-bold text-gray-600 hover:text-black flex items-center gap-1.5"
-                  >
-                    Staff Portal →
-                  </a>
+                <div className="pt-2 border-t border-gray-100">
                   <button
                     onClick={() => { setMobileOpen(false); setSampleModalOpen(true); }}
-                    className="bg-[#168B57] text-white font-extrabold px-4 py-2 rounded-full text-xs shadow-md"
+                    className="w-full bg-[#168B57] hover:bg-[#0B6B43] text-white font-extrabold px-4 py-2.5 rounded-full text-xs shadow-md transition-colors"
                   >
                     Book Sample Test
                   </button>
@@ -501,11 +495,8 @@ export const Landing = () => {
             {/* Top Compact Brand Headline */}
             <div className="text-center pt-1 px-1">
               <h1 className="font-display font-black text-3xl sm:text-4xl text-gray-900 leading-tight tracking-tight">
-                REPORTS <span className="text-[#0B6B43]">ANALYTICAL LAB</span>
+                Accurate Lab <span className="text-[#0B6B43]">REPORTS</span>
               </h1>
-              <p className="text-xs text-gray-500 mt-1 font-medium max-w-xs mx-auto">
-                Government-standard food, oil & water testing with 24h turnaround.
-              </p>
             </div>
 
             {/* Mobile Emerald Curved Hero Card */}

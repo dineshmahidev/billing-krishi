@@ -13,21 +13,36 @@ import {
   ArrowUpRight
 } from 'lucide-react';
 
+const toLocalISO = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+const todayISO = () => toLocalISO(new Date());
+
+const firstDayISO = () => {
+  const d = new Date();
+  d.setDate(1);
+  return toLocalISO(d);
+};
+
 export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
   const [metrics, setMetrics] = useState({ total_reports: 0, today_reports: 0, month_reports: 0 });
   const [traffic, setTraffic] = useState({ total_visits: 0, today_visits: 0, unique_ips: 0 });
   const [recent, setRecent] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Date filters for display
-  const todayStr = new Date().toISOString().split('T')[0].split('-').reverse().join('-');
-  const firstDayStr = '01-' + todayStr.slice(3);
+  // Date range filter
+  const [fromDate, setFromDate] = useState(firstDayISO);
+  const [toDate, setToDate] = useState(todayISO);
 
-  const loadDashboard = async () => {
+  const loadDashboard = async (from = fromDate, to = toDate) => {
     setLoading(true);
     try {
       const [res, trafRes] = await Promise.all([
-        api.get('/dashboard'),
+        api.get('/dashboard', { params: { from, to } }),
         api.get('/traffic/stats').catch(() => ({ data: { total_visits: 0, today_visits: 0 } })),
       ]);
       setMetrics(res.data.metrics || {});
@@ -38,8 +53,20 @@ export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
     }
   };
 
+  const applyFilter = () => {
+    let from = fromDate;
+    let to = toDate;
+    if (from && to && from > to) {
+      [from, to] = [to, from];
+      setFromDate(from);
+      setToDate(to);
+    }
+    loadDashboard(from, to);
+  };
+
   useEffect(() => {
     loadDashboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -58,15 +85,27 @@ export const Dashboard = ({ setActiveTab, setSelectedReportId }) => {
           <div className="bg-white rounded-2xl px-3 py-1.5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-white/90 flex items-center gap-2 text-xs text-gray-700">
             <div className="flex items-center gap-1.5 text-gray-500 font-semibold px-1">
               <Calendar className="w-3.5 h-3.5 text-gray-400" />
-              <span>{firstDayStr}</span>
+              <input
+                type="date"
+                value={fromDate}
+                max={toDate || undefined}
+                onChange={(e) => setFromDate(e.target.value)}
+                className="bg-transparent text-xs font-semibold text-gray-700 outline-none focus:text-[#168B57] cursor-pointer"
+              />
             </div>
             <span className="text-gray-400 text-[11px] font-medium">to</span>
             <div className="flex items-center gap-1.5 text-gray-500 font-semibold px-1">
               <Calendar className="w-3.5 h-3.5 text-gray-400" />
-              <span>{todayStr}</span>
+              <input
+                type="date"
+                value={toDate}
+                min={fromDate || undefined}
+                onChange={(e) => setToDate(e.target.value)}
+                className="bg-transparent text-xs font-semibold text-gray-700 outline-none focus:text-[#168B57] cursor-pointer"
+              />
             </div>
             <button
-              onClick={() => loadDashboard()}
+              onClick={applyFilter}
               className="bg-[#0E2030] hover:bg-black text-white px-3 py-1 rounded-xl text-xs font-bold transition-all shadow-xs"
             >
               Apply

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LogOut, Menu, User, Shield, UserCog, FlaskConical, ChevronDown } from 'lucide-react';
@@ -9,6 +9,25 @@ export const Header = ({ onToggleSidebar }) => {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
+  const [profileHidden, setProfileHidden] = useState(false);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (y <= 16) {
+        setProfileHidden(false);
+      } else if (y > lastY + 4) {
+        setProfileHidden(true);
+        setOpen(false);
+      } else if (y < lastY - 4) {
+        setProfileHidden(false);
+      }
+      lastY = y;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   const userInitials =
     user?.name
@@ -40,7 +59,7 @@ export const Header = ({ onToggleSidebar }) => {
           </div>
 
           {/* Right Side: Administrator User Info + Round Lime Avatar */}
-          <div className="flex items-center gap-3">
+          <div className={`flex items-center gap-3 transition-all duration-300 ease-out ${profileHidden ? 'opacity-0 -translate-y-3 pointer-events-none' : 'opacity-100 translate-y-0'}`}>
             <div className="hidden sm:block text-right">
               <p className="text-xs font-bold text-gray-900 leading-tight">
                 {user?.name || 'Krishi Administrator'}

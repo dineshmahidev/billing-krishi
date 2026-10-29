@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { useToast } from '../../components/common/Toast';
 import { useAuth } from '../../context/AuthContext';
-import { CheckSquare, Square, Sliders, Layers, ArrowUp, ArrowDown, Trash2, Plus, MoveVertical } from 'lucide-react';
+import { CheckSquare, Square, Sliders, Layers, ArrowUp, ArrowDown, Trash2, Plus, MoveVertical, ListChecks, Pencil } from 'lucide-react';
 
 export const REPORT_FIELD_DEFINITIONS = [
   { key: 'report_no', label: 'Report No', desc: 'Manual or auto-generated report number (e.g. KAL-4412)' },
@@ -33,6 +33,26 @@ export const DEFAULT_VISIBLE_FIELDS = [
   'bags_tons',
 ];
 
+export const isSpecificationLabel = (label) => {
+  const norm = String(label || '').toUpperCase().replace(/[^A-Z]/g, '');
+  if (!norm) return false;
+  const target = 'SPECIFICATION';
+  if (norm === target || norm === 'SPECIFICATIONS') return true;
+  if (norm.startsWith('SPECIF')) return true;
+  if (Math.abs(norm.length - target.length) > 3) return false;
+  const prev = Array.from({ length: target.length + 1 }, (_, i) => i);
+  for (let i = 1; i <= norm.length; i++) {
+    let last = prev[0];
+    prev[0] = i;
+    for (let j = 1; j <= target.length; j++) {
+      const tmp = prev[j];
+      prev[j] = Math.min(prev[j] + 1, prev[j - 1] + 1, last + (norm[i - 1] === target[j - 1] ? 0 : 1));
+      last = tmp;
+    }
+  }
+  return prev[target.length] <= 2;
+};
+
 export const getDefaultTableColumns = (reportType = {}) => {
   if (Array.isArray(reportType.table_columns) && reportType.table_columns.length > 0) {
     const mapped = reportType.table_columns.map((c, i) => ({
@@ -48,8 +68,7 @@ export const getDefaultTableColumns = (reportType = {}) => {
 
     let hasSpec = mapped.some(c => c.key === 'specification');
     return mapped.filter(c => {
-      const isSpecLabel = String(c.label).trim().toUpperCase() === 'SPECIFICATION';
-      if (c.type === 'custom' && isSpecLabel) {
+      if (c.type === 'custom' && isSpecificationLabel(c.label)) {
         if (hasSpec) return false;
         hasSpec = true;
         c.key = 'specification';
@@ -104,6 +123,8 @@ export const ReportTypes = () => {
   const [newColAffixValue, setNewColAffixValue] = useState('');
   const [newColAlign, setNewColAlign] = useState('center');
   const [isCustomQty, setIsCustomQty] = useState(false);
+  const [tab, setTab] = useState('basics');
+  const [filterId, setFilterId] = useState('');
 
   const loadTypes = async () => {
     try {
@@ -287,7 +308,9 @@ export const ReportTypes = () => {
   };
 
   const startEdit = (t) => {
+    setTab('basics');
     setEditing(t.id);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     const qLabel = t.quantity_label || 'Tons / Bags';
     const initialTableCols = getDefaultTableColumns(t);
     setForm({
@@ -332,6 +355,8 @@ export const ReportTypes = () => {
   const submit = async (e) => {
     e.preventDefault();
     if (isDemo) { addToast('Demo Mode: Action disabled', 'error'); return; }
+    if (!form.name.trim()) { addToast('Report Type Name is required', 'error'); setTab('basics'); return; }
+    if (!form.title.trim()) { addToast('Report Title is required', 'error'); setTab('basics'); return; }
     try {
       const qLabel = form.quantity_label?.trim() || 'Tons / Bags';
       
@@ -375,6 +400,7 @@ export const ReportTypes = () => {
       const r = await api.delete(`/report-types/${t.id}`);
       addToast(r.data?.message || 'Deleted');
       if (editing === t.id) resetForm();
+      if (String(filterId) === String(t.id)) setFilterId('');
       loadTypes();
     } catch (err) {
       addToast(err.response?.data?.message || 'Delete failed', 'error');
@@ -392,6 +418,17 @@ export const ReportTypes = () => {
     }
   };
 
+  const Tab = ({ id, label, icon: Icon, count }) => (
+    <button onClick={() => setTab(id)} className={`px-4 py-2 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all ${tab === id ? 'bg-gradient-to-r from-[#168B57] to-[#0B6B43] text-white shadow-[0_4px_14px_rgba(22,139,87,0.25)]' : 'bg-white border border-gray-200 text-gray-600 hover:bg-[#EAF7F0] hover:text-[#0B6B43]'}`}>
+      <Icon className="w-3.5 h-3.5" /> {label}
+      {count !== undefined && <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${tab === id ? 'bg-white/25 text-white' : 'bg-[#EAF7F0] text-[#0B6B43]'}`}>{count}</span>}
+    </button>
+  );
+
+  const visibleColsCount = form.table_columns.filter(c => c.visible !== false).length;
+  const activeFieldsCount = (form.visible_fields || []).length;
+  const filteredTypes = filterId ? list.filter(t => String(t.id) === String(filterId)) : list;
+
   return (
     <div className="space-y-5 max-w-4xl">
       <div>
@@ -401,7 +438,75 @@ export const ReportTypes = () => {
         </p>
       </div>
 
+      {/* Filter bar — OUTSIDE all tabs: select existing type + create new */}
+      <div className="flex flex-wrap items-center gap-3 bg-white rounded-2xl px-4 py-3 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80">
+        <div className="flex items-center gap-2 flex-1 min-w-[250px]">
+          <span className="text-xs font-bold text-gray-700 flex items-center gap-1.5 shrink-0">
+            <Layers className="w-3.5 h-3.5 text-[#168B57]" /> Select Report Type:
+          </span>
+          <select
+            value={filterId}
+            onChange={e => {
+              const id = e.target.value;
+              setFilterId(id);
+              if (id) setTab('list');
+            }}
+            className="flex-1 min-w-[180px] h-10 px-3.5 bg-gray-50/70 border border-gray-200/90 rounded-2xl text-xs font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#168B57]/25 focus:border-[#168B57] focus:bg-white transition-all shadow-2xs cursor-pointer"
+          >
+            <option value="">— All report types —</option>
+            {list.map(t => (
+              <option key={t.id} value={t.id}>
+                {t.name} — {t.title}{t.active ? '' : ' (Inactive)'}
+              </option>
+            ))}
+          </select>
+        </div>
+        {!isDemo && (
+          <button
+            type="button"
+            onClick={() => { setFilterId(''); resetForm(); setTab('basics'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            className="ml-auto h-10 px-5 rounded-2xl bg-gradient-to-r from-[#168B57] to-[#0B6B43] hover:from-[#0B6B43] hover:to-[#168B57] text-white font-bold text-xs flex items-center gap-1.5 shadow-[0_4px_14px_rgba(22,139,87,0.25)] hover:scale-[1.01] active:scale-[0.99] transition-all"
+          >
+            <Plus className="w-4 h-4" /> New Type
+          </button>
+        )}
+      </div>
+
+      {/* Current context — outside tabs, name visible on every tab */}
+      <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 rounded-2xl border border-emerald-200 bg-[#EAF7F0] text-xs font-bold text-[#0B6B43] shadow-2xs">
+        {editing ? (
+          <>
+            <Pencil className="w-3.5 h-3.5" />
+            Editing:
+            <span className="font-black">{form.name || 'Untitled Type'}</span>
+          </>
+        ) : filterId ? (
+          <>
+            <span className="px-2 py-0.5 rounded-md bg-[#0B6B43] text-white text-[10px] uppercase tracking-wider">Selected</span>
+            <span className="font-black">{list.find(t => String(t.id) === String(filterId))?.name || '—'}</span>
+          </>
+        ) : (
+          <>
+            <span className="px-2 py-0.5 rounded-md bg-[#168B57] text-white text-[10px] uppercase tracking-wider">Creating</span>
+            {form.name.trim() ? (
+              <span className="font-black">{form.name}</span>
+            ) : (
+              <span className="font-medium text-[#168B57]">New report type — enter name in Basic Info</span>
+            )}
+          </>
+        )}
+      </div>
+
+      <div className="flex gap-2.5 flex-wrap">
+        <Tab id="basics" label="Basic Info" icon={Sliders} />
+        <Tab id="fields" label="Report Fields" icon={CheckSquare} count={activeFieldsCount} />
+        <Tab id="columns" label="Table Columns" icon={MoveVertical} count={visibleColsCount} />
+        <Tab id="list" label="Report List" icon={ListChecks} count={filteredTypes.length} />
+      </div>
+
+      {tab !== 'list' && (
       <form onSubmit={submit} className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 space-y-6">
+        {tab === 'basics' && (
         <div className="flex flex-wrap gap-4 items-end">
           <div>
             <label className="text-xs font-bold text-gray-900">Report Type Name *</label>
@@ -432,8 +537,10 @@ export const ReportTypes = () => {
             /> Active
           </label>
         </div>
+        )}
 
         {/* Configurable Report Fields (Check/Uncheck to show in New Report & PDF) */}
+        {tab === 'fields' && (
         <div className="border border-gray-100 bg-gray-50/50 rounded-2xl p-4 sm:p-5 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -495,8 +602,11 @@ export const ReportTypes = () => {
             })}
           </div>
         </div>
+        )}
 
         {/* Quantity / Unit Radio Options */}
+        {tab === 'basics' && (
+        <>
         <div className="border border-gray-100 bg-gray-50/50 rounded-2xl p-4 sm:p-5 space-y-3">
           <label className="text-xs font-bold text-[#0B6B43] block">
             Quantity / Unit / Tons Field Label in Report &amp; PDF:
@@ -569,8 +679,8 @@ export const ReportTypes = () => {
           </p>
         </div>
 
-        {/* Default Nature of Sample, Remarks & Notes Templates */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Default Nature of Sample, Remarks & Notes Templates — one below another */}
+        <div className="grid grid-cols-1 gap-4">
           {/* Default Nature of Sample Template */}
           <div className="border border-gray-100 bg-gray-50/50 rounded-2xl p-4 space-y-2.5">
             <div>
@@ -637,8 +747,11 @@ export const ReportTypes = () => {
             />
           </div>
         </div>
+        </>
+        )}
 
         {/* ALL Table Columns & Positions Manager */}
+        {tab === 'columns' && (
         <div className="border border-gray-100 bg-gray-50/50 rounded-2xl p-4 sm:p-5 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
@@ -989,6 +1102,7 @@ export const ReportTypes = () => {
             </div>
           </div>
         </div>
+        )}
 
         <div className="flex gap-3 pt-2">
           <button
@@ -1009,9 +1123,26 @@ export const ReportTypes = () => {
           )}
         </div>
       </form>
+      )}
 
-      {/* List of all Report Types */}
+      {tab === 'list' && (
       <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-[0_4px_25px_rgba(0,0,0,0.03)] border border-white/80 overflow-hidden">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div>
+            <p className="text-xs font-bold text-[#0B6B43]">Report List ({filteredTypes.length}{filterId ? ` of ${list.length}` : ''})</p>
+            <p className="text-[11px] text-gray-500 mt-0.5">Click <strong>Edit</strong> to load a type into the form tabs above. Inactive types are shown in red.</p>
+          </div>
+          {filterId && (
+            <button
+              type="button"
+              onClick={() => setFilterId('')}
+              className="px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-[11px] font-bold text-[#0B6B43] hover:bg-emerald-50 shadow-2xs transition-colors flex items-center gap-1.5"
+              title="Clear filter"
+            >
+              Filtered: {list.find(t => String(t.id) === String(filterId))?.name || '—'} ✕
+            </button>
+          )}
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
             <thead>
@@ -1021,17 +1152,23 @@ export const ReportTypes = () => {
                 <th className="py-3 px-4">Qty / Unit Label</th>
                 <th className="py-3 px-4">Mapped Fields</th>
                 <th className="py-3 px-4">Table Columns Order</th>
-                <th className="py-3 px-4">Active / Status</th>
                 {!isDemo && <th className="py-3 px-4 text-right rounded-r-2xl">Actions</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {list.map(t => {
+              {filteredTypes.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-xs font-semibold text-gray-400">
+                    No report types found{filterId ? ' for this filter' : ''}.
+                  </td>
+                </tr>
+              )}
+              {filteredTypes.map(t => {
                 const activeFields = t.visible_fields && t.visible_fields.length > 0 ? t.visible_fields : DEFAULT_VISIBLE_FIELDS;
                 const configuredCols = getDefaultTableColumns(t).filter(c => c.visible !== false);
                 return (
-                  <tr key={t.id} className={`hover:bg-gray-50/60 transition-colors ${t.active ? '' : 'opacity-60 bg-gray-50/30'}`}>
-                    <td className="py-3.5 px-4 font-bold text-gray-900">{t.name}</td>
+                  <tr key={t.id} className={`transition-colors ${t.active ? 'hover:bg-gray-50/60' : 'bg-red-50 hover:bg-red-100'}`}>
+                    <td className={`py-3.5 px-4 font-bold ${t.active ? 'text-gray-900' : 'text-red-700'}`}>{t.name}</td>
                     <td className="py-3.5 px-4 text-gray-600 font-semibold">{t.title}</td>
                     <td className="py-3.5 px-4">
                       <span className="inline-block px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200/80 text-[#0B6B43] font-bold text-[11px]">
@@ -1065,24 +1202,23 @@ export const ReportTypes = () => {
                         ))}
                       </div>
                     </td>
-                    <td className="py-3.5 px-4">
-                      <button
-                        type="button"
-                        disabled={isDemo}
-                        onClick={() => toggleActive(t)}
-                        className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all shadow-2xs ${
-                          t.active ? 'bg-[#EAF7F0] text-[#0B6B43] hover:bg-emerald-100' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
-                        title="Click to toggle active/inactive"
-                      >
-                        {t.active ? '✓ Active' : '✗ Disabled'}
-                      </button>
-                    </td>
                     {!isDemo && (
                       <td className="py-3.5 px-4 text-right">
                         <div className="flex gap-1.5 justify-end">
-                          <button onClick={() => startEdit(t)} className="px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-bold text-gray-700 hover:bg-gray-50 shadow-2xs transition-all">Edit</button>
-                          <button onClick={() => remove(t)} className="px-3 py-1.5 rounded-xl border border-red-200 text-red-600 text-xs font-bold hover:bg-red-50 shadow-2xs transition-all">Delete</button>
+                          <button
+                            onClick={() => startEdit(t)}
+                            title="Edit report type"
+                            className="p-2 rounded-xl border border-gray-200 text-gray-600 hover:text-[#0B6B43] hover:border-emerald-300 hover:bg-emerald-50 shadow-2xs transition-all"
+                          >
+                            <Pencil className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => remove(t)}
+                            title="Delete report type"
+                            className="p-2 rounded-xl border border-red-200 text-red-500 hover:text-red-700 hover:bg-red-50 shadow-2xs transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     )}
@@ -1093,6 +1229,7 @@ export const ReportTypes = () => {
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 };
